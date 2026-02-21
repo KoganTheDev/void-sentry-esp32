@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <esp_camera.h>
 #include "../../../include/move_types.h"
+#include <esp_camera.h>
 #include <tuple>
 
 /**
@@ -64,7 +64,5 @@ public:
      * @param quality JPEG quality (1-100)
      * @return true if encoding succeeded, false otherwise (or not supported)
      */
-    virtual bool get_jpeg_with_overlay(uint8_t** jpeg_buf, size_t* jpeg_len, uint8_t quality = 80)
-    {
-        return false;
-    }};
+    virtual bool get_jpeg_with_overlay(uint8_t** jpeg_buf, size_t* jpeg_len, uint8_t quality = 80) { return false; }
+};

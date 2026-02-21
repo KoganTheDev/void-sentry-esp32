@@ -24,15 +24,14 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
     // 1. Increase the number of allowed simultaneous connections
-    config.max_open_sockets = 10; 
-    
+    config.max_open_sockets = 10;
+
     // 2. IMPORTANT: Enable purging of old connections
     // This allows the server to close an idle connection to make room for your JSON request
-    config.lru_purge_enable = true; 
+    config.lru_purge_enable = true;
 
     // 3. Optional: Increase stack size if you see crashes during JSON processing
     config.stack_size = 8192;
-
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
