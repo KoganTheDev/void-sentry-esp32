@@ -1,219 +1,313 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Modern Single-File HTML — Portfolio</title>
-  <meta name="description" content="Simple, responsive single-file HTML portfolio template with CSS and small JS interactions." />
-  <style>
-    :root{
-      --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#60a5fa; --glass: rgba(255,255,255,0.03);
-      --radius:14px; --container:1100px;
-      color-scheme: dark;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,var(--bg),#081021); color:#e6eef8; -webkit-font-smoothing:antialiased;
-      line-height:1.45; padding:28px 20px; display:flex; justify-content:center;
-    }
-    .wrap{width:100%; max-width:var(--container)}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ESP32 Turret Command</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --panel: #1e1e1e;
+            --accent: #ff6b00;
+            --text: #e0e0e0;
+            --terminal: #00ff41;
+            --error: #ff0000;
+        }
 
-    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),#7c3aed);border-radius:10px;display:grid;place-items:center;font-weight:700}
-    nav{display:flex;gap:12px;align-items:center}
-    nav a{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:10px}
-    nav a:hover{color:var(--accent);background:var(--glass)}
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overscroll-behavior: none;
+        }
 
-    .hero{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:center;margin-bottom:26px}
-    @media (max-width:880px){.hero{grid-template-columns:1fr;padding-bottom:18px}.hero > *{grid-column:1}}
+        .dashboard {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1fr 300px; /* Stream left, Stats right */
+            grid-template-rows: auto auto;    /* Top row for stream/stats, bottom for controls */
+            gap: 20px;
+        }
 
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:20px;border-radius:var(--radius);box-shadow:0 6px 20px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+        /* Responsive: Stack on small screens */
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    h1{margin:0;font-size:26px}
-    p.lead{color:var(--muted);margin-top:10px}
+        /* --- Header --- */
+        .header {
+            grid-column: 1 / -1;
+            border-left: 4px solid var(--accent);
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
 
-    .controls{display:flex;gap:10px;margin-top:16px}
-    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 12px;border-radius:10px;color:inherit;text-decoration:none;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),#7c3aed);color:#041025;border:none}
+        /* --- Video Section --- */
+        .video-box {
+            background: #000;
+            border-radius: 8px;
+            position: relative;
+            aspect-ratio: 16 / 9;
+            border: 1px solid #333;
+            overflow: hidden;
+            width: 100%;
+        }
+        #streamImg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #overlayCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Allows clicks to pass through if needed */
+        }
 
-    /* Projects grid */
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
-    @media (max-width:880px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:560px){.grid{grid-template-columns:1fr}}
-    .project{padding:14px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.02)}
-    .project h3{margin:6px 0 4px;font-size:16px}
-    .project p{margin:0;color:var(--muted);font-size:13px}
+        /* --- Stats Panel (Right Side) --- */
+        .stats-panel {
+            background: var(--panel);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .stats-panel h3 {
+            margin: 0 0 10px 0;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 4px;
+        }
+        .stat-val { color: var(--terminal); }
 
-    /* Footer / contact */
-    footer{margin-top:28px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-    .small{font-size:13px;color:var(--muted)}
+        /* --- Controls Section (Bottom) --- */
+        .control-panel {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            padding: 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
 
-    /* small interactions */
-    .toggle{display:inline-grid;grid-auto-flow:column;gap:8px;align-items:center}
-    input[type=search]{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:inherit}
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+            gap: 8px;
+        }
+        .btn {
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 1px solid #444;
+        }
+        .btn svg { width: 24px; fill: white; }
+        .btn:active, .btn.active { background: var(--accent); transform: scale(0.95); }
 
-    /* subtle animations */
-    .logo, .card, .project{transition:transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s}
-    .logo:hover{transform:translateY(-4px)}
-    .project:hover{transform:translateY(-6px);box-shadow:0 14px 40px rgba(2,6,23,0.6)}
+        .up { grid-area: 1 / 2; }
+        .left { grid-area: 2 / 1; }
+        .right { grid-area: 2 / 3; }
+        .down { grid-area: 3 / 2; }
 
-    /* Accessibility helpers */
-    a:focus, button:focus, input:focus{outline:3px solid rgba(96,165,250,0.16);outline-offset:3px}
-
-    /* Mobile nav (small) */
-    .mobile-only{display:none}
-    @media (max-width:720px){nav{display:none}.mobile-only{display:inline-block}}
-  </style>
+        .fire-zone { flex-grow: 1; max-width: 400px; }
+        .fire-btn {
+            width: 100%;
+            padding: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(to bottom, #ff4500, #900);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #600;
+        }
+        .fire-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #600; }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo">YK</div>
-        <div>
-          <div style="font-weight:700">Yuval Kogan</div>
-          <div class="small">Software Engineer • C++ • Java • Python</div>
-        </div>
-      </div>
 
-      <nav aria-label="Main navigation">
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-        <a href="#contact">Contact</a>
-        <a href="#resume">Resume</a>
-      </nav>
+<div class="dashboard">
+    <div class="header">
+        <h1>TURRET COMMAND INTERFACE</h1>
+    </div>
 
-      <div class="mobile-only">
-        <button class="btn" id="mobile-menu-btn" aria-expanded="false">Menu</button>
-      </div>
-    </header>
+    <div class="video-box">
+        <img id="streamImg" src="/stream" alt="Live Stream">
+        <canvas id="overlayCanvas"></canvas>
+    </div>
 
-    <main>
-      <section class="hero">
-        <div class="card">
-          <h1>Hi — I'm Yuval, a software engineer who loves building clean, reliable systems.</h1>
-          <p class="lead">I specialize in systems programming (C, C++), application logic (Java), and automation & tooling with Python. Below are a few highlighted projects and links.</p>
+    <div class="stats-panel">
+        <h3>System Telemetry</h3>
+        <div class="stat-line">STATUS <span class="stat-val" id="metric-sys">ONLINE</span></div>
+        <div class="stat-line">MODE <span class="stat-val" id="metric-mode">MANUAL</span></div>
+        <div class="stat-line">TARGET <span class="stat-val" id="metric-lock">CLEAR</span></div>
+        <div class="stat-line">COORD <span class="stat-val" id="metric-pos">0,0</span></div>
+        <div class="stat-line">CONFIDENCE <span class="stat-val" id="metric-conf">0%</span></div>
+        <div class="stat-line">FPS <span class="stat-val" id="metric-fps">0</span></div>
+    </div>
 
-          <div class="controls">
-            <a class="btn primary" href="#projects">See projects</a>
-            <button class="btn" id="copy-email">Copy email</button>
-            <form onsubmit="event.preventDefault();document.getElementById('newsletter').textContent='Subscribed ✓'">
-              <input type="search" placeholder="your@email.example" aria-label="newsletter email" />
-            </form>
-          </div>
-
-          <div style="margin-top:16px;color:var(--muted);font-size:13px">Available for internships & collaborations • Vegan • Based in Israel</div>
+    <div class="control-panel">
+        <div class="d-pad">
+            <div class="btn up" data-dir="up"><svg viewBox="0 0 24 24"><path d="M12 4l-9 10h18z"/></svg></div>
+            <div class="btn left" data-dir="left"><svg viewBox="0 0 24 24"><path d="M4 12l10 9v-18z"/></svg></div>
+            <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24"><path d="M20 12l-10-9v18z"/></svg></div>
+            <div class="btn down" data-dir="down"><svg viewBox="0 0 24 24"><path d="M12 20l9-10h-18z"/></svg></div>
         </div>
 
-        <aside class="card" aria-labelledby="stats">
-          <div id="stats">
-            <div style="font-size:13px;color:var(--muted);">Quick stats</div>
-            <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
-              <div style="min-width:110px">
-                <div style="font-weight:700">8+</div>
-                <div class="small">Languages & tools</div>
-              </div>
-              <div style="min-width:110px">
-                <div style="font-weight:700">20+</div>
-                <div class="small">Projects</div>
-              </div>
-              <div style="min-width:110px">
-                <div style="font-weight:700">ORT Braude</div>
-                <div class="small">Software Engineering</div>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section id="projects" class="card">
-        <h2 style="margin-top:0">Selected projects</h2>
-        <p class="small" style="margin-bottom:12px;color:var(--muted)">A compact snapshot — replace these with your real projects, links and descriptions.</p>
-
-        <div class="grid">
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">Java / JavaFX</div>
-            <h3>BLib — Library management</h3>
-            <p>JavaFX application with MySQL backend, subscriber & book management, reporting and clean MVC structure.</p>
-          </article>
-
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">C++</div>
-            <h3>OOP_Course</h3>
-            <p>Object-oriented data structures and games — modular code, unit-tested classes, and clear documentation.</p>
-          </article>
-
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">Python</div>
-            <h3>Automation & tooling</h3>
-            <p>Scripting tools for build automation, test-run orchestration, and CI helpers.</p>
-          </article>
-
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">Embedded</div>
-            <h3>ESP32 starter kit</h3>
-            <p>IoT projects with ESP32 — sensors, Wi‑Fi telemetry and simple dashboard components.</p>
-          </article>
-
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">Algorithms</div>
-            <h3>Algo practice</h3>
-            <p>Algorithm implementations, problem writeups and visualizations for learning and interviews.</p>
-          </article>
-
-          <article class="project">
-            <div style="font-size:12px;color:var(--muted)">GitHub</div>
-            <h3>Open source contributions</h3>
-            <p>Small contributions, README improvements, and active maintenance of personal repos.</p>
-          </article>
+        <div class="fire-zone">
+            <button class="fire-btn" onclick="TurretApp.fire()">ENGAGE FIRE</button>
         </div>
-      </section>
+    </div>
+</div>
 
-      <section id="contact" class="card" style="margin-top:18px">
-        <h2 style="margin-top:0">Contact</h2>
-        <p class="small" style="margin-bottom:12px">Interested in collaborating? Use the quick contact form (demo-only).</p>
-        <form onsubmit="event.preventDefault();alert('Demo: form submitted (not actually sent)')" style="display:grid;gap:10px">
-          <input required placeholder="Your name" aria-label="Your name" />
-          <input required type="email" placeholder="Your email" aria-label="Your email" />
-          <textarea placeholder="A short message" rows="4"></textarea>
-          <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button class="btn">Reset</button>
-            <button class="btn primary" type="submit">Send</button>
-          </div>
-        </form>
-      </section>
+<script>
+const TurretApp = {
+    state: {
+        moveInterval: null,
+        detection: null,
+        isAEMode: false
+    },
 
-    </main>
+    init() {
+        this.canvas = document.getElementById('overlayCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.img = document.getElementById('streamImg');
+        
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.img.onload = () => this.resizeCanvas();
+        
+        this.bindControls();
+        this.startDataLoop();
+        this.resizeCanvas();
+    },
 
-    <footer>
-      <div class="small">© " + new Date().getFullYear() + " Yuval Kogan — Built with a single file HTML template</div>
-      <div class="small">View on <a href="https://github.com/KoganTheDev" style="color:var(--accent);text-decoration:none">GitHub</a></div>
-    </footer>
-  </div>
+    resizeCanvas() {
+        this.canvas.width = this.img.clientWidth;
+        this.canvas.height = this.img.clientHeight;
+    },
 
-  <script>
-    // small interactivity
-    document.getElementById('copy-email')?.addEventListener('click', async ()=>{
-      try{
-        await navigator.clipboard.writeText('yuval.kogan@example.com');
-        alert('Email copied to clipboard');
-      }catch(e){
-        alert('Could not copy automatically — please copy: yuval.kogan@example.com');
-      }
-    });
+    bindControls() {
+        const btns = document.querySelectorAll('.btn');
+        btns.forEach(btn => {
+            const start = (e) => { e.preventDefault(); this.startMove(btn.dataset.dir); btn.classList.add('active'); };
+            const stop = () => { this.stopMove(); btn.classList.remove('active'); };
 
-    // mobile menu demo
-    const mobileBtn = document.getElementById('mobile-menu-btn');
-    mobileBtn?.addEventListener('click', ()=>{
-      const expanded = mobileBtn.getAttribute('aria-expanded') === 'true';
-      mobileBtn.setAttribute('aria-expanded', String(!expanded));
-      const nav = document.querySelector('nav');
-      if(!nav) return;
-      if(expanded){nav.style.display='none'} else {nav.style.display='flex';nav.style.position='absolute';nav.style.right='20px';nav.style.top='76px';nav.style.flexDirection='column';nav.style.background='var(--card)';nav.style.padding='12px';nav.style.gap='8px'}
-    });
-  </script>
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('touchstart', start);
+            btn.addEventListener('mouseup', stop);
+            btn.addEventListener('touchend', stop);
+            btn.addEventListener('mouseleave', stop);
+        });
+    },
+
+    startMove(dir) {
+        if (this.state.moveInterval) clearInterval(this.state.moveInterval);
+        this.sendCmd(dir);
+        this.state.moveInterval = setInterval(() => this.sendCmd(dir), 120);
+    },
+
+    stopMove() {
+        clearInterval(this.state.moveInterval);
+        this.state.moveInterval = null;
+        this.sendCmd('stop');
+    },
+
+    async sendCmd(dir) {
+        try {
+            await fetch(`/move?pan=${dir}`, { keepalive: true });
+        } catch (e) {
+            console.error("Cmd Error:", e);
+        }
+    },
+
+    fire() {
+        this.sendCmd('fire');
+    },
+
+    async startDataLoop() {
+        // Fetch detection data every 100ms
+        setInterval(async () => {
+            try {
+                const res = await fetch('/detection', { cache: 'no-store' });
+                this.state.detection = await res.json();
+                this.updateUI();
+            } catch (e) {
+                console.error("Data fetch error");
+            }
+        }, 100);
+    },
+
+    updateUI() {
+        const data = this.state.detection;
+        if (!data) return;
+
+        // Update Stats
+        document.getElementById('metric-pos').textContent = `${data.centroid_x},${data.centroid_y}`;
+        document.getElementById('metric-conf').textContent = `${(data.confidence * 100).toFixed(0)}%`;
+        document.getElementById('metric-fps').textContent = data.average_fps || 0;
+        document.getElementById('metric-lock').textContent = data.motion_detected ? "LOCKED" : "CLEAR";
+        document.getElementById('metric-lock').style.color = data.motion_detected ? "red" : "#00ff41";
+
+        this.drawOverlay(data);
+    },
+
+    drawOverlay(data) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!data.motion_detected) return;
+
+        // Scaling logic
+        const scaleX = this.canvas.width / (data.frame_width || 320);
+        const scaleY = this.canvas.height / (data.frame_height || 240);
+        const x = data.centroid_x * scaleX;
+        const y = data.centroid_y * scaleY;
+
+        // Target Reticle
+        this.ctx.strokeStyle = '#ff0000';
+        this.ctx.lineWidth = 2;
+        
+        // Circle
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 20, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Crosshair
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - 30, y); this.ctx.lineTo(x + 30, y);
+        this.ctx.moveTo(x, y - 30); this.ctx.lineTo(x, y + 30);
+        this.ctx.stroke();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => TurretApp.init());
+</script>
 </body>
 </html>

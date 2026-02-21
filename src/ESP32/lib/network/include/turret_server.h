@@ -58,8 +58,9 @@ public:
 
     /**
      * @brief HTTP GET Handler for the MJPEG stream.
-     * @details Continuously captures frames from the camera and pushes them
-     * to the client using "multipart/x-mixed-replace".
+     * @details Continuously streams RGB565 frames from the detection module
+     * with motion detection overlay visualization. Each frame is sent with
+     * multipart boundary markers.
      * @param req Pointer to the HTTP request structure.
      * @return esp_err_t ESP_OK on success.
      */
@@ -72,4 +73,13 @@ public:
      * @return esp_err_t ESP_OK on success.
      */
     static esp_err_t cmd_handler(httpd_req_t* req);
+
+    /**
+     * @brief HTTP GET Handler for motion detection data as JSON.
+     * @details Returns detection coordinates, motion metrics, and algorithm statistics
+     * that can be used to render overlay and display algorithm performance.
+     * @param req Pointer to the HTTP request structure.
+     * @return esp_err_t ESP_OK on success.
+     */
+    static esp_err_t detection_handler(httpd_req_t* req);
 };

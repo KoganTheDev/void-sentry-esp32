@@ -4,22 +4,35 @@
 #include <cstring>
 #include <esp_camera.h>
 #include <esp_heap_caps.h>
+#include <img_converters.h>
 
 CameraDiffDetection::CameraDiffDetection()
-    : _prev_frame(nullptr), _curr_frame(nullptr), _diff_buffer(nullptr), _buffers_allocated(false), _first_frame(true)
+    : _prev_frame(nullptr), _curr_frame(nullptr), _diff_buffer(nullptr), _rgb_buffer(nullptr), _jpeg_cache(nullptr),
+      _jpeg_cache_len(0), _buffers_allocated(false), _first_frame(true), _rgb_buffer_width(0), _rgb_buffer_height(0),
+      _last_centroid_x(0), _last_centroid_y(0), _has_valid_position(false), _consecutive_motion_count(0),
+      _consecutive_static_count(0)
 {
 }
 
 CameraDiffDetection::~CameraDiffDetection()
 {
-    if (_buffers_allocated)
+    if (this->_buffers_allocated)
     {
-        if (_prev_frame)
-            heap_caps_free(_prev_frame);
-        if (_curr_frame)
-            heap_caps_free(_curr_frame);
-        if (_diff_buffer)
-            heap_caps_free(_diff_buffer);
+        if (this->_prev_frame)
+            heap_caps_free(this->_prev_frame);
+        if (this->_curr_frame)
+            heap_caps_free(this->_curr_frame);
+        if (this->_diff_buffer)
+            heap_caps_free(this->_diff_buffer);
+        if (this->_rgb_buffer)
+            heap_caps_free(this->_rgb_buffer);
+    }
+    // Free cached JPEG
+    if (this->_jpeg_cache)
+    {
+        free(this->_jpeg_cache);
+        this->_jpeg_cache = nullptr;
+        this->_jpeg_cache_len = 0;
     }
 }
 
@@ -30,27 +43,31 @@ std::tuple<MoveDirectionX, MoveDirectionY> CameraDiffDetection::detect_object(ca
         return std::make_tuple(MoveDirectionX::None, MoveDirectionY::None);
     }
 
+    // Track metrics: record start time and frame count
+    uint32_t frame_start_time = millis();
+    this->_current_metrics.set_total_frames(this->_current_metrics.get_total_frames() + 1);
+    this->_current_metrics.set_last_frame_timestamp(frame_start_time);
+
     // === STEP 1: Allocate buffers on first frame ===
-    if (!_buffers_allocated)
+    if (!this->_buffers_allocated)
     {
         size_t buffer_size = frame->width * frame->height;
 
-        _prev_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-        _curr_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-        _diff_buffer = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+        this->_prev_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+        this->_curr_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+        this->_diff_buffer = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 
-        if (!_prev_frame || !_curr_frame || !_diff_buffer)
+        if (!this->_prev_frame || !this->_curr_frame || !this->_diff_buffer)
         {
             Serial.println("[DETECTION] Failed to allocate frame buffers");
             return std::make_tuple(MoveDirectionX::None, MoveDirectionY::None);
         }
 
-        _buffers_allocated = true;
-        Serial.printf("[DETECTION] Frame buffers allocated: %d bytes each\n", (int)buffer_size);
+        this->_buffers_allocated = true;
     }
 
-    // === STEP 2: Convert current JPEG frame to greyscale ===
-    if (!jpeg_to_greyscale(frame, _curr_frame))
+    // === STEP 2: Decompress JPEG to greyscale for analysis AND RGB565 for overlay ===
+    if (!jpeg_to_greyscale(frame, this->_curr_frame))
     {
         Serial.printf("[DETECTION] ERROR: Frame decompression failed (Free heap: %u bytes)\n",
                       esp_get_free_heap_size());
@@ -58,10 +75,10 @@ std::tuple<MoveDirectionX, MoveDirectionY> CameraDiffDetection::detect_object(ca
     }
 
     // === STEP 3: Skip first frame (need previous frame to compare) ===
-    if (_first_frame)
+    if (this->_first_frame)
     {
-        memcpy(_prev_frame, _curr_frame, frame->width * frame->height);
-        _first_frame = false;
+        memcpy(this->_prev_frame, this->_curr_frame, frame->width * frame->height);
+        this->_first_frame = false;
         return std::make_tuple(MoveDirectionX::None, MoveDirectionY::None);
     }
 
@@ -69,29 +86,60 @@ std::tuple<MoveDirectionX, MoveDirectionY> CameraDiffDetection::detect_object(ca
     int motion_centroid_x = 0, motion_centroid_y = 0;
     int motion_pixel_count = 0;
 
-    bool motion_found = find_motion(_prev_frame, _curr_frame, frame->width, frame->height, motion_centroid_x,
-                                    motion_centroid_y, motion_pixel_count);
+    bool motion_found = find_motion(this->_prev_frame, this->_curr_frame, frame->width, frame->height,
+                                    motion_centroid_x, motion_centroid_y, motion_pixel_count);
 
     // === STEP 5: Save current frame as previous for next iteration ===
-    memcpy(_prev_frame, _curr_frame, frame->width * frame->height);
+    memcpy(this->_prev_frame, this->_curr_frame, frame->width * frame->height);
 
-    // === STEP 6: Store motion data for HTTP visualization ===
-    // This happens FAST and doesn't allocate/deallocate memory
     if (motion_found)
     {
-        _last_motion_data =
+        this->_last_motion_data =
             MotionData(motion_centroid_x, motion_centroid_y, frame->width, frame->height, motion_pixel_count);
-        // Debug output only every 30 frames to avoid serial bottleneck
-        static int debug_counter = 0;
-        if (++debug_counter >= 30)
-        {
-            Serial.printf("[DETECTION] Motion at (%d,%d), pixels: %d\n", motion_centroid_x, motion_centroid_y,
-                          motion_pixel_count);
-            debug_counter = 0;
-        }
+
+        // Update last known position
+        this->_last_centroid_x = motion_centroid_x;
+        this->_last_centroid_y = motion_centroid_y;
+        this->_has_valid_position = true;
+
+        // Update metrics: motion detected
+        this->_consecutive_motion_count++;
+        this->_consecutive_static_count = 0;
+        this->_current_metrics.set_total_detections(this->_current_metrics.get_total_detections() + 1);
+        this->_current_metrics.set_consecutive_motion_frames(this->_consecutive_motion_count);
+        this->_current_metrics.set_consecutive_static_frames(0);
+
+        // Calculate confidence (0.0-1.0 based on pixels changed relative to threshold)
+        int motion_threshold = MOTION_THRESHOLD;
+        float confidence = (float)motion_pixel_count / (float)motion_threshold;
+        if (confidence > 1.0f)
+            confidence = 1.0f;
+        this->_current_metrics.set_motion_confidence(confidence);
+        this->_current_metrics.set_pixels_changed(motion_pixel_count);
     } else
     {
-        _last_motion_data = MotionData(); // Empty motion data (no motion)
+        this->_last_motion_data = MotionData(); // Empty motion data (no motion)
+        this->_consecutive_motion_count = 0;
+        this->_consecutive_static_count++;
+        this->_current_metrics.set_consecutive_motion_frames(0);
+        this->_current_metrics.set_consecutive_static_frames(this->_consecutive_static_count);
+        this->_current_metrics.set_motion_confidence(0.0f);
+        this->_current_metrics.set_pixels_changed(0);
+    }
+
+    // Update detection time metric
+    uint32_t detection_time = millis() - frame_start_time;
+    this->_current_metrics.set_detection_time_ms(detection_time);
+
+    // Calculate average FPS every 30 frames
+    static uint32_t frame_count = 0;
+    static uint32_t fps_timer = 0;
+    frame_count++;
+    if ((millis() - fps_timer) >= 1000)
+    {
+        this->_current_metrics.set_average_fps(frame_count);
+        frame_count = 0;
+        fps_timer = millis();
     }
 
     if (!motion_found)
@@ -99,7 +147,7 @@ std::tuple<MoveDirectionX, MoveDirectionY> CameraDiffDetection::detect_object(ca
         return std::make_tuple(MoveDirectionX::None, MoveDirectionY::None);
     }
 
-    // === STEP 7: Convert motion centroid to movement direction ===
+    // === STEP 8: Convert motion centroid to movement direction ===
     int center_x = frame->width / 2;
     int center_y = frame->height / 2;
 
@@ -125,29 +173,6 @@ std::tuple<MoveDirectionX, MoveDirectionY> CameraDiffDetection::detect_object(ca
     }
 
     return std::make_tuple(x_dir, y_dir);
-}
-
-uint8_t CameraDiffDetection::rgb565_to_greyscale(uint16_t pixel)
-{
-    // Extract R (5 bits), G (6 bits), B (5 bits) from RGB565 format
-    uint8_t red = (pixel >> 11) & 0x1f;  // Red: 5 bits (0-31)
-    uint8_t green = (pixel >> 5) & 0x3f; // Green: 6 bits (0-63)
-    uint8_t blue = pixel & 0x1f;         // Blue: 5 bits (0-31)
-
-    // Scale to 0-255 range and apply luminance formula
-    // R: 0-31 → 0-255 (multiply by 255/31 ≈ 8.2, use 8 for speed)
-    // G: 0-63 → 0-255 (multiply by 255/63 ≈ 4.0, use 4)
-    // B: 0-31 → 0-255 (multiply by 255/31 ≈ 8.2, use 8 for speed)
-    // Luminance: 0.299*R + 0.587*G + 0.114*B
-    // Using integer approximation: (77*R + 150*G + 29*B) >> 8
-
-    uint32_t r_scaled = red << 3;   // red * 8
-    uint32_t g_scaled = green << 2; // green * 4
-    uint32_t b_scaled = blue << 3;  // blue * 8
-
-    uint32_t grey = (r_scaled * 77 + g_scaled * 150 + b_scaled * 29) >> 8;
-
-    return (uint8_t)grey;
 }
 
 bool CameraDiffDetection::find_motion(uint8_t* prev, uint8_t* curr, int width, int height, int& center_x, int& center_y,
@@ -216,7 +241,7 @@ bool CameraDiffDetection::find_motion(uint8_t* prev, uint8_t* curr, int width, i
     Serial.printf("[CAMERA] Motion detected - Centroid: (%d, %d), Pixels: %d\n", center_x, center_y, motion_pixels);
     return true;
 }
-
+//*??
 bool CameraDiffDetection::jpeg_to_greyscale(camera_fb_t* frame, uint8_t* output)
 {
     if (!frame || !output)
@@ -253,16 +278,12 @@ bool CameraDiffDetection::jpeg_to_greyscale(camera_fb_t* frame, uint8_t* output)
         return false;
     }
 
-    // === Step 3: Convert RGB565 to greyscale ===
-    for (int i = 0; i < w * h; i++)
-    {
-        output[i] = rgb565_to_greyscale(rgb_buf[i]);
-    }
-
     // === Step 4: Free temporary buffer immediately ===
     heap_caps_free(rgb_buf);
     rgb_buf = nullptr;
     return true;
 }
 
-MotionData CameraDiffDetection::get_motion_data() const { return _last_motion_data; }
+MotionData CameraDiffDetection::get_motion_data() const { return this->_last_motion_data; }
+
+DetectionMetrics CameraDiffDetection::get_detection_metrics() const { return this->_current_metrics; }

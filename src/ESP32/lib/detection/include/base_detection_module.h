@@ -6,7 +6,7 @@
 #pragma once
 
 #include <esp_camera.h>
-#include <move_types.h>
+#include "../../../include/move_types.h"
 #include <tuple>
 
 /**
@@ -32,4 +32,39 @@ public:
      * - Index 1 (MoveDirectionY): Up   | Down  | Stay
      */
     virtual std::tuple<MoveDirectionX, MoveDirectionY> detect_object(camera_fb_t* frame) = 0;
-};
+
+    /**
+     * @brief Gets the RGB565 buffer with overlay (for streaming visualization).
+     * @details Base implementation returns nullptr. Derived classes that support
+     * RGB visualization should override this method.
+     * @return Pointer to RGB565 buffer with overlay, or nullptr if not supported.
+     */
+    virtual uint16_t* get_rgb_buffer() const { return nullptr; }
+
+    /**
+     * @brief Gets the dimensions of the RGB buffer.
+     * @param[out] width Width of the buffer in pixels
+     * @param[out] height Height of the buffer in pixels
+     * @return true if buffer is allocated and dimensions are valid, false otherwise.
+     * Default implementation returns false.
+     */
+    virtual bool get_rgb_buffer_dimensions(int& width, int& height) const
+    {
+        width = 0;
+        height = 0;
+        return false;
+    }
+
+    /**
+     * @brief Encodes the RGB565 overlay buffer to JPEG format for HTTP streaming.
+     * @details Base implementation returns false. Derived classes that support
+     * JPEG overlay encoding should override this method.
+     * @param[out] jpeg_buf Pointer to the output JPEG buffer (allocated internally)
+     * @param[out] jpeg_len Size of the JPEG buffer
+     * @param quality JPEG quality (1-100)
+     * @return true if encoding succeeded, false otherwise (or not supported)
+     */
+    virtual bool get_jpeg_with_overlay(uint8_t** jpeg_buf, size_t* jpeg_len, uint8_t quality = 80)
+    {
+        return false;
+    }};

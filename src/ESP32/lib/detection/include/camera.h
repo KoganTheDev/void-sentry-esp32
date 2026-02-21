@@ -81,9 +81,9 @@ public:
 
         _config.xclk_freq_hz = 20000000;       // 20MHz for OV3660 stability
         _config.pixel_format = PIXFORMAT_JPEG; // Compression for network throughput
-        _config.frame_size = FRAMESIZE_QVGA;   // 320x240: Balanced for motion detection + streaming
-        _config.jpeg_quality = 75;             // 0-63 (75 = highest quality for clear target visibility)
-        _config.fb_count = 3; // Triple buffering - allows motion detection + streaming without starvation
+        _config.frame_size = FRAMESIZE_QVGA;   // 320x240: Optimal for real-time overlay encoding
+        _config.jpeg_quality = 70;             // 0-63 (70 = good quality, much faster encoding than VGA)
+        _config.fb_count = 2; // Double buffering
         _config.fb_location = CAMERA_FB_IN_PSRAM;
         _config.grab_mode = CAMERA_GRAB_LATEST; // Drops old frames to reduce latency
     }

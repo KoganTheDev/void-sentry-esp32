@@ -19,251 +19,318 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ESP32 Turret Command</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --panel: #1e1e1e;
+            --accent: #ff6b00;
+            --text: #e0e0e0;
+            --terminal: #00ff41;
+            --error: #ff0000;
+        }
 
-<title>ESP32 Turret Control</title>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overscroll-behavior: none;
+        }
 
-<style>
-:root {
-    --bg: #1a1a1a;
-    --panel: #2d2d2d;
-    --accent: #ff6b00;
-    --text: #ffffff;
-    --safe: #444;
-    --locked: #ff0000;
-    --ai: #00d4ff;
-}
+        .dashboard {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1fr 300px; /* Stream left, Stats right */
+            grid-template-rows: auto auto;    /* Top row for stream/stats, bottom for controls */
+            gap: 20px;
+        }
 
-* { box-sizing: border-box; }
+        /* Responsive: Stack on small screens */
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
 
-body {
-    margin: 0;
-    padding: 16px;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, sans-serif;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-}
+        /* --- Header --- */
+        .header {
+            grid-column: 1 / -1;
+            border-left: 4px solid var(--accent);
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
 
-.container {
-    max-width: 1000px;
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
+        /* --- Video Section --- */
+        .video-box {
+            background: #000;
+            border-radius: 8px;
+            position: relative;
+            aspect-ratio: 16 / 9;
+            border: 1px solid #333;
+            overflow: hidden;
+            width: 100%;
+        }
+        #streamImg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #overlayCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Allows clicks to pass through if needed */
+        }
 
-@media (min-width: 768px) {
-    .container { flex-direction: row; }
-}
+        /* --- Stats Panel (Right Side) --- */
+        .stats-panel {
+            background: var(--panel);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .stats-panel h3 {
+            margin: 0 0 10px 0;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 4px;
+        }
+        .stat-val { color: var(--terminal); }
 
-.video-box {
-    flex: 2;
-    background: black;
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    border: 2px solid var(--panel);
-}
+        /* --- Controls Section (Bottom) --- */
+        .control-panel {
+            grid-column: 1 / -1;
+            background: var(--panel);
+            padding: 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
 
-.video-box img {
-    width: 100%;
-    display: block;
-}
+        .d-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+            gap: 8px;
+        }
+        .btn {
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 1px solid #444;
+        }
+        .btn svg { width: 24px; fill: white; }
+        .btn:active, .btn.active { background: var(--accent); transform: scale(0.95); }
 
-.lock-indicator {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: bold;
-    background: rgba(0,0,0,0.6);
-    border: 2px solid var(--safe);
-}
+        .up { grid-area: 1 / 2; }
+        .left { grid-area: 2 / 1; }
+        .right { grid-area: 2 / 3; }
+        .down { grid-area: 3 / 2; }
 
-.lock-indicator.locked {
-    color: var(--locked);
-    border-color: var(--locked);
-    box-shadow: 0 0 12px var(--locked);
-    animation: blink 0.5s infinite;
-}
-
-@keyframes blink {
-    50% { opacity: 0.5; }
-}
-
-.controls {
-    flex: 1;
-    background: var(--panel);
-    padding: 16px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-}
-
-.mode-badge {
-    width: 100%;
-    padding: 8px;
-    text-align: center;
-    border-radius: 6px;
-    background: #444;
-    font-size: 0.85rem;
-}
-
-.mode-badge.ai {
-    color: var(--ai);
-    border: 1px solid var(--ai);
-    background: rgba(0,212,255,0.15);
-}
-
-.d-pad {
-    display: grid;
-    grid-template-columns: repeat(3, 64px);
-    grid-template-rows: repeat(3, 64px);
-    gap: 10px;
-}
-
-.btn {
-    background: #444;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-}
-
-.btn svg {
-    width: 26px;
-    height: 26px;
-    fill: white;
-}
-
-.btn.active {
-    background: var(--accent);
-    box-shadow: 0 0 12px var(--accent);
-}
-
-.up    { grid-column: 2; grid-row: 1; }
-.left  { grid-column: 1; grid-row: 2; }
-.right { grid-column: 3; grid-row: 2; }
-.down  { grid-column: 2; grid-row: 3; }
-
-.shoot-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: white;
-    border: none;
-    border-radius: 40px;
-    background: linear-gradient(135deg, #ff4500, #b22222);
-}
-
-.shoot-btn:disabled {
-    background: #555;
-    opacity: 0.4;
-    box-shadow: none;
-}
-
-#status {
-    font-size: 0.75rem;
-    opacity: 0.6;
-}
-</style>
+        .fire-zone { flex-grow: 1; max-width: 400px; }
+        .fire-btn {
+            width: 100%;
+            padding: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(to bottom, #ff4500, #900);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #600;
+        }
+        .fire-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #600; }
+    </style>
 </head>
-
 <body>
-<div class="container">
 
-<div class="video-box">
-    <div id="lockLabel" class="lock-indicator">NO TARGET</div>
-    <img id="stream" src="/stream" alt="Camera Stream">
-</div>
-
-<div class="controls">
-    <div id="modeBadge" class="mode-badge">MANUAL MODE</div>
-
-    <div class="d-pad">
-        <div class="btn up"    data-dir="up"><svg viewBox="0 0 24 24"><path d="M12 4l-9 10h18z"/></svg></div>
-        <div class="btn left"  data-dir="left"><svg viewBox="0 0 24 24"><path d="M4 12l10 9v-18z"/></svg></div>
-        <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24"><path d="M20 12l-10-9v18z"/></svg></div>
-        <div class="btn down"  data-dir="down"><svg viewBox="0 0 24 24"><path d="M12 20l9-10h-18z"/></svg></div>
+<div class="dashboard">
+    <div class="header">
+        <h1>TURRET COMMAND INTERFACE</h1>
     </div>
 
-    <button id="fireBtn" class="shoot-btn" onclick="fire()">FIRE</button>
-    <div id="status">SYSTEM: ONLINE</div>
-</div>
+    <div class="video-box">
+        <img id="streamImg" src="/stream" alt="Live Stream">
+        <canvas id="overlayCanvas"></canvas>
+    </div>
 
+    <div class="stats-panel">
+        <h3>System Telemetry</h3>
+        <div class="stat-line">STATUS <span class="stat-val" id="metric-sys">ONLINE</span></div>
+        <div class="stat-line">MODE <span class="stat-val" id="metric-mode">MANUAL</span></div>
+        <div class="stat-line">TARGET <span class="stat-val" id="metric-lock">CLEAR</span></div>
+        <div class="stat-line">COORD <span class="stat-val" id="metric-pos">0,0</span></div>
+        <div class="stat-line">CONFIDENCE <span class="stat-val" id="metric-conf">0%</span></div>
+        <div class="stat-line">FPS <span class="stat-val" id="metric-fps">0</span></div>
+    </div>
+
+    <div class="control-panel">
+        <div class="d-pad">
+            <div class="btn up" data-dir="up"><svg viewBox="0 0 24 24"><path d="M12 4l-9 10h18z"/></svg></div>
+            <div class="btn left" data-dir="left"><svg viewBox="0 0 24 24"><path d="M4 12l10 9v-18z"/></svg></div>
+            <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24"><path d="M20 12l-10-9v18z"/></svg></div>
+            <div class="btn down" data-dir="down"><svg viewBox="0 0 24 24"><path d="M12 20l9-10h-18z"/></svg></div>
+        </div>
+
+        <div class="fire-zone">
+            <button class="fire-btn" onclick="TurretApp.fire()">ENGAGE FIRE</button>
+        </div>
+    </div>
 </div>
 
 <script>
-let moveInterval = null;
-let turretLocked = false;
-let turretAI = false;
+/**
+ * TurretApp Refactored
+ * Encapsulates logic to prevent global conflicts and improve readability
+ */
+const TurretApp = {
+    state: {
+        moveInterval: null,
+        detection: null,
+        isAEMode: false
+    },
 
-function sendCmd(cmd, dir="") {
-    fetch(`/cmd?action=${cmd}${dir ? "&dir="+dir : ""}`, {
-        cache: "no-store",
-        keepalive: true
-    }).catch(()=>{});
-}
+    init() {
+        this.canvas = document.getElementById('overlayCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.img = document.getElementById('streamImg');
+        
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.img.onload = () => this.resizeCanvas();
+        
+        this.bindControls();
+        this.startDataLoop();
+        this.resizeCanvas();
+    },
 
-function startMove(btn) {
-    const dir = btn.dataset.dir;
-    btn.classList.add("active");
-    sendCmd("move", dir);
-    moveInterval = setInterval(() => sendCmd("move", dir), 120);
-}
+    resizeCanvas() {
+        this.canvas.width = this.img.clientWidth;
+        this.canvas.height = this.img.clientHeight;
+    },
 
-function stopMove(btn) {
-    btn.classList.remove("active");
-    clearInterval(moveInterval);
-    moveInterval = null;
-    sendCmd("stop");
-}
+    bindControls() {
+        const btns = document.querySelectorAll('.btn');
+        btns.forEach(btn => {
+            const start = (e) => { e.preventDefault(); this.startMove(btn.dataset.dir); btn.classList.add('active'); };
+            const stop = () => { this.stopMove(); btn.classList.remove('active'); };
 
-document.querySelectorAll(".btn").forEach(btn => {
-    btn.addEventListener("mousedown", () => startMove(btn));
-    btn.addEventListener("touchstart", e => { e.preventDefault(); startMove(btn); });
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('touchstart', start);
+            btn.addEventListener('mouseup', stop);
+            btn.addEventListener('touchend', stop);
+            btn.addEventListener('mouseleave', stop);
+        });
+    },
 
-    ["mouseup","mouseleave","touchend","touchcancel"]
-        .forEach(ev => btn.addEventListener(ev, () => stopMove(btn)));
-});
+    startMove(dir) {
+        if (this.state.moveInterval) clearInterval(this.state.moveInterval);
+        this.sendCmd(dir);
+        this.state.moveInterval = setInterval(() => this.sendCmd(dir), 120);
+    },
 
-function fire() {
-    if (turretAI && !turretLocked) return;
-    sendCmd("fire");
-}
+    stopMove() {
+        clearInterval(this.state.moveInterval);
+        this.state.moveInterval = null;
+        this.sendCmd('stop');
+    },
 
-function updateTurretStatus(locked, ai) {
-    turretLocked = locked;
-    turretAI = ai;
+    async sendCmd(dir) {
+        try {
+            await fetch(`/move?pan=${dir}`, { keepalive: true });
+        } catch (e) {
+            console.error("Cmd Error:", e);
+        }
+    },
 
-    const l = document.getElementById("lockLabel");
-    const m = document.getElementById("modeBadge");
-    const f = document.getElementById("fireBtn");
+    fire() {
+        this.sendCmd('fire');
+    },
 
-    l.textContent = locked ? "LOCKED" : "NO TARGET";
-    l.classList.toggle("locked", locked);
+    async startDataLoop() {
+        // Fetch detection data every 100ms
+        setInterval(async () => {
+            try {
+                const res = await fetch('/detection', { cache: 'no-store' });
+                this.state.detection = await res.json();
+                this.updateUI();
+            } catch (e) {
+                console.error("Data fetch error");
+            }
+        }, 100);
+    },
 
-    m.textContent = ai ? "AI AUTO-TRACK" : "MANUAL MODE";
-    m.classList.toggle("ai", ai);
+    updateUI() {
+        const data = this.state.detection;
+        if (!data) return;
 
-    const canFire = !ai || locked;
-    f.disabled = !canFire;
-    f.textContent = canFire ? "FIRE" : "NO TARGET";
-}
+        // Update Stats
+        document.getElementById('metric-pos').textContent = `${data.centroid_x},${data.centroid_y}`;
+        document.getElementById('metric-conf').textContent = `${(data.confidence * 100).toFixed(0)}%`;
+        document.getElementById('metric-fps').textContent = data.average_fps || 0;
+        document.getElementById('metric-lock').textContent = data.motion_detected ? "LOCKED" : "CLEAR";
+        document.getElementById('metric-lock').style.color = data.motion_detected ? "red" : "#00ff41";
 
-// DEMO (remove once ESP32 feeds real status)
-setTimeout(() => updateTurretStatus(true, true), 2000);
+        this.drawOverlay(data);
+    },
+
+    drawOverlay(data) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if (!data.motion_detected) return;
+
+        // Scaling logic
+        const scaleX = this.canvas.width / (data.frame_width || 320);
+        const scaleY = this.canvas.height / (data.frame_height || 240);
+        const x = data.centroid_x * scaleX;
+        const y = data.centroid_y * scaleY;
+
+        // Target Reticle
+        this.ctx.strokeStyle = '#ff0000';
+        this.ctx.lineWidth = 2;
+        
+        // Circle
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 20, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Crosshair
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - 30, y); this.ctx.lineTo(x + 30, y);
+        this.ctx.moveTo(x, y - 30); this.ctx.lineTo(x, y + 30);
+        this.ctx.stroke();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => TurretApp.init());
 </script>
-
 </body>
 </html>
 )rawliteral";

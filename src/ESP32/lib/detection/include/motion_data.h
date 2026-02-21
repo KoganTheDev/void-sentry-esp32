@@ -81,3 +81,51 @@ public:
      */
     int get_pixel_count() const { return _pixel_count; }
 };
+/**
+ * @class DetectionMetrics
+ * @brief Metrics for evaluating motion detection algorithm performance.
+ * @details Tracks timing, accuracy, and algorithm statistics for analysis.
+ */
+class DetectionMetrics
+{
+private:
+    uint32_t _detection_time_ms;    ///< Time taken for motion detection (milliseconds)
+    int _pixels_changed;            ///< Number of pixels that changed vs threshold
+    float _motion_confidence;       ///< Confidence score (0.0-1.0) based on pixels changed
+    int _consecutive_motion_frames; ///< Count of consecutive frames with motion
+    int _consecutive_static_frames; ///< Count of consecutive frames without motion
+    uint32_t _total_detections;     ///< Total detections since startup
+    uint32_t _total_frames;         ///< Total frames processed
+    uint32_t _last_frame_timestamp; ///< Timestamp of last frame processed
+    uint32_t _average_fps;          ///< Average frames per second
+
+public:
+    DetectionMetrics()
+        : _detection_time_ms(0), _pixels_changed(0), _motion_confidence(0.0f), _consecutive_motion_frames(0),
+          _consecutive_static_frames(0), _total_detections(0), _total_frames(0), _last_frame_timestamp(0),
+          _average_fps(0)
+    {
+    }
+
+    // Setters for updating metrics
+    void set_detection_time_ms(uint32_t time) { _detection_time_ms = time; }
+    void set_pixels_changed(int count) { _pixels_changed = count; }
+    void set_motion_confidence(float conf) { _motion_confidence = (conf < 0.0f) ? 0.0f : (conf > 1.0f) ? 1.0f : conf; }
+    void set_consecutive_motion_frames(int count) { _consecutive_motion_frames = count; }
+    void set_consecutive_static_frames(int count) { _consecutive_static_frames = count; }
+    void set_total_detections(uint32_t count) { _total_detections = count; }
+    void set_total_frames(uint32_t count) { _total_frames = count; }
+    void set_last_frame_timestamp(uint32_t ts) { _last_frame_timestamp = ts; }
+    void set_average_fps(uint32_t fps) { _average_fps = fps; }
+
+    // Getters for retrieving metrics
+    uint32_t get_detection_time_ms() const { return _detection_time_ms; }
+    int get_pixels_changed() const { return _pixels_changed; }
+    float get_motion_confidence() const { return _motion_confidence; }
+    int get_consecutive_motion_frames() const { return _consecutive_motion_frames; }
+    int get_consecutive_static_frames() const { return _consecutive_static_frames; }
+    uint32_t get_total_detections() const { return _total_detections; }
+    uint32_t get_total_frames() const { return _total_frames; }
+    uint32_t get_last_frame_timestamp() const { return _last_frame_timestamp; }
+    uint32_t get_average_fps() const { return _average_fps; }
+};
