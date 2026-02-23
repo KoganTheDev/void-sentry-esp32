@@ -27,6 +27,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
     <title>Void Sentry</title>
     <style>
         :root {
+            /* Colors */
             --bg: #0a0a0a;
             --panel: #161616;
             --accent: #ff6b00;
@@ -34,8 +35,16 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             --terminal: #00ff41;
             --error: #ff3e3e;
             --border: #333;
+
+            /* Spacing & Effects */
+            --radius: 4px;
+            --pad-sm: 8px;
+            --pad-md: 15px;
+            --gap-main: 10px;
+            --glow: 0 0 10px rgba(255, 107, 0, 0.3);
         }
 
+        /* --- Reset & Base --- */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -43,114 +52,129 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
         body {
             margin: 0;
-            padding: 0;
             background: var(--bg);
             color: var(--text);
             font-family: 'Segoe UI', system-ui, sans-serif;
             height: 100vh;
             height: 100svh;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
+        /* --- Header Section --- */
         .header-brand {
-            width: 100%;
             display: flex;
             align-items: center;
             padding: 10px 20px;
+            background: linear-gradient(90deg, #1a1a1a, #0a0a0a);
             border-bottom: 1px solid var(--accent);
-            margin-bottom: 2vh;
-            background: linear-gradient(to right, #1a1a1a, #0a0a0a);
+            box-shadow: var(--glow);
         }
 
-        /* --- VOID SENTRY TITLE STYLING --- */
         h1 {
-            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: clamp(1.2rem, 5vw, 1.8rem);
             margin: 0;
             font-weight: 900;
             font-style: italic;
             text-transform: uppercase;
             letter-spacing: 2px;
-            background: linear-gradient(180deg, #ffffff 30%, var(--accent) 100%);
+            background: linear-gradient(180deg, #fff 30%, var(--accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 5px rgba(255, 107, 0, 0.4));
-        }
-
-        .fullscreen-btn {
-            margin-left: auto;
-            background: none;
-            border: none;
             cursor: pointer;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.7;
-            transition: opacity 0.2s;
         }
 
-        .fullscreen-btn:hover {
-            opacity: 1;
-        }
-
-        .fullscreen-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--accent);
-        }
-
-        .dashboard {
-            width: 100%;
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            grid-template-rows: 1fr auto;
-            gap: 10px;
-            padding: 10px;
-            min-height: 0;
-        }
-
+        /* NOTE: logo-icon is temporary, will be replaced with a pixel art logo instead :) */ 
         .logo-icon {
             width: 24px;
             height: 24px;
-            border: 3px solid var(--accent);
-            border-radius: 50%;
             margin-right: 15px;
             position: relative;
+            /* Anchor for both ring and dot */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The Spinning Ring */
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            /* fills the container */
+            border: 3px solid var(--accent);
+            border-radius: 50%;
             border-top-color: transparent;
-            flex-shrink: 0;
             animation: spin 2s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* The Static Center Dot */
         .logo-icon::after {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             width: 6px;
             height: 6px;
             background: var(--accent);
             border-radius: 50%;
             box-shadow: 0 0 8px var(--accent);
+            /* No animation applied here */
         }
 
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            padding: 4px;
+            transition: transform 0.2s;
+        }
+
+        .header-actions button:hover {
+            opacity: 0.8;
+        }
+
+        .header-actions svg {
+            fill: var(--accent);
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Dashboard Layout --- */
+        .dashboard {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            grid-template-rows: 1fr auto;
+            gap: var(--gap-main);
+            padding: var(--gap-main);
+            min-height: 0;
+            /* Important for flex-child scrolling */
+        }
+
+        /* --- Video Box & Canvas --- */
         .video-box {
             background: #000;
-            border-radius: 4px;
-            position: relative;
             border: 1px solid var(--border);
+            border-radius: var(--radius);
+            position: relative;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: grid;
+            place-items: center;
         }
 
         #streamImg {
@@ -168,18 +192,23 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             pointer-events: none;
         }
 
+        /* --- UI Panels (Stats & Advanced) --- */
+        .ui-panel,
         .stats-panel {
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 15px;
+            border-radius: var(--radius);
+            padding: var(--pad-md);
+        }
+
+        .stats-panel {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: var(--pad-sm);
         }
 
         .stats-panel h3 {
-            margin: 0 0 5px 0;
+            margin: 0;
             color: var(--accent);
             font-size: 0.8rem;
             text-transform: uppercase;
@@ -189,14 +218,25 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             display: flex;
             justify-content: space-between;
             font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             border-bottom: 1px solid #222;
-            padding-bottom: 2px;
+            padding-bottom: 4px;
         }
 
         .stat-val {
             color: var(--terminal);
-            text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        .advanced-stats {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .advanced-stats summary {
+            cursor: pointer;
+            padding: 4px 0;
+            outline: none;
         }
 
         .toggle-btn {
@@ -205,77 +245,90 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             background: transparent;
             border: 1px solid var(--accent);
             color: var(--accent);
-            cursor: pointer;
             font-weight: bold;
+            cursor: pointer;
             transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 107, 0, 0.1);
         }
 
         .toggle-btn:active {
             background: var(--accent);
-            color: white;
+            color: #fff;
         }
 
+        /* --- Control Panel (D-Pad & Fire) --- */
         .control-panel {
             grid-column: 1 / -1;
             background: var(--panel);
-            padding: clamp(15px, 4vw, 25px);
-            border-radius: 4px;
+            border: 1px solid var(--border);
+            padding: clamp(15px, 3vw, 25px);
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-            gap: clamp(20px, 8vw, 60px);
-            border: 1px solid var(--border);
+            gap: clamp(20px, 8vw, 80px);
         }
 
         .d-pad {
             display: grid;
             grid-template-columns: repeat(3, 50px);
             grid-template-rows: repeat(3, 50px);
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn {
             background: #252525;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
             border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
         }
 
         .btn svg {
             width: 20px;
-            fill: white;
+            fill: #fff;
             opacity: 0.8;
         }
 
-        .btn:active,
-        .btn.active {
+        .btn.active,
+        .btn:active {
             background: var(--accent);
-            border-color: var(--accent);
         }
 
-        .up { grid-area: 1 / 2; }
-        .left { grid-area: 2 / 1; }
-        .right { grid-area: 2 / 3; }
-        .down { grid-area: 3 / 2; }
+        /* Assign D-Pad areas */
+        .up {
+            grid-area: 1 / 2;
+        }
+
+        .left {
+            grid-area: 2 / 1;
+        }
+
+        .right {
+            grid-area: 2 / 3;
+        }
+
+        .down {
+            grid-area: 3 / 2;
+        }
 
         .fire-btn {
-            width: 100%;
-            min-width: 200px;
-            max-width: 350px;
-            padding: 22px;
+            flex: 1;
+            max-width: 400px;
+            padding: 20px;
             font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #fff;
             background: linear-gradient(135deg, #ff4500, #b00);
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: var(--radius);
             box-shadow: 0 4px 0 #600;
-            text-transform: uppercase;
+            cursor: pointer;
         }
 
         .fire-btn:active {
@@ -283,15 +336,72 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             box-shadow: 0 2px 0 #600;
         }
 
+        /* --- Help Overlay --- */
+        .help-overlay {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 300px;
+            background: rgba(10, 10, 10, 0.85);
+            border: 1px solid var(--terminal);
+            padding: 20px;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            border-radius: var(--radius);
+        }
+
+        .help-content h2 {
+            color: var(--terminal);
+            font-size: 0.9rem;
+            font-family: 'Orbitron', sans-serif;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .close-help,
+        kbd {
+            background: var(--terminal);
+            color: #000;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+
+        /* --- Mobile Responsiveness --- */
         @media (max-width: 800px) {
             .dashboard {
                 grid-template-columns: 1fr;
-                grid-template-rows: 1fr auto auto;
+                grid-template-rows: auto 1fr auto;
                 overflow-y: auto;
             }
+
+            .stats-panel {
+                order: 2;
+            }
+
             .video-box {
-                aspect-ratio: 16 / 9;
-                max-height: 35vh;
+                order: 1;
+                height: 300px;
+            }
+
+            .control-panel {
+                order: 3;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .fire-btn {
+                width: 100%;
             }
         }
     </style>
@@ -301,12 +411,36 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 <body>
     <div class="header-brand">
         <div class="logo-icon"></div>
-        <h1>Void Sentry</h1>
-        <button class="fullscreen-btn" onclick="App.toggleFullScreen()" title="Toggle Fullscreen">
-            <svg viewBox="0 0 24 24">
-                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-            </svg>
-        </button>
+        <h1 onclick="window.location.reload();" style="cursor: pointer;">Void Sentry</h1>
+        <div class="header-actions" style="margin-left: auto; display: flex; gap: 15px;">
+            <button class="help-btn" onclick="App.toggleHelp()" title="System Help">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z" />
+                </svg>
+            </button>
+            <button class="fullscreen-btn" onclick="App.toggleFullScreen()" title="Toggle Fullscreen">
+                <svg viewBox="0 0 24 24">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="helpModal" class="help-overlay">
+        <div class="help-content">
+            <h2>COMMAND_LEGEND.txt</h2>
+            <div class="shortcut-list">
+                <div class="shortcut-item"><span>MOVE SENTRY</span> <span><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd>
+                        <kbd>D</kbd></span></div>
+                <div class="shortcut-item"><span>ENGAGE FIRE</span> <span><kbd>SPACE</kbd></span></div>
+                <div class="shortcut-item"><span>TOGGLE MODE</span> <span><kbd>M</kbd></span></div>
+                <div class="shortcut-item"><span>FULLSCREEN</span> <span><kbd>F</kbd></span></div>
+                <div class="shortcut-item"><span>SYSTEM HELP</span> <span><kbd>?</kbd></span></div>
+                <div class="shortcut-item"><span>CLOSE HELP</span> <span><kbd>ESC</kbd></span></div>
+            </div>
+            <button class="close-help" onclick="App.toggleHelp()">CLOSE HELP</button>
+        </div>
     </div>
 
     <div class="dashboard">
@@ -334,21 +468,32 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
         <section class="control-panel">
             <div class="d-pad">
-                <div class="btn up" data-dir="up"><svg viewBox="0 0 24 24"><path d="M12 4l-9 10h18z" /></svg></div>
-                <div class="btn left" data-dir="left"><svg viewBox="0 0 24 24"><path d="M4 12l10 9v-18z" /></svg></div>
-                <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24"><path d="M20 12l-10-9v18z" /></svg></div>
-                <div class="btn down" data-dir="down"><svg viewBox="0 0 24 24"><path d="M12 20l9-10h-18z" /></svg></div>
+                <div class="btn up" data-dir="up"><svg viewBox="0 0 24 24">
+                        <path d="M12 4l-9 10h18z" />
+                    </svg></div>
+                <div class="btn left" data-dir="left"><svg viewBox="0 0 24 24">
+                        <path d="M4 12l10 9v-18z" />
+                    </svg></div>
+                <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24">
+                        <path d="M20 12l-10-9v18z" />
+                    </svg></div>
+                <div class="btn down" data-dir="down"><svg viewBox="0 0 24 24">
+                        <path d="M12 20l9-10h-18z" />
+                    </svg></div>
             </div>
-            <button class="fire-btn" onmousedown="App.fire(true)" onmouseup="App.fire(false)" ontouchstart="App.fire(true)" ontouchend="App.fire(false)">Engage Fire</button>
+            <button class="fire-btn" onmousedown="App.fire(true)" onmouseup="App.fire(false)"
+                ontouchstart="App.fire(true)" ontouchend="App.fire(false)">Engage Fire</button>
         </section>
     </div>
+
 
     <script>
         const App = {
             state: {
                 socket: null,
                 mode: 'AI',
-                activeKeys: new Set()
+                activeKeys: new Set(),
+                latestData: null
             },
 
             init() {
@@ -358,9 +503,19 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                 this.img.onload = () => this.resize();
                 window.onresize = () => this.resize();
 
+                this.elements = {
+                    pos: document.getElementById('metric-pos'),
+                    fps: document.getElementById('metric-fps'),
+                    lock: document.getElementById('metric-lock'),
+                    mode: document.getElementById('metric-mode'),
+                    fireBtn: document.querySelector('.fire-btn'),
+                    toggleBtn: document.querySelector('.toggle-btn')
+                };
+
                 this.setupControls();
                 this.setupKeyboard();
                 this.connect();
+                this.renderLoop();
             },
 
             toggleFullScreen() {
@@ -375,6 +530,15 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                 }
             },
 
+            toggleHelp() {
+                const modal = document.getElementById('helpModal');
+                if (modal.style.display === 'none' || modal.style.display === '') {
+                    modal.style.display = 'flex';
+                } else {
+                    modal.style.display = 'none';
+                }
+            },
+
             setupKeyboard() {
                 const keyMap = {
                     'w': 'up', 'ArrowUp': 'up',
@@ -385,12 +549,36 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
                 window.addEventListener('keydown', (e) => {
                     if (e.repeat) return;
+
+                    if (e.key === '?') { // Toggle Help legend
+                        this.toggleHelp();
+                        return;
+                    }
+                    if (e.key === 'Escape') { // Close Help legend
+                        document.getElementById('helpModal').style.display = 'none';
+                        return;
+                    }
+
+                    if (e.key.toLowerCase() === 'f') { // Toggle Full screen
+                        this.toggleFullScreen();
+                        return;
+                    }
+                    if (e.key.toLowerCase() === 'm') { // Toggle AI\Manual modes
+                        this.toggleMode();
+                        return;
+                    }
+
+
+
+                    // Existing Movement Controls
                     if (keyMap[e.key]) {
                         const dir = keyMap[e.key];
                         this.state.activeKeys.add(e.key);
                         this.send(`move:${dir}`);
-                        document.querySelector(`.${dir}`).classList.add('active');
+                        const btn = document.querySelector(`.${dir}`);
+                        if (btn) btn.classList.add('active');
                     }
+
                     if (e.code === 'Space') {
                         e.preventDefault();
                         this.fire(true);
@@ -400,10 +588,15 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
                 window.addEventListener('keyup', (e) => {
                     if (keyMap[e.key]) {
+                        const dir = keyMap[e.key];
                         this.state.activeKeys.delete(e.key);
-                        document.querySelector(`.${keyMap[e.key]}`).classList.remove('active');
-                        const remainingMoves = Array.from(this.state.activeKeys).some(k => keyMap[k]);
-                        if (!remainingMoves) this.send(`move:stop`);
+
+                        const btn = document.querySelector(`.${dir}`);
+                        if (btn) btn.classList.remove('active');
+
+                        if (this.state.activeKeys.size === 0) {
+                            this.send(`move:stop`);
+                        }
                     }
                     if (e.code === 'Space') {
                         this.fire(false);
@@ -413,6 +606,10 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             },
 
             resize() {
+                // This ensures the drawing layer matches the actual visible image size
+                const rect = this.img.getBoundingClientRect();
+                this.canvas.style.width = this.img.clientWidth + 'px';
+                this.canvas.style.height = this.img.clientHeight + 'px';
                 this.canvas.width = this.img.clientWidth;
                 this.canvas.height = this.img.clientHeight;
             },
@@ -429,20 +626,22 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                     try {
                         const data = JSON.parse(e.data);
                         this.handleData(data);
-                    } catch (err) {}
+                    } catch (err) { }
                 };
             },
 
             updateStatus(txt, clr) {
                 const el = document.getElementById('metric-sys');
-                el.textContent = txt; el.style.color = clr;
+                if (el) { el.textContent = txt; el.style.color = clr; }
             },
 
             handleData(data) {
-                document.getElementById('metric-pos').textContent = `${data.x},${data.y}`;
-                document.getElementById('metric-fps').textContent = data.fps;
-                document.getElementById('metric-lock').textContent = data.lock ? "LOCKED" : "CLEAR";
-                document.getElementById('metric-lock').style.color = data.lock ? "var(--error)" : "var(--terminal)";
+                this.state.latestData = data;
+                this.elements.pos.textContent = `${data.x},${data.y}`;
+                this.elements.fps.textContent = data.fps
+                const lockEl = document.getElementById('metric-lock');
+                lockEl.textContent = data.lock ? "LOCKED" : "CLEAR";
+                lockEl.style.color = data.lock ? "var(--error)" : "var(--terminal)";
                 this.draw(data);
             },
 
@@ -472,7 +671,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             toggleMode() {
                 this.state.mode = this.state.mode === 'MANUAL' ? 'AI' : 'MANUAL';
                 document.getElementById('metric-mode').textContent = this.state.mode;
-                document.querySelector('.toggle-btn').textContent = 
+                document.querySelector('.toggle-btn').textContent =
                     this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
                 this.send(`mode:${this.state.mode}`);
             },
@@ -489,6 +688,13 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                 this.ctx.moveTo(x - 25, y); this.ctx.lineTo(x + 25, y);
                 this.ctx.moveTo(x, y - 25); this.ctx.lineTo(x, y + 25);
                 this.ctx.stroke();
+            },
+
+            renderLoop() {
+                if (this.state.latestData) {
+                    this.draw(this.state.latestData);
+                }
+                requestAnimationFrame(() => this.renderLoop());
             }
         };
         App.init();
