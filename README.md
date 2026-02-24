@@ -1,49 +1,57 @@
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
-
-  .title-gradient {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-style: italic;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    background: linear-gradient(180deg, #ffffff 30%, #ff6b00 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    margin: 0;
-    line-height: 1.2;
-  }
-
-  .header-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    border-radius: 8px;
-  }
-</style>
-
-<div class="header-container">
-  <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" alt="project_logo" height="80" width="80">
-  <h1 class="title-gradient">VOID SENTRY</h1>
-</div>
-
-
-[![Cppcheck Analysis](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml) <!-- CPP check badge--> 
-[![Doxygen - Documentation Generator](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml)
-
-This project implements an autonomous motion-tracking system using an ESP32-CAM. Instead of static edge detection, the system uses Frame Differencing to isolate moving targets, calculate their centroids, and lock onto them in real-time. **Motion detection is visualized in real-time on the HTTP video stream with a green target overlay.**
+<table border="0">
+  <tr>
+    <td style="border: none;">
+      <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" alt="project_logo" width="80" height="80">
+    </td>
+    <td style="border: none; vertical-align: middle;">
+      <h1>VOID SENTRY</h1>
+      <p><em>Autonomous Computer Vision & Kinetic Tracking System</em></p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🚀 Core Features
-* **Frame Differencing**: Compares the current frame against a stored reference frame to identify pixels that have changed
-* **Target Centroid Calculation**: Automatically calculates the X, Y center of the detected motion "blob" for precise tracking
-* **Adaptive Thresholding**: Dynamically filters out sensor noise to prevent false motion triggers
-* **Target Locking**: Maintains stable lock on moving objects while ignoring static backgrounds
-* **Motion Visualization**: Real-time green crosshair + circle overlay on HTTP video stream showing detected motion
-* **Servo Control**: Pan and tilt servos automatically track the detected target
-* **Web Interface**: Live video streaming with motion detection visualization accessible via browser
+<div align="center">
+
+![Status](https://img.shields.io/badge/Status-Active_Development-ff6b00)
+[![Cppcheck Analysis](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml)
+[![Doxygen - Documentation Generator](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml)
+
+</div>
+
+**Void Sentry** is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized **Frame Differencing** algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.
+
+---
+
+## System Architecture
+The system operates on a dual-core cycle to ensure low-latency video delivery while maintaining a high-frequency tracking loop. 
 
 
+
+* **Computer Vision Pipeline**: Optimized for **QVGA (320x240)** resolution to maximize frames-per-second (FPS) and minimize computational jitter.
+* **Kinetic Engine**: Translates motion "blob" centroids into PWM signals for high-torque servo response.
+* **Visual Feedback**: A real-time Augmented Reality (AR) overlay is injected directly into the MJPEG stream, providing zero-latency target telemetry.
+
+## Technical Specifications
+| Feature | Implementation |
+| :--- | :--- |
+| **Detection Algorithm** | Temporal Frame Differencing (Greyscale) |
+| **Tracking Logic** | Geometric Centroid Calculation (X, Y Coordinates) |
+| **Noise Reduction** | Adaptive Hysteresis Thresholding |
+| **I/O Protocol** | PWM (Pan/Tilt Servos) + HTTP MJPEG Stream |
+| **Resolution** | 320x240 (Optimized for Edge Inference) |
+
+
+
+## Core Capabilities
+* **Intelligent Thresholding**: Dynamically filters out sensor noise and environment fluctuations (e.g., lighting changes) to prevent false positives.
+* **Target Locking**: Implements "stickiness" logic to maintain focus on the primary moving mass while ignoring secondary background static.
+* **Low-Latency Dashboard**: A web-based HUD designed for mobile and desktop, featuring real-time telemetry stats and manual override controls.
+* **Modular Servo Control**: Easily adaptable for various Pan/Tilt hardware configurations.
+
+
+### Software Setup
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/KoganTheDev/Smart_Camera_ESP32.git](https://github.com/KoganTheDev/Smart_Camera_ESP32.git)
