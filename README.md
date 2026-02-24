@@ -1,16 +1,12 @@
-<table border="0">
-  <tr>
-    <td style="border: none;">
-      <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" alt="project_logo" width="80" height="80">
-    </td>
-    <td style="border: none; vertical-align: middle;">
-      <h1>VOID SENTRY</h1>
-      <p><em>Autonomous Computer Vision & Kinetic Tracking System</em></p>
-    </td>
-  </tr>
-</table>
-
----
+<div align="center">
+<p>
+  <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" width="100" height="100" style="vertical-align: middle;">
+  <span style="margin-left: 15px; font-size: 1000px;">VOID SENTRY</span>
+</p>
+<p>
+  <strong>The Autonomous Computer Vision & Kinetic Tracking System for ESP32-CAM</strong>
+</p>
+</div>
 
 <div align="center">
 
@@ -55,3 +51,4 @@ The system operates on a dual-core cycle to ensure low-latency video delivery wh
 1. Clone the repository:
    ```bash
    git clone [https://github.com/KoganTheDev/Smart_Camera_ESP32.git](https://github.com/KoganTheDev/Smart_Camera_ESP32.git)
+
