@@ -131,7 +131,6 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             gap: var(--gap-main);
             padding: var(--gap-main);
             min-height: 0;
-            /* Important for flex-child scrolling */
         }
 
         /* --- Video Box & Canvas --- */
@@ -140,24 +139,28 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             border: 1px solid var(--border);
             border-radius: var(--radius);
             position: relative;
+            display: block;
             overflow: hidden;
-            display: grid;
-            place-items: center;
+            width: 100%;
+            height: 100%;
         }
 
         #streamImg {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            filter: contrast(1.1) brightness(1.1);
         }
 
         #overlayCanvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             pointer-events: none;
+            z-index: 5;
         }
 
         /* --- UI Panels (Stats & Advanced) --- */
@@ -183,17 +186,49 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
         }
 
         .stat-line {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 2px solid var(--border);
+            margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            border-bottom: 1px solid #222;
-            padding-bottom: 4px;
+            align-items: center;
+        }
+
+        .stat-line:hover {
+            border-left-color: var(--accent);
+            background: rgba(255, 107, 0, 0.05);
         }
 
         .stat-val {
             color: var(--terminal);
         }
+
+        /* Locked Alert */
+        @keyframes pulse-red {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+                text-shadow: 0 0 10px var(--error);
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .status-locked {
+            color: var(--error) !important;
+            animation: pulse-red 1s infinite;
+            font-weight: bold;
+        }
+
+        /* Locked Alert END*/
+
 
         .advanced-stats {
             margin-top: 10px;
@@ -248,24 +283,52 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
         }
 
         .btn {
-            background: #252525;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 1px solid #333;
+            border-radius: 6px;
             display: grid;
             place-items: center;
             cursor: pointer;
+            position: relative;
+            /* Outward shadow for depth, inward shadow for "beveled" edge */
+            box-shadow:
+                0 4px 0 #000,
+                inset 1px 1px 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.1s ease;
         }
 
-        .btn svg {
-            width: 20px;
-            fill: #fff;
-            opacity: 0.8;
+        .btn:hover {
+            border-color: var(--accent);
+            box-shadow:
+                0 4px 0 #000,
+                0 0 10px rgba(255, 107, 0, 0.2),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.05);
         }
 
         .btn.active,
         .btn:active {
             background: var(--accent);
+            transform: translateY(3px);
+            box-shadow:
+                0 1px 0 #000,
+                0 0 15px rgba(255, 107, 0, 0.5);
         }
+
+        .btn svg {
+            width: 24px;
+            fill: #fff;
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.2s;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+        }
+
+        .btn.active svg,
+        .btn:active svg {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+
 
         /* Assign D-Pad areas */
         .up {
@@ -293,15 +356,31 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             text-transform: uppercase;
             color: #fff;
             background: linear-gradient(135deg, #ff4500, #b00);
-            border: none;
+            border: 1px solid #ff6b00;
             border-radius: var(--radius);
-            box-shadow: 0 4px 0 #600;
+            box-shadow: 0 6px 0 #600, 0 4px 15px rgba(255, 0, 0, 0.2);
             cursor: pointer;
+            transition: all 0.1s;
         }
 
         .fire-btn:active {
             transform: translateY(2px);
             box-shadow: 0 2px 0 #600;
+        }
+
+        .fire-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #600, 0 0 20px rgba(255, 69, 0, 0.6);
+        }
+
+        /* Not locked - Disallow firing*/
+        .fire-btn:disabled {
+            background: #333;
+            color: #666;
+            box-shadow: 0 4px 0 #111;
+            cursor: not-allowed;
+            transform: none !important;
+            opacity: 0.7;
         }
 
         /* --- Help Overlay --- */
@@ -344,7 +423,6 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             font-weight: bold;
         }
 
-
         /* --- Mobile Responsiveness --- */
         @media (max-width: 800px) {
             .dashboard {
@@ -378,7 +456,8 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
 <body>
     <div class="header-brand">
-        <img alt="void_sentry_header_logo" class="logo-brand-img"
+        <img alt="void_sentry_header_logo" class="logo-brand-img" onclick="window.location.reload();"
+            style="cursor: pointer;"
             src="data:image/webp;base64,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">
         <h1 onclick="window.location.reload();" style="cursor: pointer;">Void Sentry</h1>
         <div class="header-actions" style="margin-left: auto; display: flex; gap: 15px;">
@@ -437,237 +516,287 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
         <section class="control-panel">
             <div class="d-pad">
-                <div class="btn up" data-dir="up"><svg viewBox="0 0 24 24">
-                        <path d="M12 4l-9 10h18z" />
-                    </svg></div>
-                <div class="btn left" data-dir="left"><svg viewBox="0 0 24 24">
-                        <path d="M4 12l10 9v-18z" />
-                    </svg></div>
-                <div class="btn right" data-dir="right"><svg viewBox="0 0 24 24">
-                        <path d="M20 12l-10-9v18z" />
-                    </svg></div>
-                <div class="btn down" data-dir="down"><svg viewBox="0 0 24 24">
-                        <path d="M12 20l9-10h-18z" />
-                    </svg></div>
+                <div class="btn up" data-dir="up">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M11.375 6.22l-5 4a1 1 0 0 0 -.375 .78v6l.006 .112a1 1 0 0 0 1.619 .669l4.375 -3.501l4.375 3.5a1 1 0 0 0 1.625 -.78v-6a1 1 0 0 0 -.375 -.78l-5 -4a1 1 0 0 0 -1.25 0z" />
+                    </svg>
+                </div>
+
+                <div class="btn left" data-dir="left">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="transform: rotate(-90deg);">
+                        <path
+                            d="M11.375 6.22l-5 4a1 1 0 0 0 -.375 .78v6l.006 .112a1 1 0 0 0 1.619 .669l4.375 -3.501l4.375 3.5a1 1 0 0 0 1.625 -.78v-6a1 1 0 0 0 -.375 -.78l-5 -4a1 1 0 0 0 -1.25 0z" />
+                    </svg>
+                </div>
+
+                <div class="btn right" data-dir="right">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="transform: rotate(90deg);">
+                        <path
+                            d="M11.375 6.22l-5 4a1 1 0 0 0 -.375 .78v6l.006 .112a1 1 0 0 0 1.619 .669l4.375 -3.501l4.375 3.5a1 1 0 0 0 1.625 -.78v-6a1 1 0 0 0 -.375 -.78l-5 -4a1 1 0 0 0 -1.25 0z" />
+                    </svg>
+                </div>
+
+                <div class="btn down" data-dir="down">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="transform: rotate(180deg);">
+                        <path
+                            d="M11.375 6.22l-5 4a1 1 0 0 0 -.375 .78v6l.006 .112a1 1 0 0 0 1.619 .669l4.375 -3.501l4.375 3.5a1 1 0 0 0 1.625 -.78v-6a1 1 0 0 0 -.375 -.78l-5 -4a1 1 0 0 0 -1.25 0z" />
+                    </svg>
+                </div>
             </div>
+
             <button class="fire-btn" onmousedown="App.fire(true)" onmouseup="App.fire(false)"
                 ontouchstart="App.fire(true)" ontouchend="App.fire(false)">Engage Fire</button>
         </section>
-    </div>
 
+        <script>
+            const App = {
+                state: {
+                    socket: null,
+                    mode: 'AI',
+                    activeKeys: new Set(),
+                    latestData: null
+                },
 
-    <script>
-        const App = {
-            state: {
-                socket: null,
-                mode: 'AI',
-                activeKeys: new Set(),
-                latestData: null
-            },
+                init() {
+                    this.canvas = document.getElementById('overlayCanvas');
+                    this.ctx = this.canvas.getContext('2d');
+                    this.img = document.getElementById('streamImg');
+                    this.img.onload = () => this.resize();
+                    window.onresize = () => this.resize();
 
-            init() {
-                this.canvas = document.getElementById('overlayCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.img = document.getElementById('streamImg');
-                this.img.onload = () => this.resize();
-                window.onresize = () => this.resize();
+                    this.elements = {
+                        pos: document.getElementById('metric-pos'),
+                        fps: document.getElementById('metric-fps'),
+                        lock: document.getElementById('metric-lock'),
+                        mode: document.getElementById('metric-mode'),
+                        fireBtn: document.querySelector('.fire-btn'),
+                        toggleBtn: document.querySelector('.toggle-btn')
+                    };
 
-                this.elements = {
-                    pos: document.getElementById('metric-pos'),
-                    fps: document.getElementById('metric-fps'),
-                    lock: document.getElementById('metric-lock'),
-                    mode: document.getElementById('metric-mode'),
-                    fireBtn: document.querySelector('.fire-btn'),
-                    toggleBtn: document.querySelector('.toggle-btn')
-                };
+                    this.setupControls();
+                    this.setupKeyboard();
+                    this.connect();
+                    this.renderLoop();
+                },
 
-                this.setupControls();
-                this.setupKeyboard();
-                this.connect();
-                this.renderLoop();
-            },
-
-            toggleFullScreen() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-                    });
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    }
-                }
-            },
-
-            toggleHelp() {
-                const modal = document.getElementById('helpModal');
-                if (modal.style.display === 'none' || modal.style.display === '') {
-                    modal.style.display = 'flex';
-                } else {
-                    modal.style.display = 'none';
-                }
-            },
-
-            setupKeyboard() {
-                const keyMap = {
-                    'w': 'up', 'ArrowUp': 'up',
-                    'a': 'left', 'ArrowLeft': 'left',
-                    's': 'down', 'ArrowDown': 'down',
-                    'd': 'right', 'ArrowRight': 'right'
-                };
-
-                window.addEventListener('keydown', (e) => {
-                    if (e.repeat) return;
-
-                    if (e.key === '?') { // Toggle Help legend
-                        this.toggleHelp();
-                        return;
-                    }
-                    if (e.key === 'Escape') { // Close Help legend
-                        document.getElementById('helpModal').style.display = 'none';
-                        return;
-                    }
-
-                    if (e.key.toLowerCase() === 'f') { // Toggle Full screen
-                        this.toggleFullScreen();
-                        return;
-                    }
-                    if (e.key.toLowerCase() === 'm') { // Toggle AI\Manual modes
-                        this.toggleMode();
-                        return;
-                    }
-
-
-
-                    // Existing Movement Controls
-                    if (keyMap[e.key]) {
-                        const dir = keyMap[e.key];
-                        this.state.activeKeys.add(e.key);
-                        this.send(`move:${dir}`);
-                        const btn = document.querySelector(`.${dir}`);
-                        if (btn) btn.classList.add('active');
-                    }
-
-                    if (e.code === 'Space') {
-                        e.preventDefault();
-                        this.fire(true);
-                        document.querySelector('.fire-btn').style.transform = "translateY(2px)";
-                    }
-                });
-
-                window.addEventListener('keyup', (e) => {
-                    if (keyMap[e.key]) {
-                        const dir = keyMap[e.key];
-                        this.state.activeKeys.delete(e.key);
-
-                        const btn = document.querySelector(`.${dir}`);
-                        if (btn) btn.classList.remove('active');
-
-                        if (this.state.activeKeys.size === 0) {
-                            this.send(`move:stop`);
+                toggleFullScreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                        });
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
                         }
                     }
-                    if (e.code === 'Space') {
-                        this.fire(false);
-                        document.querySelector('.fire-btn').style.transform = "none";
+                },
+
+                toggleHelp() {
+                    const modal = document.getElementById('helpModal');
+                    if (modal.style.display === 'none' || modal.style.display === '') {
+                        modal.style.display = 'flex';
+                    } else {
+                        modal.style.display = 'none';
                     }
-                });
-            },
+                },
 
-            resize() {
-                // This ensures the drawing layer matches the actual visible image size
-                const rect = this.img.getBoundingClientRect();
-                this.canvas.style.width = this.img.clientWidth + 'px';
-                this.canvas.style.height = this.img.clientHeight + 'px';
-                this.canvas.width = this.img.clientWidth;
-                this.canvas.height = this.img.clientHeight;
-            },
-
-            connect() {
-                const url = `ws://${location.host}/ws`;
-                this.state.socket = new WebSocket(url);
-                this.state.socket.onopen = () => this.updateStatus("ONLINE", "#00ff41");
-                this.state.socket.onclose = () => {
-                    this.updateStatus("RETRYING", "orange");
-                    setTimeout(() => this.connect(), 2000);
-                };
-                this.state.socket.onmessage = (e) => {
-                    try {
-                        const data = JSON.parse(e.data);
-                        this.handleData(data);
-                    } catch (err) { }
-                };
-            },
-
-            updateStatus(txt, clr) {
-                const el = document.getElementById('metric-sys');
-                if (el) { el.textContent = txt; el.style.color = clr; }
-            },
-
-            handleData(data) {
-                this.state.latestData = data;
-                this.elements.pos.textContent = `${data.x},${data.y}`;
-                this.elements.fps.textContent = data.fps
-                const lockEl = document.getElementById('metric-lock');
-                lockEl.textContent = data.lock ? "LOCKED" : "CLEAR";
-                lockEl.style.color = data.lock ? "var(--error)" : "var(--terminal)";
-                this.draw(data);
-            },
-
-            send(msg) {
-                if (this.state.socket?.readyState === 1) this.state.socket.send(msg);
-            },
-
-            setupControls() {
-                document.querySelectorAll('.btn').forEach(b => {
-                    const d = b.dataset.dir;
-                    b.onmousedown = b.ontouchstart = (e) => {
-                        e.preventDefault();
-                        this.send(`move:${d}`);
-                        b.classList.add('active');
+                setupKeyboard() {
+                    const keyMap = {
+                        'w': 'up', 'ArrowUp': 'up',
+                        'a': 'left', 'ArrowLeft': 'left',
+                        's': 'down', 'ArrowDown': 'down',
+                        'd': 'right', 'ArrowRight': 'right'
                     };
-                    b.onmouseup = b.ontouchend = () => {
-                        this.send(`move:stop`);
-                        b.classList.remove('active');
+
+                    window.addEventListener('keydown', (e) => {
+                        if (e.repeat) return;
+
+                        if (e.key === '?') { // Toggle Help legend
+                            this.toggleHelp();
+                            return;
+                        }
+                        if (e.key === 'Escape') { // Close Help legend
+                            document.getElementById('helpModal').style.display = 'none';
+                            return;
+                        }
+
+                        if (e.key.toLowerCase() === 'f') { // Toggle Full screen
+                            this.toggleFullScreen();
+                            return;
+                        }
+                        if (e.key.toLowerCase() === 'm') { // Toggle AI\Manual modes
+                            this.toggleMode();
+                            return;
+                        }
+
+
+
+                        // Existing Movement Controls
+                        if (keyMap[e.key]) {
+                            const dir = keyMap[e.key];
+                            this.state.activeKeys.add(e.key);
+                            this.send(`move:${dir}`);
+                            const btn = document.querySelector(`.${dir}`);
+                            if (btn) btn.classList.add('active');
+                        }
+
+                        if (e.code === 'Space') {
+                            e.preventDefault();
+                            this.fire(true);
+                            document.querySelector('.fire-btn').style.transform = "translateY(2px)";
+                        }
+                    });
+
+                    window.addEventListener('keyup', (e) => {
+                        if (keyMap[e.key]) {
+                            const dir = keyMap[e.key];
+                            this.state.activeKeys.delete(e.key);
+
+                            const btn = document.querySelector(`.${dir}`);
+                            if (btn) btn.classList.remove('active');
+
+                            if (this.state.activeKeys.size === 0) {
+                                this.send(`move:stop`);
+                            }
+                        }
+                        if (e.code === 'Space') {
+                            this.fire(false);
+                            document.querySelector('.fire-btn').style.transform = "none";
+                        }
+                    });
+                },
+
+                resize() {
+                    const img = this.img;
+                    const canvas = this.canvas;
+
+                    // Get the actual displayed dimensions of the image inside the object-fit
+                    const displayWidth = img.clientWidth;
+                    const displayHeight = img.clientHeight;
+
+                    // To get the 'contained' dimensions, we calculate the ratio
+                    const renderRatio = img.naturalWidth / img.naturalHeight;
+                    const containerRatio = displayWidth / displayHeight;
+
+                    let actualW, actualH;
+                    if (containerRatio > renderRatio) {
+                        actualH = displayHeight;
+                        actualW = displayHeight * renderRatio;
+                    } else {
+                        actualW = displayWidth;
+                        actualH = displayWidth / renderRatio;
+                    }
+
+                    // Set canvas size to match the visible image exactly
+                    canvas.width = actualW;
+                    canvas.height = actualH;
+                    canvas.style.width = actualW + 'px';
+                    canvas.style.height = actualH + 'px';
+                },
+
+                connect() {
+                    const url = `ws://${location.host}/ws`;
+                    this.state.socket = new WebSocket(url);
+                    this.state.socket.onopen = () => this.updateStatus("ONLINE", "#00ff41");
+                    this.state.socket.onclose = () => {
+                        this.updateStatus("RETRYING", "orange");
+                        setTimeout(() => this.connect(), 2000);
                     };
-                });
-            },
+                    this.state.socket.onmessage = (e) => {
+                        try {
+                            const data = JSON.parse(e.data);
+                            this.handleData(data);
+                        } catch (err) { }
+                    };
+                },
 
-            fire(on) {
-                this.send(on ? "fire:on" : "fire:off");
-            },
+                updateStatus(txt, clr) {
+                    const el = document.getElementById('metric-sys');
+                    if (el) { el.textContent = txt; el.style.color = clr; }
+                },
 
-            toggleMode() {
-                this.state.mode = this.state.mode === 'MANUAL' ? 'AI' : 'MANUAL';
-                document.getElementById('metric-mode').textContent = this.state.mode;
-                document.querySelector('.toggle-btn').textContent =
-                    this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
-                this.send(`mode:${this.state.mode}`);
-            },
+                handleData(data) {
+                    this.state.latestData = data;
+                    this.elements.pos.textContent = `${data.x},${data.y}`;
 
-            draw(data) {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                if (!data.lock) return;
-                const x = data.x * (this.canvas.width / 320);
-                const y = data.y * (this.canvas.height / 240);
-                this.ctx.strokeStyle = '#ff0000';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, 15, 0, Math.PI * 2);
-                this.ctx.moveTo(x - 25, y); this.ctx.lineTo(x + 25, y);
-                this.ctx.moveTo(x, y - 25); this.ctx.lineTo(x, y + 25);
-                this.ctx.stroke();
-            },
+                    const lockEl = document.getElementById('metric-lock');
 
-            renderLoop() {
-                if (this.state.latestData) {
-                    this.draw(this.state.latestData);
+                    if (data.lock) {
+                        lockEl.textContent = "TARGET_ACQUIRED";
+                        lockEl.classList.add('status-locked');
+
+                        // ENABLE the button
+                        this.elements.fireBtn.disabled = false;
+                    } else {
+                        lockEl.textContent = "SCANNING...";
+                        lockEl.classList.remove('status-locked');
+
+                        // DISABLE the button
+                        this.elements.fireBtn.disabled = true;
+
+                        // Safety: If the user was holding fire while the lock was lost, turn it off
+                        this.fire(false);
+                    }
+                    this.draw(data);
+                },
+
+                send(msg) {
+                    if (this.state.socket?.readyState === 1) this.state.socket.send(msg);
+                },
+
+                setupControls() {
+                    document.querySelectorAll('.btn').forEach(b => {
+                        const d = b.dataset.dir;
+                        b.onmousedown = b.ontouchstart = (e) => {
+                            e.preventDefault();
+                            this.send(`move:${d}`);
+                            b.classList.add('active');
+                        };
+                        b.onmouseup = b.ontouchend = () => {
+                            this.send(`move:stop`);
+                            b.classList.remove('active');
+                        };
+                    });
+                },
+
+                fire(on) {
+                    if (!on || (this.state.latestData && this.state.latestData.lock)) {
+                        this.send(on ? "fire:on" : "fire:off");
+                    }
+                },
+
+                toggleMode() {
+                    this.state.mode = this.state.mode === 'MANUAL' ? 'AI' : 'MANUAL';
+                    document.getElementById('metric-mode').textContent = this.state.mode;
+                    document.querySelector('.toggle-btn').textContent =
+                        this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
+                    this.send(`mode:${this.state.mode}`);
+                },
+
+                draw(data) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    if (!data.lock) return;
+                    const x = data.x * (this.canvas.width / 320);
+                    const y = data.y * (this.canvas.height / 240);
+                    this.ctx.strokeStyle = '#ff0000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 15, 0, Math.PI * 2);
+                    this.ctx.moveTo(x - 25, y); this.ctx.lineTo(x + 25, y);
+                    this.ctx.moveTo(x, y - 25); this.ctx.lineTo(x, y + 25);
+                    this.ctx.stroke();
+                },
+
+                renderLoop() {
+                    if (this.state.latestData) {
+                        this.draw(this.state.latestData);
+                    }
+                    requestAnimationFrame(() => this.renderLoop());
                 }
-                requestAnimationFrame(() => this.renderLoop());
-            }
-        };
-        App.init();
-    </script>
+            };
+            App.init();
+        </script>
 </body>
 
 </html>
