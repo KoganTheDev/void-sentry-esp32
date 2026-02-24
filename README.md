@@ -1,17 +1,15 @@
-
-<p>
-  <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" width="100" height="100" style="vertical-align: middle;">
-  <img src="logo/void_sentry_title.png">
-</p>
-<p>
+<!-- Header Section - Logo, Title and badges-->
+<div align="center">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+    <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" width="150">
+    <img src="logo/void_sentry_title.png" width="600">
+  </div>
+  
   <strong>The Autonomous Computer Vision & Kinetic Tracking System for ESP32-CAM</strong>
-</p>
-</div>
 
-![Status](https://img.shields.io/badge/Status-Active_Development-ff6b00)
-[![Cppcheck Analysis](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml)
-[![Doxygen - Documentation Generator](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml)
-
+  ![Status](https://img.shields.io/badge/Status-Active_Development-ff6b00)
+  [![Cppcheck Analysis](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml)
+  [![Doxygen - Documentation Generator](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml)
 </div>
 
 **Void Sentry** is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized **Frame Differencing** algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.
@@ -49,4 +47,5 @@ The system operates on a dual-core cycle to ensure low-latency video delivery wh
 1. Clone the repository:
    ```bash
    git clone [https://github.com/KoganTheDev/Smart_Camera_ESP32.git](https://github.com/KoganTheDev/Smart_Camera_ESP32.git)
+
 
