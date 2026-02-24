@@ -20,7 +20,6 @@
 The system operates on a dual-core cycle to ensure low-latency video delivery while maintaining a high-frequency tracking loop. 
 
 
-
 * **Computer Vision Pipeline**: Optimized for **QVGA (320x240)** resolution to maximize frames-per-second (FPS) and minimize computational jitter.
 * **Kinetic Engine**: Translates motion "blob" centroids into PWM signals for high-torque servo response.
 * **Visual Feedback**: A real-time Augmented Reality (AR) overlay is injected directly into the MJPEG stream, providing zero-latency target telemetry.
@@ -42,10 +41,10 @@ The system operates on a dual-core cycle to ensure low-latency video delivery wh
 * **Low-Latency Dashboard**: A web-based HUD designed for mobile and desktop, featuring real-time telemetry stats and manual override controls.
 * **Modular Servo Control**: Easily adaptable for various Pan/Tilt hardware configurations.
 
+<!-- TODO: Improve Setup when the wrapping things us-->
 
 ### Software Setup
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/KoganTheDev/Smart_Camera_ESP32.git](https://github.com/KoganTheDev/Smart_Camera_ESP32.git)
-
-
+   git clone [https://github.com/KoganTheDev/void-sentry-esp32.git](https://github.com/KoganTheDev/void-sentry-esp32.git)
+   ```

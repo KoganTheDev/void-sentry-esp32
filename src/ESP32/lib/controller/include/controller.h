@@ -30,6 +30,7 @@ class Camera;
 class Controller
 {
 private:
+    /** @brief Holds the current state of the turret - either "User Mode" or "AI Mode" */
     SystemControl _system_control_state;
 
     /** @brief Reference to the hardware abstraction for motor control. */

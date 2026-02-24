@@ -7,6 +7,8 @@
 
 #include <Arduino.h>
 
+// TODO: refactor some more, i want it to work like this: state.to_string() instead of to_string(state)
+
 /**
  * @enum SystemControl
  * @brief Represents the primary control authority of the turret.
@@ -22,25 +24,16 @@ enum class SystemControl : uint8_t {
  * @param mode The current system mode.
  * @return A descriptive string for logging.
  */
-inline String modeToString(SystemControl mode)
+inline const char* to_string(const SystemControl& mode)
 {
-    switch (mode)
-    {
-    case SystemControl::USER_MODE:
-        return "USER_MANUAL";
-    case SystemControl::AI_MODE:
-        return "AI_AUTONOMOUS";
-    }
-    return "";
+    return (mode == SystemControl::USER_MODE) ? "USER_MODE" : "AI_MODE";
 }
 
 /**
  * @brief Toggles the system state between User and AI control.
- * @param currentMode The reference to the current system state.
+ * @param state The reference to the current system state.
  */
-inline SystemControl toggleControlMode(SystemControl& currentMode)
+static inline SystemControl toggle_mode(const SystemControl& state)
 {
-    currentMode = (currentMode == SystemControl::USER_MODE) ? SystemControl::AI_MODE : SystemControl::USER_MODE;
-
-    return currentMode;
+    return (state == SystemControl::USER_MODE) ? SystemControl::AI_MODE : SystemControl::USER_MODE;
 }
