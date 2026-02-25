@@ -1,6 +1,5 @@
 /**
  * @file Camera.h
- * @author KoganTheDev
  * @brief Hardware Abstraction Layer (HAL) for the ESP32-Wrover Camera module.
  * @details This class handles the low-level handshake between the ESP32-S3/S2/WROVER
  * and the OV-series camera sensors. It manages I2C (SCCB) configuration and
@@ -18,33 +17,33 @@
  */
 namespace WroverPins
 {
-/** @brief Power down pin; set to -1 if hardware is always on. */
-#define PWDN_GPIO_NUM -1
-/** @brief Hardware reset pin; set to -1 if managed by external RC circuit. */
-#define RESET_GPIO_NUM -1
-/** @brief External Clock (XCLK). Drives the internal timing of the sensor. */
-#define XCLK_GPIO_NUM 21
-/** @brief Serial Data line for SCCB (I2C) bus. Requires external pull-up. */
-#define SIOD_GPIO_NUM 26
-/** @brief Serial Clock line for SCCB (I2C) bus. */
-#define SIOC_GPIO_NUM 27
+    /** @brief Power down pin; set to -1 if hardware is always on. */
+    #define PWDN_GPIO_NUM -1
+    /** @brief Hardware reset pin; set to -1 if managed by external RC circuit. */
+    #define RESET_GPIO_NUM -1
+    /** @brief External Clock (XCLK). Drives the internal timing of the sensor. */
+    #define XCLK_GPIO_NUM 21
+    /** @brief Serial Data line for SCCB (I2C) bus. Requires external pull-up. */
+    #define SIOD_GPIO_NUM 26
+    /** @brief Serial Clock line for SCCB (I2C) bus. */
+    #define SIOC_GPIO_NUM 27
 
-/* Parallel Data Bus (Y2-Y9) */
-#define Y9_GPIO_NUM 35
-#define Y8_GPIO_NUM 34
-#define Y7_GPIO_NUM 39
-#define Y6_GPIO_NUM 36
-#define Y5_GPIO_NUM 19
-#define Y4_GPIO_NUM 18
-#define Y3_GPIO_NUM 5
-#define Y2_GPIO_NUM 4
+    /* Parallel Data Bus (Y2-Y9) */
+    #define Y9_GPIO_NUM 35
+    #define Y8_GPIO_NUM 34
+    #define Y7_GPIO_NUM 39
+    #define Y6_GPIO_NUM 36
+    #define Y5_GPIO_NUM 19
+    #define Y4_GPIO_NUM 18
+    #define Y3_GPIO_NUM 5
+    #define Y2_GPIO_NUM 4
 
-/** @brief Vertical Sync: High pulse indicates a new frame start. */
-#define VSYNC_GPIO_NUM 25
-/** @brief Horizontal Reference: High pulse indicates valid pixel data on the row. */
-#define HREF_GPIO_NUM 23
-/** @brief Pixel Clock: The ESP32 samples data on the rising edge of this clock. */
-#define PCLK_GPIO_NUM 22
+    /** @brief Vertical Sync: High pulse indicates a new frame start. */
+    #define VSYNC_GPIO_NUM 25
+    /** @brief Horizontal Reference: High pulse indicates valid pixel data on the row. */
+    #define HREF_GPIO_NUM 23
+    /** @brief Pixel Clock: The ESP32 samples data on the rising edge of this clock. */
+    #define PCLK_GPIO_NUM 22
 } // namespace WroverPins
 
 /**

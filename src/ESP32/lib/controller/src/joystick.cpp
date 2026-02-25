@@ -23,7 +23,7 @@ void Joystick::begin()
     this->_center_y = sum_y / average_factor;
 }
 
-int Joystick::_read_raw(uint8_t pin)
+int Joystick::_read_raw(uint8_t pin) const
 {
     long sum = 0;
     for (int i = 0; i < JOYSTICK_SAMPLES; i++)
@@ -90,4 +90,4 @@ bool Joystick::is_z_pressed()
     return pressed;
 }
 
-bool Joystick::is_active() { return (get_x() != 0 || get_y() != 0); }
+bool Joystick::is_active() const { return (get_x() != 0 || get_y() != 0); }
