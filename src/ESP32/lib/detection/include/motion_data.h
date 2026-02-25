@@ -1,7 +1,7 @@
 /**
  * @file motion_data.h
- * * @details This header defines the data structures used to pass motion information 
- * between the Computer Vision pipeline and the Kinetic Engine/Web UI. It ensures 
+ * * @details This header defines the data structures used to pass motion information
+ * between the Computer Vision pipeline and the Kinetic Engine/Web UI. It ensures
  * that the tracking logic remains decoupled from the specific sensor hardware.
  */
 
@@ -12,8 +12,8 @@
 /**
  * @class MotionData
  * @brief Clean abstraction for motion detection results.
- * @details Separates motion detection logic from visualization. 
- * This class acts as a "Snapshot" of a single frame's motion analysis, 
+ * @details Separates motion detection logic from visualization.
+ * This class acts as a "Snapshot" of a single frame's motion analysis,
  * providing the geometric data required to draw AR overlays or move servos.
  */
 class MotionData
@@ -101,8 +101,8 @@ public:
 /**
  * @class DetectionMetrics
  * @brief Performance and health metrics for the Motion Detection engine.
- * @details Tracks computational overhead (latency) and statistical trends 
- * such as FPS and detection consistency. This data is primarily used for 
+ * @details Tracks computational overhead (latency) and statistical trends
+ * such as FPS and detection consistency. This data is primarily used for
  * the Web Dashboard telemetry and debugging.
  */
 class DetectionMetrics
@@ -135,12 +135,15 @@ public:
      */
     void set_detection_time_ms(uint32_t time) { this->_detection_time_ms = time; }
     void set_pixels_changed(int count) { this->_pixels_changed = count; }
-    
-    /** 
-     * @brief Sets confidence and clamps value between 0.0 and 1.0. 
+
+    /**
+     * @brief Sets confidence and clamps value between 0.0 and 1.0.
      * @param conf The raw float confidence score.
      */
-    void set_motion_confidence(float conf) { this->_motion_confidence = (conf < 0.0f) ? 0.0f : (conf > 1.0f) ? 1.0f : conf; }
+    void set_motion_confidence(float conf)
+    {
+        this->_motion_confidence = (conf < 0.0f) ? 0.0f : (conf > 1.0f) ? 1.0f : conf;
+    }
     void set_consecutive_motion_frames(int count) { this->_consecutive_motion_frames = count; }
     void set_consecutive_static_frames(int count) { this->_consecutive_static_frames = count; }
     void set_total_detections(uint32_t count) { this->_total_detections = count; }
