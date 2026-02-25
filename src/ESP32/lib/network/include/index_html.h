@@ -363,12 +363,14 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             transition: all 0.1s;
         }
 
-        .fire-btn:active {
+        .fire-btn:active,
+        .fire-btn.active {
             transform: translateY(2px);
             box-shadow: 0 2px 0 #600;
         }
 
-        .fire-btn:active:not(:disabled) {
+        .fire-btn:active:not(:disabled),
+        .fire-btn.active:not(:disabled) {
             transform: translateY(4px);
             box-shadow: 0 2px 0 #600, 0 0 20px rgba(255, 69, 0, 0.6);
         }
@@ -603,39 +605,31 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
                 setupKeyboard() {
                     const keyMap = {
-                        'w': 'up', 'ArrowUp': 'up',
-                        'a': 'left', 'ArrowLeft': 'left',
-                        's': 'down', 'ArrowDown': 'down',
-                        'd': 'right', 'ArrowRight': 'right'
+                        'w': 'up', 'arrowup': 'up',
+                        'a': 'left', 'arrowleft': 'left',
+                        's': 'down', 'arrowdown': 'down',
+                        'd': 'right', 'arrowright': 'right'
                     };
+
+                    const getAction = (e) => keyMap[e.key.toLowerCase()];
 
                     window.addEventListener('keydown', (e) => {
                         if (e.repeat) return;
 
-                        if (e.key === '?') { // Toggle Help legend
-                            this.toggleHelp();
-                            return;
-                        }
-                        if (e.key === 'Escape') { // Close Help legend
+                        // System Controls
+                        const lowKey = e.key.toLowerCase();
+                        if (lowKey === '?') return this.toggleHelp();
+                        if (lowKey === 'escape') {
                             document.getElementById('helpModal').style.display = 'none';
                             return;
                         }
+                        if (lowKey === 'f') return this.toggleFullScreen();
+                        if (lowKey === 'm') return this.toggleMode();
 
-                        if (e.key.toLowerCase() === 'f') { // Toggle Full screen
-                            this.toggleFullScreen();
-                            return;
-                        }
-                        if (e.key.toLowerCase() === 'm') { // Toggle AI\Manual modes
-                            this.toggleMode();
-                            return;
-                        }
-
-
-
-                        // Existing Movement Controls
-                        if (keyMap[e.key]) {
-                            const dir = keyMap[e.key];
-                            this.state.activeKeys.add(e.key);
+                        // Movement Controls
+                        const dir = getAction(e);
+                        if (dir) {
+                            this.state.activeKeys.add(lowKey); // Store as lowercase
                             this.send(`move:${dir}`);
                             const btn = document.querySelector(`.${dir}`);
                             if (btn) btn.classList.add('active');
@@ -644,15 +638,16 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                         if (e.code === 'Space') {
                             e.preventDefault();
                             this.fire(true);
-                            document.querySelector('.fire-btn').style.transform = "translateY(2px)";
+                            document.querySelector('.fire-btn').classList.add('active');
                         }
                     });
 
                     window.addEventListener('keyup', (e) => {
-                        if (keyMap[e.key]) {
-                            const dir = keyMap[e.key];
-                            this.state.activeKeys.delete(e.key);
+                        const lowKey = e.key.toLowerCase();
+                        const dir = getAction(e);
 
+                        if (dir) {
+                            this.state.activeKeys.delete(lowKey); // Remove lowercase version
                             const btn = document.querySelector(`.${dir}`);
                             if (btn) btn.classList.remove('active');
 
@@ -660,9 +655,10 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                                 this.send(`move:stop`);
                             }
                         }
+
                         if (e.code === 'Space') {
                             this.fire(false);
-                            document.querySelector('.fire-btn').style.transform = "none";
+                            document.querySelector('.fire-btn').classList.remove('active');
                         }
                     });
                 },

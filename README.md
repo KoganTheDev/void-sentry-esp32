@@ -1,4 +1,4 @@
-<!-- Header Section - Logo, Title and badges-->
+<!-- Header Section - Logo, Title and badges -->
 <div align="center">
   <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
     <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" width="150">
@@ -11,6 +11,7 @@
   [![Cppcheck Analysis](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml)
   [![Doxygen - Documentation Generator](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml)
 </div>
+<!-- Header Section - END -->
 
 **Void Sentry** is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized **Frame Differencing** algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.
 

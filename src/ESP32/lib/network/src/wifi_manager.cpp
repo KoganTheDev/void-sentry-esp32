@@ -1,14 +1,16 @@
 #include "wifi_manager.h"
+#include <esp_log.h>
+
+const char* TAG = "WIFI_NAMAGER";
 
 void WifiManager::connect(const String& ssid, const String& password)
 {
     if (ssid.length() == 0)
     {
-        Serial.println("[WIFI] WiFi Error: SSID is empty");
+        ESP_LOGE(TAG, "SSID is empty");
         return;
     }
 
-    Serial.printf("[WIFI] Initializing WiFi: %s\n", ssid.c_str());
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), password.c_str());
     WiFi.setAutoReconnect(true);
@@ -16,11 +18,10 @@ void WifiManager::connect(const String& ssid, const String& password)
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
-        Serial.print(".");
 
         if (millis() > 30000)
         { // 30 second timeout
-            Serial.println("\n[WIFI] Connection Failed: Timeout");
+            ESP_LOGE(TAG, "Connection Failed: Timeout");
             return;
         }
     }
