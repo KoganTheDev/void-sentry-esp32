@@ -345,12 +345,14 @@
             transition: all 0.1s;
         }
 
-        .fire-btn:active {
+        .fire-btn:active,
+        .fire-btn.active {
             transform: translateY(2px);
             box-shadow: 0 2px 0 #600;
         }
 
-        .fire-btn:active:not(:disabled) {
+        .fire-btn:active:not(:disabled),
+        .fire-btn.active:not(:disabled) {
             transform: translateY(4px);
             box-shadow: 0 2px 0 #600, 0 0 20px rgba(255, 69, 0, 0.6);
         }
@@ -626,7 +628,7 @@
                         if (e.code === 'Space') {
                             e.preventDefault();
                             this.fire(true);
-                            document.querySelector('.fire-btn').style.transform = "translateY(2px)";
+                            document.querySelector('.fire-btn').classList.add('active');
                         }
                     });
 
@@ -644,7 +646,7 @@
                         }
                         if (e.code === 'Space') {
                             this.fire(false);
-                            document.querySelector('.fire-btn').style.transform = "none";
+                            document.querySelector('.fire-btn').classList.remove('active');
                         }
                     });
                 },
