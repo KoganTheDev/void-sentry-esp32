@@ -66,9 +66,9 @@ public:
      */
     Controller(BaseMovementManager& movement_manager, BaseDetectionModule& detection_module, Joystick& joystick,
                Camera& camera)
-        : _movement_manager(movement_manager), _detection_module(detection_module), _joystick(joystick), _camera(camera)
+        : _system_control_state(SystemControl::AI_MODE), _movement_manager(movement_manager),
+          _detection_module(detection_module), _joystick(joystick), _camera(camera)
     {
-        this->_system_control_state = SystemControl::AI_MODE;
     }
 
     /**
@@ -101,6 +101,7 @@ public:
 
     const std::tuple<MoveX, MoveY> user_mode() const;
 
-    const std::tuple<MoveX, MoveY> ai_mode() const;
+    //! TODO: maybe can be deleted
+    // const std::tuple<MoveX, MoveY> ai_mode() const;
     /** @} */
 };
