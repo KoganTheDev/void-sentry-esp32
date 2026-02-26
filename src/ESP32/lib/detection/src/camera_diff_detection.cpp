@@ -10,10 +10,8 @@
 static const char* TAG = "DETECTION";
 
 CameraDiffDetection::CameraDiffDetection()
-    : _prev_frame(nullptr), _curr_frame(nullptr), _diff_buffer(nullptr), _rgb_buffer(nullptr), _jpeg_cache(nullptr),
-      _jpeg_cache_len(0), _buffers_allocated(false), _first_frame(true), _rgb_buffer_width(0), _rgb_buffer_height(0),
-      _last_centroid_x(0), _last_centroid_y(0), _has_valid_position(false), _consecutive_motion_count(0),
-      _consecutive_static_count(0)
+    : _prev_frame(nullptr), _curr_frame(nullptr), _diff_buffer(nullptr),
+      _buffers_allocated(false), _first_frame(true), _last_centroid_x(0), _last_centroid_y(0)
 {
 }
 
@@ -27,15 +25,6 @@ CameraDiffDetection::~CameraDiffDetection()
             heap_caps_free(this->_curr_frame);
         if (this->_diff_buffer)
             heap_caps_free(this->_diff_buffer);
-        if (this->_rgb_buffer)
-            heap_caps_free(this->_rgb_buffer);
-    }
-    // Free cached JPEG
-    if (this->_jpeg_cache)
-    {
-        free(this->_jpeg_cache);
-        this->_jpeg_cache = nullptr;
-        this->_jpeg_cache_len = 0;
     }
 }
 
@@ -120,29 +109,24 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_fb_t* frame)
         // Update last known position
         this->_last_centroid_x = motion_centroid_x;
         this->_last_centroid_y = motion_centroid_y;
-        this->_has_valid_position = true;
 
         // Update metrics: motion detected
-        this->_consecutive_motion_count++;
-        this->_consecutive_static_count = 0;
+
         this->_current_metrics.set_total_detections(this->_current_metrics.get_total_detections() + 1);
-        this->_current_metrics.set_consecutive_motion_frames(this->_consecutive_motion_count);
         this->_current_metrics.set_consecutive_static_frames(0);
 
         // Calculate confidence (0.0-1.0 based on pixels changed relative to threshold)
-        int motion_threshold = MOTION_THRESHOLD;
-        float confidence = (float)motion_pixel_count / (float)motion_threshold;
+        float confidence = (float)motion_pixel_count / (float)MOTION_THRESHOLD;
         if (confidence > 1.0f)
+        {
             confidence = 1.0f;
+        }
         this->_current_metrics.set_motion_confidence(confidence);
         this->_current_metrics.set_pixels_changed(motion_pixel_count);
     } else
     {
         this->_last_motion_data = MotionData(); // Empty motion data (no motion)
-        this->_consecutive_motion_count = 0;
-        this->_consecutive_static_count++;
         this->_current_metrics.set_consecutive_motion_frames(0);
-        this->_current_metrics.set_consecutive_static_frames(this->_consecutive_static_count);
         this->_current_metrics.set_motion_confidence(0.0f);
         this->_current_metrics.set_pixels_changed(0);
     }
@@ -151,16 +135,7 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_fb_t* frame)
     uint32_t detection_time = millis() - frame_start_time;
     this->_current_metrics.set_detection_time_ms(detection_time);
 
-    // Calculate average FPS every 30 frames
-    static uint32_t frame_count = 0;
-    static uint32_t fps_timer = 0;
-    frame_count++;
-    if ((millis() - fps_timer) >= 1000)
-    {
-        this->_current_metrics.set_average_fps(frame_count);
-        frame_count = 0;
-        fps_timer = millis();
-    }
+    calculate_fps();
 
     if (!motion_found)
     {
@@ -197,6 +172,21 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_fb_t* frame)
     return std::make_tuple(x_dir, y_dir);
 }
 
+void CameraDiffDetection::calculate_fps()
+{
+    // Calculate average FPS every 30 frames
+    static uint32_t frame_count = 0;
+    static uint32_t fps_timer = 0;
+    frame_count++;
+    if ((millis() - fps_timer) >= 1000)
+    {
+        this->_current_metrics.set_average_fps(frame_count);
+        frame_count = 0;
+        fps_timer = millis();
+    }
+}
+
+
 bool CameraDiffDetection::find_motion(uint8_t* prev, uint8_t* curr, int width, int height, int& center_x, int& center_y,
                                       int& pixel_count)
 {
@@ -229,7 +219,6 @@ bool CameraDiffDetection::find_motion(uint8_t* prev, uint8_t* curr, int width, i
     pixel_count = motion_pixels * (stride * stride);
 
     // If motion_pixels is too low, stop here.
-    // Note: Adjust your MOTION_THRESHOLD constant if it feels too insensitive.
     if (pixel_count < MOTION_THRESHOLD)
     {
         return false;
@@ -301,7 +290,3 @@ bool CameraDiffDetection::jpeg_to_greyscale(camera_fb_t* frame, uint8_t* output)
     heap_caps_free(rgb_tmp);
     return true;
 }
-
-MotionData CameraDiffDetection::get_motion_data() const { return this->_last_motion_data; }
-
-DetectionMetrics CameraDiffDetection::get_detection_metrics() const { return this->_current_metrics; }
