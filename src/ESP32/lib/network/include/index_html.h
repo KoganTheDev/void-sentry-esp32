@@ -692,7 +692,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                 },
 
                 connect() {
-                    const url = `ws://${location.host}/ws`;
+                    const url = `ws://${window.location.host}/ws`;
                     this.state.socket = new WebSocket(url);
                     this.state.socket.onopen = () => this.updateStatus("ONLINE", "#00ff41");
                     this.state.socket.onclose = () => {
@@ -701,6 +701,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                     };
                     this.state.socket.onmessage = (e) => {
                         try {
+                            console.log("Data received:", e.data)
                             const data = JSON.parse(e.data);
                             this.handleData(data);
                         } catch (err) { }

@@ -25,6 +25,9 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
     this->_detection_instance = detection;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 8192;       // Increase stack for JSON/String handling
+    config.max_uri_handlers = 12;   // Just to be safe
+    config.lru_purge_enable = true; // Purge oldest connection if full
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
@@ -39,6 +42,11 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
         // Define the Motor Command Route
         httpd_uri_t cmd_uri = {.uri = "/move", .method = HTTP_GET, .handler = cmd_handler, .user_ctx = NULL};
         httpd_register_uri_handler(this->_server_handle, &cmd_uri);
+
+        // Define WS route
+        httpd_uri_t ws_uri = {
+            .uri = "/ws", .method = HTTP_GET, .handler = websocket_handler, .user_ctx = NULL, .is_websocket = true};
+        httpd_register_uri_handler(this->_server_handle, &ws_uri);
 
         Serial.println("[HTTP] Server started successfully");
         return true;
@@ -69,109 +77,50 @@ esp_err_t HttpServer::stream_handler(httpd_req_t* req)
 {
     camera_fb_t* fb = NULL;
     esp_err_t res = ESP_OK;
-    size_t _jpg_buf_len = 0;
-    uint8_t* _jpg_buf = NULL;
     char part_buf[64];
-    bool first_frame = true;
 
-    // 1. Safety Check: Ensure camera and request are valid
-    if (req == NULL)
-    {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    if (HttpServer::_camera_instance == nullptr)
-    {
-        Serial.println("Stream Error: Camera instance is null");
-        return httpd_resp_send_500(req);
-    }
-
-    // 2. Set the HTTP Response Header to Multipart
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if (res != ESP_OK)
-    {
         return res;
-    }
 
-    Serial.println("[STREAM] Client connected to stream");
-
-    // 3. Start the Infinite Streaming Loop
-    uint32_t last_frame_time = millis();
-    const uint32_t MIN_FRAME_INTERVAL = 33; // ~30 FPS max (33ms per frame)
+    Serial.println("[STREAM] Stream started");
 
     while (true)
     {
-        // Limit frame rate to prevent blocking motion detection
-        uint32_t now = millis();
-        uint32_t elapsed = now - last_frame_time;
-        if (elapsed < MIN_FRAME_INTERVAL)
-        {
-            vTaskDelay(1); // Yield to other tasks
-            continue;
-        }
-        last_frame_time = now;
-
-        // Grab frame - don't block, use GRAB_LATEST to skip frames if needed
         fb = HttpServer::_camera_instance->capture();
         if (!fb)
         {
-            vTaskDelay(5);
+            vTaskDelay(20);
             continue;
         }
 
-        _jpg_buf_len = fb->len;
-        _jpg_buf = fb->buf;
+        // 1. Send Boundary & Header
+        size_t hlen = snprintf(part_buf, 64, _STREAM_PART, fb->len);
+        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
 
-        // Verify frame data is valid
-        if (!_jpg_buf || _jpg_buf_len == 0)
-        {
-            HttpServer::_camera_instance->release(fb);
-            fb = NULL;
-            vTaskDelay(1);
-            continue;
-        }
-
-        // Send the boundary separator
-        // First frame boundary should not have leading \r\n
-        if (first_frame)
-        {
-            res = httpd_resp_send_chunk(req, "--123456789000000000000987654321\r\n", 36);
-            first_frame = false;
-        } else
-        {
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-        }
-
-        // Send the part header (Content-Type and Content-Length)
         if (res == ESP_OK)
         {
-            size_t hlen = snprintf(part_buf, 64, _STREAM_PART, _jpg_buf_len);
-            res = httpd_resp_send_chunk(req, (const char*)part_buf, hlen);
+            res = httpd_resp_send_chunk(req, part_buf, hlen);
         }
 
-        // Send the actual JPEG binary data (raw, no overlay)
+        // 2. Send Image Data
         if (res == ESP_OK)
         {
-            res = httpd_resp_send_chunk(req, (const char*)_jpg_buf, _jpg_buf_len);
+            res = httpd_resp_send_chunk(req, (const char*)fb->buf, fb->len);
         }
 
-        // 4. Release the frame buffer back to the camera driver
-        if (fb)
-        {
-            HttpServer::_camera_instance->release(fb);
-            fb = NULL;
-            _jpg_buf = NULL;
-        }
+        // 3. Always release the frame buffer immediately
+        HttpServer::_camera_instance->release(fb);
 
+        // 4. Exit if the browser disconnected (Reload/Close)
         if (res != ESP_OK)
         {
-            Serial.printf("[STREAM] Stream error: %s\n", esp_err_to_name(res));
-            Serial.println("[STREAM] Client disconnected");
+            Serial.printf("[STREAM] Disconnected (%s)\n", esp_err_to_name(res));
             break;
         }
 
-        // Small delay to yield to other RTOS tasks (especially motion detection in main loop)
-        vTaskDelay(1);
+        // Crucial: Let the ESP32 handle other tasks (like WebSockets)
+        vTaskDelay(20);
     }
 
     return res;
