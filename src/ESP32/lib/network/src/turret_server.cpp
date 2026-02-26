@@ -10,8 +10,11 @@
 
 #define _STREAM_CONTENT_TYPE "multipart/x-mixed-replace;boundary=123456789000000000000987654321"
 
+static const char* TAG_HTTP = "HTTP_SERVER";
 static const char* _STREAM_BOUNDARY = "\r\n--123456789000000000000987654321\r\n";
 static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
+
+httpd_handle_t HttpServer::_server_handle = nullptr;
 
 Camera* HttpServer::_camera_instance = nullptr;
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
@@ -22,16 +25,6 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
     this->_detection_instance = detection;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-
-    // 1. Increase the number of allowed simultaneous connections
-    config.max_open_sockets = 10;
-
-    // 2. IMPORTANT: Enable purging of old connections
-    // This allows the server to close an idle connection to make room for your JSON request
-    config.lru_purge_enable = true;
-
-    // 3. Optional: Increase stack size if you see crashes during JSON processing
-    config.stack_size = 8192;
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
@@ -47,23 +40,26 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
         httpd_uri_t cmd_uri = {.uri = "/move", .method = HTTP_GET, .handler = cmd_handler, .user_ctx = NULL};
         httpd_register_uri_handler(this->_server_handle, &cmd_uri);
 
-        // Define the Detection Data Route (motion overlay coordinates + metrics)
-        httpd_uri_t detection_uri = {
-            .uri = "/detection", .method = HTTP_GET, .handler = detection_handler, .user_ctx = NULL};
-        esp_err_t reg_res = httpd_register_uri_handler(this->_server_handle, &detection_uri);
-        Serial.printf("[SERVER] Registered /detection endpoint - result: %d\n", reg_res);
-
+        Serial.println("[HTTP] Server started successfully");
         return true;
     }
+
+    Serial.println("[HTTP] Failed to start server");
     return false;
 }
 
 void HttpServer::stop()
 {
+    ESP_LOGI(TAG_HTTP, "Stopping HTTP Server...");
     if (this->_server_handle)
     {
+        ESP_LOGD(TAG_HTTP, "Calling httpd_stop()...");
         httpd_stop(this->_server_handle);
         this->_server_handle = NULL;
+        ESP_LOGI(TAG_HTTP, "HTTP Server stopped successfully");
+    } else
+    {
+        ESP_LOGW(TAG_HTTP, "HTTP Server was not running");
     }
 }
 
@@ -71,10 +67,14 @@ esp_err_t HttpServer::index_handler(httpd_req_t* req) { return httpd_resp_send(r
 
 esp_err_t HttpServer::stream_handler(httpd_req_t* req)
 {
+    camera_fb_t* fb = NULL;
     esp_err_t res = ESP_OK;
-    char* part_buf[64];
+    size_t _jpg_buf_len = 0;
+    uint8_t* _jpg_buf = NULL;
+    char part_buf[64];
+    bool first_frame = true;
 
-    // 1. Safety Check: Ensure detection module and request are valid
+    // 1. Safety Check: Ensure camera and request are valid
     if (req == NULL)
     {
         return ESP_ERR_INVALID_ARG;
@@ -82,25 +82,22 @@ esp_err_t HttpServer::stream_handler(httpd_req_t* req)
 
     if (HttpServer::_camera_instance == nullptr)
     {
-        Serial.println("[STREAM] Error: Camera instance is null");
+        Serial.println("Stream Error: Camera instance is null");
         return httpd_resp_send_500(req);
     }
 
-    Serial.println("[STREAM] Client connected - streaming clean JPEG from camera");
-
-    // 2. Set the HTTP Response Header to Multipart JPEG (MJPEG)
+    // 2. Set the HTTP Response Header to Multipart
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if (res != ESP_OK)
     {
-        Serial.printf("[STREAM] Error setting response type: %s\n", esp_err_to_name(res));
         return res;
     }
 
+    Serial.println("[STREAM] Client connected to stream");
+
     // 3. Start the Infinite Streaming Loop
     uint32_t last_frame_time = millis();
-    const uint32_t MIN_FRAME_INTERVAL = 50; // 20 FPS target (50ms per frame)
-    int frames_sent = 0;
-    int motion_frames = 0;
+    const uint32_t MIN_FRAME_INTERVAL = 33; // ~30 FPS max (33ms per frame)
 
     while (true)
     {
@@ -109,202 +106,270 @@ esp_err_t HttpServer::stream_handler(httpd_req_t* req)
         uint32_t elapsed = now - last_frame_time;
         if (elapsed < MIN_FRAME_INTERVAL)
         {
-            vTaskDelay(2);
+            vTaskDelay(1); // Yield to other tasks
             continue;
         }
         last_frame_time = now;
 
-        // Capture frame from camera (JPEG format, ready to stream)
-        camera_fb_t* fb = HttpServer::_camera_instance->capture();
+        // Grab frame - don't block, use GRAB_LATEST to skip frames if needed
+        fb = HttpServer::_camera_instance->capture();
         if (!fb)
         {
-            // Frame capture failed, wait briefly and retry
             vTaskDelay(5);
             continue;
         }
 
-        // Try to get overlay JPEG if available (non-blocking, low priority)
-        uint8_t* jpeg_buf = (uint8_t*)fb->buf;
-        size_t jpeg_len = fb->len;
-        uint8_t* overlay_jpeg = nullptr;
-        size_t overlay_len = 0;
+        _jpg_buf_len = fb->len;
+        _jpg_buf = fb->buf;
 
-        // Attempt to get overlay version without blocking
-        if (HttpServer::_detection_instance &&
-            HttpServer::_detection_instance->get_jpeg_with_overlay(&overlay_jpeg, &overlay_len, 0) && overlay_jpeg &&
-            overlay_len > 0 && overlay_len < 200000) // Sanity check size
+        // Verify frame data is valid
+        if (!_jpg_buf || _jpg_buf_len == 0)
         {
-            // Use overlay JPEG if it's smaller than camera+overhead and seems valid
-            jpeg_buf = overlay_jpeg;
-            jpeg_len = overlay_len;
-            motion_frames++;
+            HttpServer::_camera_instance->release(fb);
+            fb = NULL;
+            vTaskDelay(1);
+            continue;
         }
 
         // Send the boundary separator
-        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+        // First frame boundary should not have leading \r\n
+        if (first_frame)
+        {
+            res = httpd_resp_send_chunk(req, "--123456789000000000000987654321\r\n", 36);
+            first_frame = false;
+        } else
+        {
+            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+        }
+
+        // Send the part header (Content-Type and Content-Length)
+        if (res == ESP_OK)
+        {
+            size_t hlen = snprintf(part_buf, 64, _STREAM_PART, _jpg_buf_len);
+            res = httpd_resp_send_chunk(req, (const char*)part_buf, hlen);
+        }
+
+        // Send the actual JPEG binary data (raw, no overlay)
+        if (res == ESP_OK)
+        {
+            res = httpd_resp_send_chunk(req, (const char*)_jpg_buf, _jpg_buf_len);
+        }
+
+        // 4. Release the frame buffer back to the camera driver
+        if (fb)
+        {
+            HttpServer::_camera_instance->release(fb);
+            fb = NULL;
+            _jpg_buf = NULL;
+        }
+
         if (res != ESP_OK)
         {
-            Serial.printf("[STREAM] Error sending boundary\n");
-            HttpServer::_camera_instance->release(fb);
+            Serial.printf("[STREAM] Stream error: %s\n", esp_err_to_name(res));
+            Serial.println("[STREAM] Client disconnected");
             break;
         }
 
-        // Send the part header (Content-Type: JPEG, Content-Length)
-        size_t hlen = snprintf((char*)part_buf, 64, "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n",
-                               (unsigned int)jpeg_len);
-        res = httpd_resp_send_chunk(req, (const char*)part_buf, hlen);
-        if (res != ESP_OK)
-        {
-            Serial.printf("[STREAM] Error sending header\n");
-            HttpServer::_camera_instance->release(fb);
-            break;
-        }
-
-        // Send the JPEG frame buffer
-        res = httpd_resp_send_chunk(req, (const char*)jpeg_buf, jpeg_len);
-        if (res != ESP_OK)
-        {
-            Serial.printf("[STREAM] Error sending frame data\n");
-            HttpServer::_camera_instance->release(fb);
-            break;
-        }
-
-        HttpServer::_camera_instance->release(fb);
-
-        frames_sent++;
-        if (frames_sent % 20 == 0)
-        {
-            Serial.printf("[STREAM] Sent %d frames (%d with overlay)\n", frames_sent, motion_frames);
-        }
-
+        // Small delay to yield to other RTOS tasks (especially motion detection in main loop)
         vTaskDelay(1);
     }
 
-    Serial.printf("[STREAM] Client disconnected after %d frames (%d with overlay)\n", frames_sent, motion_frames);
     return res;
 }
 
 esp_err_t HttpServer::cmd_handler(httpd_req_t* req)
 {
+    ESP_LOGD(TAG_HTTP, "Command handler: Processing request");
+
     char buf[128];
 
     if (req == nullptr)
     {
+        ESP_LOGE(TAG_HTTP, "Command handler: Request pointer is NULL!");
         return ESP_ERR_INVALID_ARG;
     }
 
     size_t buf_len = httpd_req_get_url_query_len(req) + 1;
+    ESP_LOGD(TAG_HTTP, "Command handler: Query string length = %u", buf_len - 1);
 
     if (buf_len > 1)
     {
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
+        esp_err_t err = httpd_req_get_url_query_str(req, buf, buf_len);
+        if (err != ESP_OK)
         {
-            char param[32];
+            ESP_LOGW(TAG_HTTP, "Command handler: Failed to get URL query string! Error: %s", esp_err_to_name(err));
+            return httpd_resp_send(req, "ERROR: Invalid query", HTTPD_RESP_USE_STRLEN);
+        }
 
-            // Extract "pan" value
-            if (httpd_query_key_value(buf, "pan", param, sizeof(param)) == ESP_OK)
-            {
-                int pan_val = atoi(param);
-                Serial.printf("Command Received: Pan to %d\n", pan_val);
-                // TODO: Call Servo/Motor function here: turret.movePan(pan_val);
-            }
+        ESP_LOGD(TAG_HTTP, "Command handler: Query string = %s", buf);
+        char param[32];
 
-            // Extract "tilt" value
-            if (httpd_query_key_value(buf, "tilt", param, sizeof(param)) == ESP_OK)
-            {
-                int tilt_val = atoi(param);
-                Serial.printf("Command Received: Tilt to %d\n", tilt_val);
-                // TODO: Call Servo/Motor function here: turret.moveTilt(tilt_val);
-            }
+        // Extract "pan" value
+        if (httpd_query_key_value(buf, "pan", param, sizeof(param)) == ESP_OK)
+        {
+            int pan_val = atoi(param);
+            ESP_LOGI(TAG_HTTP, "COMMAND: Pan servo to angle %d", pan_val);
+            // TODO: Call Servo/Motor function here: turret.movePan(pan_val);
+        }
+
+        // Extract "tilt" value
+        if (httpd_query_key_value(buf, "tilt", param, sizeof(param)) == ESP_OK)
+        {
+            int tilt_val = atoi(param);
+            ESP_LOGI(TAG_HTTP, "COMMAND: Tilt servo to angle %d", tilt_val);
+            // TODO: Call Servo/Motor function here: turret.moveTilt(tilt_val);
         }
     }
 
     // Send a simple "OK" response back to the browser
     const char* resp_str = "Command Processed";
-    httpd_resp_send(req, resp_str, strlen(resp_str));
+    esp_err_t resp_err = httpd_resp_send(req, resp_str, strlen(resp_str));
+    if (resp_err != ESP_OK)
+    {
+        ESP_LOGW(TAG_HTTP, "Command handler: Failed to send response! Error: %s", esp_err_to_name(resp_err));
+        return resp_err;
+    }
+
+    ESP_LOGD(TAG_HTTP, "Command handler: Response sent successfully");
     return ESP_OK;
 }
 
-esp_err_t HttpServer::detection_handler(httpd_req_t* req)
+esp_err_t HttpServer::websocket_handler(httpd_req_t* req)
 {
-    static int call_count = 0;
-    if (++call_count % 20 == 0)
+    if (req->method == HTTP_GET)
     {
-        Serial.println("[DETECTION_HANDLER] Called!");
-    }
-    esp_err_t res = ESP_OK;
-
-    // Safety check
-    if (HttpServer::_detection_instance == nullptr || HttpServer::_camera_instance == nullptr)
-    {
-        const char* error_json = "{\"error\": \"Detection module not initialized\"}";
-        httpd_resp_set_type(req, "application/json");
-        Serial.println("[DETECTION_HANDLER] Error: Detection module is NULL");
-        return httpd_resp_send(req, error_json, strlen(error_json));
+        // Initial WebSocket upgrade handshake
+        ESP_LOGI(TAG_HTTP, "WebSocket: New connection established");
+        return ESP_OK;
     }
 
-    // Set response type to JSON
-    httpd_resp_set_type(req, "application/json");
+    // WebSocket frame handler - keep connection alive
+    httpd_ws_frame_t ws_pkt;
+    memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
 
-    // Get motion data from detection module
-    CameraDiffDetection* detector = reinterpret_cast<CameraDiffDetection*>(HttpServer::_detection_instance);
+    // Use a timeout to wait for frames (1 second)
+    // This keeps the handler alive instead of returning immediately
+    esp_err_t ret = httpd_ws_recv_frame(req, &ws_pkt, 1000);
 
-    MotionData motion = detector->get_motion_data();
-    DetectionMetrics metrics = detector->get_detection_metrics();
-
-    // Use actual frame dimensions for overlay - QVGA is 320x240
-    // These are required even when no motion is detected so canvas can properly scale overlay
-    int frame_width = motion.get_frame_width();
-    int frame_height = motion.get_frame_height();
-
-    // If dimensions are 0 (no motion detected yet), use default QVGA dimensions
-    if (frame_width == 0 || frame_height == 0)
+    // Handle timeout gracefully - just return ESP_OK to keep connection alive
+    if (ret == ESP_ERR_TIMEOUT)
     {
-        frame_width = 320;
-        frame_height = 240;
+        return ESP_OK;
     }
 
-    // Log detection data (only every 20 calls to reduce spam)
-    if (call_count % 20 == 0)
+    if (ret != ESP_OK)
     {
-        Serial.printf("[DETECTION_HANDLER] Motion: %s, X: %d, Y: %d, Frame: %dx%d, Pixels: %d, Detections: %u\n",
-                      motion.is_detected() ? "true" : "false", motion.get_centroid_x(), motion.get_centroid_y(),
-                      frame_width, frame_height, metrics.get_pixels_changed(), metrics.get_total_detections());
+        ESP_LOGW(TAG_HTTP, "WebSocket: Frame receive error: %s", esp_err_to_name(ret));
+        return ret;
     }
 
-    // Build JSON response
-    char buffer[512];
-    int len = snprintf(buffer, sizeof(buffer),
+    // Check for control frames (CLOSE, PING, PONG)
+    if (ws_pkt.type == HTTPD_WS_TYPE_CLOSE)
+    {
+        ESP_LOGD(TAG_HTTP, "WebSocket: Client requested close frame");
+        return ESP_OK;
+    }
+
+    if (ws_pkt.type == HTTPD_WS_TYPE_PING)
+    {
+        // Send PONG response
+        httpd_ws_frame_t pong_frame = {.final = true,
+                                       .fragmented = false,
+                                       .type = HTTPD_WS_TYPE_PONG,
+                                       .payload = ws_pkt.payload,
+                                       .len = ws_pkt.len};
+        httpd_ws_send_frame(req, &pong_frame);
+        return ESP_OK;
+    }
+
+    if (ws_pkt.type == HTTPD_WS_TYPE_PONG)
+    {
+        // Ignore PONG frames
+        return ESP_OK;
+    }
+
+    // TEXT frames - handle application data
+    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT)
+    {
+        if (ws_pkt.len > 0)
+        {
+            uint8_t* buf = (uint8_t*)malloc(ws_pkt.len + 1);
+            if (buf)
+            {
+                ws_pkt.payload = buf;
+                ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
+                if (ret == ESP_OK)
+                {
+                    buf[ws_pkt.len] = '\0';
+                    ESP_LOGD(TAG_HTTP, "WebSocket: Command received: %s", (const char*)buf);
+                    // TODO: Parse and handle control commands
+                }
+                free(buf);
+            }
+        }
+        return ESP_OK;
+    }
+
+    // Unknown frame type - just continue
+    return ESP_OK;
+}
+
+void HttpServer::broadcast_ws_data(const char* json_str)
+{
+    if (json_str == nullptr || _server_handle == nullptr)
+        return;
+
+    size_t max_clients = 10;
+    int client_fds[10];
+    size_t actual_clients = max_clients;
+
+    // Get the list of all open file descriptors
+    esp_err_t err = httpd_get_client_list(_server_handle, &actual_clients, client_fds);
+    if (err != ESP_OK)
+        return;
+
+    for (size_t i = 0; i < actual_clients; ++i)
+    {
+        // Double-check if this specific FD is actually a WebSocket
+        if (httpd_ws_get_fd_info(_server_handle, client_fds[i]) == HTTPD_WS_CLIENT_WEBSOCKET)
+        {
+            httpd_ws_frame_t ws_pkt = {.final = true,
+                                       .fragmented = false,
+                                       .type = HTTPD_WS_TYPE_TEXT,
+                                       .payload = (uint8_t*)json_str,
+                                       .len = strlen(json_str)};
+            // Async send is vital to keep the stream_handler from lagging
+            httpd_ws_send_frame_async(_server_handle, client_fds[i], &ws_pkt);
+        }
+    }
+}
+
+void HttpServer::broadcastDetectionResults(const MotionData& motion, const DetectionMetrics& metrics)
+{
+    char json_buffer[512];
+
+    int len = snprintf(json_buffer, sizeof(json_buffer),
                        "{"
-                       "\"motion_detected\":%s,"
-                       "\"centroid_x\":%d,"
-                       "\"centroid_y\":%d,"
-                       "\"frame_width\":%d,"
-                       "\"frame_height\":%d,"
-                       "\"pixels_changed\":%d,"
-                       "\"confidence\":%.2f,"
-                       "\"detection_time_ms\":%u,"
-                       "\"consecutive_motion_frames\":%d,"
-                       "\"consecutive_static_frames\":%d,"
-                       "\"total_detections\":%u,"
-                       "\"total_frames\":%u,"
-                       "\"average_fps\":%u"
+                       "\"x\":%d,"
+                       "\"y\":%d,"
+                       "\"lock\":%s,"
+                       "\"w\":%d,"
+                       "\"h\":%d,"
+                       "\"pixels\":%d,"
+                       "\"fps\":%u,"
+                       "\"conf\":%.2f,"
+                       "\"time\":%u"
                        "}",
-                       motion.is_detected() ? "true" : "false", motion.get_centroid_x(), motion.get_centroid_y(),
-                       frame_width, frame_height, metrics.get_pixels_changed(), metrics.get_motion_confidence(),
-                       metrics.get_detection_time_ms(), metrics.get_consecutive_motion_frames(),
-                       metrics.get_consecutive_static_frames(), metrics.get_total_detections(),
-                       metrics.get_total_frames(), metrics.get_average_fps());
+                       motion.get_centroid_x(), motion.get_centroid_y(), motion.is_detected() ? "true" : "false",
+                       motion.get_frame_width(), motion.get_frame_height(), motion.get_pixel_count(),
+                       metrics.get_average_fps(), metrics.get_motion_confidence(), metrics.get_detection_time_ms());
 
-    if (len > 0 && len < (int)sizeof(buffer))
+    if (len > 0 && len < (int)sizeof(json_buffer))
     {
-        res = httpd_resp_send(req, buffer, len);
+        Serial.printf("[DETECTION] Broadcasting: %s\n", json_buffer);
+        HttpServer::broadcast_ws_data(json_buffer);
     } else
     {
-        const char* error = "{\"error\": \"JSON buffer overflow\"}";
-        res = httpd_resp_send(req, error, strlen(error));
-        Serial.println("[DETECTION_HANDLER] Buffer overflow!");
+        Serial.printf("[DETECTION] ERROR: JSON buffer overflow or error (len=%d)\n", len);
     }
-
-    return res;
 }

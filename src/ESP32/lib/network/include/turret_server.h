@@ -7,6 +7,7 @@
 
 #include "base_detection_module.h"
 #include "camera.h"
+#include "motion_data.h"
 #include <esp_http_server.h>
 
 /**
@@ -18,7 +19,7 @@
 class HttpServer
 {
 private:
-    httpd_handle_t _server_handle = NULL; ///< Internal handle for the ESP-IDF server instance.
+    static httpd_handle_t _server_handle; ///< Internal handle for the ESP-IDF server instance.
 
     /**
      * @brief Static reference to the camera for use in C-style callbacks.
@@ -81,5 +82,11 @@ public:
      * @param req Pointer to the HTTP request structure.
      * @return esp_err_t ESP_OK on success.
      */
-    static esp_err_t detection_handler(httpd_req_t* req);
+    static esp_err_t detection_handler(httpd_req_t* req); //TODO: Replace this function with the websockets
+
+    static esp_err_t websocket_handler(httpd_req_t* req);
+
+    static void broadcast_ws_data(const char* json_str);
+
+    static void broadcastDetectionResults(const MotionData& motion, const DetectionMetrics& metrics);
 };

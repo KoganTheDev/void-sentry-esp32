@@ -21,7 +21,7 @@ private:
     static const int DIFF_THRESHOLD = 20; ///< Pixel difference threshold (0-255)
     static const int MOTION_THRESHOLD =
         150; ///< Minimum pixels that changed to consider motion (lowered from 800 for better sensitivity)
-    static const int CENTER_DEADZONE = 80; ///< Pixels around center for stable tracking
+    static const int CENTER_DEADZONE = 20; ///< Pixels around center for stable tracking
 
     uint8_t* _prev_frame;    ///< Previous frame greyscale buffer
     uint8_t* _curr_frame;    ///< Current frame greyscale buffer
@@ -50,9 +50,9 @@ public:
     /**
      * @brief Detects motion by comparing frames and returns direction to track.
      * @param frame Camera frame buffer
-     * @return Tuple of (MoveDirectionX, MoveDirectionY) indicating motion direction
+     * @return Tuple of (MoveX, MoveY) indicating motion direction
      */
-    std::tuple<MoveDirectionX, MoveDirectionY> detect_object(camera_fb_t* frame) override;
+    std::tuple<MoveX, MoveY> detect_object(camera_fb_t* frame) override;
 
     /**
      * @brief Gets the last detected motion data.

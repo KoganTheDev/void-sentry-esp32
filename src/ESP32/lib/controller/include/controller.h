@@ -1,7 +1,7 @@
 /**
  * @file Controller.h
  * @brief Header file for the Controller class.
- * @details This class serves as the **Central Intelligence Unit** of the turret system. 
+ * @details This class serves as the **Central Intelligence Unit** of the turret system.
  * It coordinates a high-speed control loop that integrates:
  * 1. **Input**: Manual Joystick signals or AI Detection frames.
  * 2. **Logic**: Arbitration between user overrides and autonomous tracking.
@@ -24,12 +24,12 @@ class Camera; // Forward declaration to minimize header inter-dependency
 /**
  * @class Controller
  * @brief Handles logic for object detection and movement calculations.
- * @details The Controller implements a **State-Driven architecture**. It acts as the 
- * bridge between the Computer Vision pipeline and the physical servos. 
+ * @details The Controller implements a **State-Driven architecture**. It acts as the
+ * bridge between the Computer Vision pipeline and the physical servos.
  * * **Control Arbitration Logic:**
- * - **AI_MODE**: The controller requests a frame from the @ref Camera, passes it to the 
+ * - **AI_MODE**: The controller requests a frame from the @ref Camera, passes it to the
  * @ref BaseDetectionModule, and calculates the error vector to center the target.
- * - **USER_MODE**: The controller bypasses the CV pipeline and maps @ref Joystick 
+ * - **USER_MODE**: The controller bypasses the CV pipeline and maps @ref Joystick
  * input directly to the @ref BaseMovementManager.
  */
 class Controller
@@ -85,7 +85,7 @@ public:
 
     /**
      * @brief Main processing cycle for the turret system.
-     * @details This method should be called inside the primary `loop()` of the application. 
+     * @details This method should be called inside the primary `loop()` of the application.
      * * **Workflow:**
      * 1. Check current `SystemControl` state.
      * 2. If **USER_MODE**:
@@ -98,5 +98,9 @@ public:
      * * @warning This function is blocking relative to the frame-rate of the camera.
      */
     void run();
+
+    const std::tuple<MoveX, MoveY> user_mode() const;
+
+    const std::tuple<MoveX, MoveY> ai_mode() const;
     /** @} */
 };

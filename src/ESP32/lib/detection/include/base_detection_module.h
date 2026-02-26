@@ -28,10 +28,10 @@ public:
      * @brief Analyzes a camera frame to locate a specific object.
      * @param frame Pointer to the ESP32-CAM frame buffer (camera_fb_t).
      * @return std::tuple<uint8_t, uint8_t> Returns a tuple containing:
-     * - Index 0 (MoveDirectionX): Left | Right | Stay
-     * - Index 1 (MoveDirectionY): Up   | Down  | Stay
+     * - Index 0 (MoveX): Left | Right | Stay
+     * - Index 1 (MoveY): Up   | Down  | Stay
      */
-    virtual std::tuple<MoveDirectionX, MoveDirectionY> detect_object(camera_fb_t* frame) = 0;
+    virtual std::tuple<MoveX, MoveY> detect_object(camera_fb_t* frame) = 0;
 
     /**
      * @brief Gets the RGB565 buffer with overlay (for streaming visualization).

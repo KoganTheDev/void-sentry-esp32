@@ -25,5 +25,5 @@ public:
     /**
      * @brief Moves the turret relative to its current orientation.
      */
-    virtual void move_relative(std::tuple<MoveDirectionX, MoveDirectionY> move_directions) = 0;
+    virtual void move_relative(std::tuple<MoveX, MoveY> move_directions) = 0;
 };

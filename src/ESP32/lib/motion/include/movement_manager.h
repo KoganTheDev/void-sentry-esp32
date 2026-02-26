@@ -41,21 +41,21 @@ public:
 
     /**
      * @brief Implements relative movement using Stepper and Servo hardware.
-     * @details Translates MoveDirectionX and MoveDirectionY into actuator
+     * @details Translates MoveX and MoveY into actuator
      * actions.
      * @param x Directional command for the stepper motor.
      * @param y Directional command for the servo motor.
      */
-    virtual void move_relative(const std::tuple<MoveDirectionX, MoveDirectionY> move_directions);
+    virtual void move_relative(const std::tuple<MoveX, MoveY> move_directions);
 
     /**
      * @brief Executes horizontal rotation (Yaw) using the stepper motor.
-     * @details Checks the MoveDirectionX enum; if Left or Right, the stepper
+     * @details Checks the MoveX enum; if Left or Right, the stepper
      * moves by the predefined _STEP_INCREMENT. Negative steps rotate in one
      * direction, positive in the other.
      * @param yaw_direction The direction to rotate (Left, Right, or None).
      */
-    void move_stepper(const MoveDirectionX yaw_direction);
+    void move_stepper(const MoveX yaw_direction);
 
     /**
      * @brief Executes vertical tilting (Pitch) using the servo motor.
@@ -64,5 +64,5 @@ public:
      * SERVO_MAX_ANGLE to prevent mechanical stall or gear damage.
      * @param pitch_direction The direction to tilt (Up, Down, or None).
      */
-    void move_servo(const MoveDirectionY pitch_direction);
+    void move_servo(const MoveY pitch_direction);
 };
