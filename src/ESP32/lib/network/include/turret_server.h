@@ -8,6 +8,7 @@
 #include "base_detection_module.h"
 #include "camera.h"
 #include "motion_data.h"
+#include "websockets.h"
 #include <esp_http_server.h>
 
 /**
@@ -31,7 +32,11 @@ private:
      */
     static BaseDetectionModule* _detection_instance;
 
+    StreamWebsocketHandler* _stream_handler;
+
 public:
+    HttpServer();
+    ~HttpServer();
     /**
      * @brief Configures and launches the web server on port 80.
      * @param camera Pointer to the initialized Camera object for streaming.
@@ -82,7 +87,7 @@ public:
      * @param req Pointer to the HTTP request structure.
      * @return esp_err_t ESP_OK on success.
      */
-    static esp_err_t detection_handler(httpd_req_t* req); //TODO: Replace this function with the websockets
+    static esp_err_t detection_handler(httpd_req_t* req); // TODO: Replace this function with the websockets
 
     static esp_err_t websocket_handler(httpd_req_t* req);
 
