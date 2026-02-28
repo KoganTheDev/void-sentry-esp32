@@ -2,7 +2,6 @@
 
 #include "base_detection_module.h"
 #include "motion_data.h"
-#include <Arduino.h>
 
 /**
  * @class CameraDiffDetection
@@ -44,14 +43,14 @@ public:
      * @param frame Camera frame buffer
      * @return Tuple of (MoveX, MoveY) indicating motion direction
      */
-    std::tuple<MoveX, MoveY> detect_object(camera_fb_t* frame) override;
+    std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) override;
 
     MotionData get_motion_data() const { return this->_last_motion_data; }
 
     DetectionMetrics get_detection_metrics() const { return this->_current_metrics; }
 
 private:
-    bool jpeg_to_greyscale(camera_fb_t* frame, uint8_t* output);
+    bool jpeg_to_greyscale(void* frame, uint8_t* output);
 
     /**
      * @brief Computes frame difference and finds motion centroid.

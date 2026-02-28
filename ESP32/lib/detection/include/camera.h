@@ -17,34 +17,41 @@
  */
 namespace WroverPins
 {
-    /** @brief Power down pin; set to -1 if hardware is always on. */
-    #define PWDN_GPIO_NUM -1
-    /** @brief Hardware reset pin; set to -1 if managed by external RC circuit. */
-    #define RESET_GPIO_NUM -1
-    /** @brief External Clock (XCLK). Drives the internal timing of the sensor. */
-    #define XCLK_GPIO_NUM 21
-    /** @brief Serial Data line for SCCB (I2C) bus. Requires external pull-up. */
-    #define SIOD_GPIO_NUM 26
-    /** @brief Serial Clock line for SCCB (I2C) bus. */
-    #define SIOC_GPIO_NUM 27
+/** @brief Power down pin; set to -1 if hardware is always on. */
+#define PWDN_GPIO_NUM -1
+/** @brief Hardware reset pin; set to -1 if managed by external RC circuit. */
+#define RESET_GPIO_NUM -1
+/** @brief External Clock (XCLK). Drives the internal timing of the sensor. */
+#define XCLK_GPIO_NUM 21
+/** @brief Serial Data line for SCCB (I2C) bus. Requires external pull-up. */
+#define SIOD_GPIO_NUM 26
+/** @brief Serial Clock line for SCCB (I2C) bus. */
+#define SIOC_GPIO_NUM 27
 
-    /* Parallel Data Bus (Y2-Y9) */
-    #define Y9_GPIO_NUM 35
-    #define Y8_GPIO_NUM 34
-    #define Y7_GPIO_NUM 39
-    #define Y6_GPIO_NUM 36
-    #define Y5_GPIO_NUM 19
-    #define Y4_GPIO_NUM 18
-    #define Y3_GPIO_NUM 5
-    #define Y2_GPIO_NUM 4
+/* Parallel Data Bus (Y2-Y9) */
+#define Y9_GPIO_NUM 35
+#define Y8_GPIO_NUM 34
+#define Y7_GPIO_NUM 39
+#define Y6_GPIO_NUM 36
+#define Y5_GPIO_NUM 19
+#define Y4_GPIO_NUM 18
+#define Y3_GPIO_NUM 5
+#define Y2_GPIO_NUM 4
 
-    /** @brief Vertical Sync: High pulse indicates a new frame start. */
-    #define VSYNC_GPIO_NUM 25
-    /** @brief Horizontal Reference: High pulse indicates valid pixel data on the row. */
-    #define HREF_GPIO_NUM 23
-    /** @brief Pixel Clock: The ESP32 samples data on the rising edge of this clock. */
-    #define PCLK_GPIO_NUM 22
+/** @brief Vertical Sync: High pulse indicates a new frame start. */
+#define VSYNC_GPIO_NUM 25
+/** @brief Horizontal Reference: High pulse indicates valid pixel data on the row. */
+#define HREF_GPIO_NUM 23
+/** @brief Pixel Clock: The ESP32 samples data on the rising edge of this clock. */
+#define PCLK_GPIO_NUM 22
 } // namespace WroverPins
+
+typedef struct {
+    void* buffer;
+    size_t length;
+    size_t width;
+    size_t height;
+} camera_buffer_t;
 
 /**
  * @class Camera
@@ -56,6 +63,7 @@ class Camera
 {
 private:
     camera_config_t _config; ///< Internal configuration struct for the ESP-Camera driver.
+    camera_buffer_t _buffer;
 
 public:
     /**
@@ -70,7 +78,7 @@ public:
      * - **Buffering**: Double-buffering enabled to allow simultaneous capture and processing.
      * - **Grab Mode**: `CAMERA_GRAB_LATEST` ensures we never process "stale" motion data.
      */
-    Camera()
+    Camera() : _buffer()
     {
         this->_config.ledc_channel = LEDC_CHANNEL_0;
         this->_config.ledc_timer = LEDC_TIMER_0;
@@ -100,6 +108,14 @@ public:
         this->_config.grab_mode = CAMERA_GRAB_LATEST;
     }
 
+    ~Camera()
+    {
+        if (this->_buffer.buffer != NULL)
+        {
+            free(this->_buffer.buffer);
+        }
+    }
+
     /**
      * @brief Initializes the hardware and mounts the sensor.
      * @return true if the sensor was identified and PSRAM was allocated.
@@ -120,14 +136,8 @@ public:
      * @warning **Memory Safety**: You MUST call @ref release() with this pointer
      * to return the buffer to the DMA pool.
      */
-    camera_fb_t* capture();
-
-    /**
-     * @brief Returns the frame buffer to the driver pool.
-     * @param fb Pointer to the buffer previously obtained via @ref capture().
-     * @note Failure to call this will result in a "Buffer overflow" and
-     * eventually a system crash (Kernel Panic).
-     */
-    void release(camera_fb_t* fb);
+    void capture();
     /** @} */
+
+    const camera_buffer_t& get_frame_buffer() { return this->_buffer; }
 };

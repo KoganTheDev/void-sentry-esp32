@@ -33,10 +33,12 @@ private:
     static BaseDetectionModule* _detection_instance;
 
     StreamWebsocketHandler* _stream_handler;
+    CommandsWebSocketHandler* _commands_handler; // Used both for commands to the motors & sending metrics
 
 public:
     HttpServer();
     ~HttpServer();
+    
     /**
      * @brief Configures and launches the web server on port 80.
      * @param camera Pointer to the initialized Camera object for streaming.
@@ -61,37 +63,4 @@ public:
      * @see index_html.h
      */
     static esp_err_t index_handler(httpd_req_t* req);
-
-    /**
-     * @brief HTTP GET Handler for the MJPEG stream.
-     * @details Continuously streams RGB565 frames from the detection module
-     * with motion detection overlay visualization. Each frame is sent with
-     * multipart boundary markers.
-     * @param req Pointer to the HTTP request structure.
-     * @return esp_err_t ESP_OK on success.
-     */
-    static esp_err_t stream_handler(httpd_req_t* req);
-
-    /**
-     * @brief HTTP GET Handler for control commands.
-     * @details Parses URL parameters (e.g., ?pan=90&tilt=45) to drive motors.
-     * @param req Pointer to the HTTP request structure.
-     * @return esp_err_t ESP_OK on success.
-     */
-    static esp_err_t cmd_handler(httpd_req_t* req);
-
-    /**
-     * @brief HTTP GET Handler for motion detection data as JSON.
-     * @details Returns detection coordinates, motion metrics, and algorithm statistics
-     * that can be used to render overlay and display algorithm performance.
-     * @param req Pointer to the HTTP request structure.
-     * @return esp_err_t ESP_OK on success.
-     */
-    static esp_err_t detection_handler(httpd_req_t* req); // TODO: Replace this function with the websockets
-
-    static esp_err_t websocket_handler(httpd_req_t* req);
-
-    static void broadcast_ws_data(const char* json_str);
-
-    static void broadcastDetectionResults(const MotionData& motion, const DetectionMetrics& metrics);
 };

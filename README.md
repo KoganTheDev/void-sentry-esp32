@@ -1,8 +1,8 @@
 <!-- Header Section - Logo, Title and badges -->
 <div align="center">
   <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-    <img src="logo/void_sentry_logo_for_md_file_400x400_pixels.png" width="150">
-    <img src="logo/void_sentry_title.png" width="600">
+    <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" width="150">
+    <img src="assets/void_sentry_title.png" width="600">
   </div>
   
   <strong>The Autonomous Computer Vision & Kinetic Tracking System for ESP32-CAM</strong>

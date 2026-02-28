@@ -52,15 +52,35 @@ bool Camera::begin()
     return true;
 }
 
-camera_fb_t* Camera::capture() { return esp_camera_fb_get(); }
-
-void Camera::release(camera_fb_t* fb)
+void Camera::capture()
 {
-    if (fb == NULL)
+    // TODO check return values for failures
+    // TODO use static memory (save two buffers in this class instead of allocating memory)
+
+    void* previous_buffer = this->_buffer.buffer;
+
+    // capture new image
+    camera_fb_t* new_camera_buffer = esp_camera_fb_get();
+
+    // save to new buffer
+    void* new_buffer = malloc(new_camera_buffer->len);
+    memcpy(new_buffer, new_camera_buffer->buf, new_camera_buffer->len);
+
+    // replace buffer
+    this->_buffer.length = 0;
+    this->_buffer.width = 0;
+    this->_buffer.height = 0;
+
+    this->_buffer.buffer = new_buffer;
+    this->_buffer.length = new_camera_buffer->len;
+    this->_buffer.width = new_camera_buffer->width;
+    this->_buffer.height = new_camera_buffer->height;
+
+    // release resources
+    esp_camera_fb_return(new_camera_buffer);
+
+    if (previous_buffer != NULL)
     {
-        ESP_LOGW(TAG, "Attempted to release NULL frame buffer");
-        return;
+        free(previous_buffer);
     }
-    esp_camera_fb_return(fb);
-    ESP_LOGV(TAG, "Frame buffer released");
 }

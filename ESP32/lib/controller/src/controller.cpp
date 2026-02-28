@@ -15,9 +15,9 @@ void Controller::run()
         ESP_LOGI(TAG, "Control mode changed to: %s", this->_system_control_state.to_string());
     }
 
-    camera_fb_t* fb = this->_camera.capture();
+    const camera_buffer_t& fb = this->_camera.get_frame_buffer();
 
-    if (fb == NULL)
+    if (fb.length == 0)
     {
         ESP_LOGW(TAG, "AI_MODE: Frame capture failed - returned NULL. Camera buffer unavailable.");
         unsigned long now = millis();
@@ -30,18 +30,18 @@ void Controller::run()
     // TODO: try refactoring, it's not that readable.
     // What happens here:
     // 1. move_directions assigns the move directions as if in AI mode
-    // 2. If in USER_MODE: //* Overwrites the directions given by the detection module and uses the directions from the joystick
-    
-    move_directions = this->_detection_module.detect_object(fb);
+    // 2. If in USER_MODE: //* Overwrites the directions given by the detection module and uses the directions from the
+    // joystick
 
+    //! THIS is my problem and I need to find a way to solve it, too tired though :X
+    move_directions = this->_detection_module.detect_object(fb);
 
     if (this->_system_control_state.is_user()) // USER mode
     {
         move_directions = user_mode();
     }
-    
+
     this->_movement_manager.move_relative(move_directions); // Move stepper & motor
-    this->_camera.release(fb); // Release the camera's buffer
 }
 
 const std::tuple<MoveX, MoveY> Controller::user_mode() const

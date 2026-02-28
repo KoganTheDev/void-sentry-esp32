@@ -122,26 +122,55 @@ public:
 
     virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len)
     {
-        camera_fb_t* fb = this->_camera.capture();
+        const camera_buffer_t& fb = this->_camera.get_frame_buffer();
 
-        if (!fb)
+        if (fb.length == 0)
         {
-            ESP_LOGE(TAG_WEBSOCKETS, "Frame buffer is NULL");
+            ESP_LOGE(TAG_WEBSOCKETS, "Frame buffer is invalid");
             return NULL;
         }
 
-        out_buf = fb->buf;
-        out_len = fb->len;
+        out_buf = (uint8_t*)fb.buffer;
+        out_len = fb.length;
 
-        return fb;
+        return (void*)-1;
     }
 
     virtual void release_resource(void* resource)
     {
         // NOTE: this assums that the buffer is the first field of camera_fb_t
-        this->_camera.release((camera_fb_t*)resource);
+        // this->_camera.release((camera_fb_t*)resource);
     }
 
 private:
     Camera& _camera;
+};
+
+
+class CommandsWebSocketHandler : public WebsocketHandler
+{
+public:
+    CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri) 
+        : WebsocketHandler(server_handle, uri)
+        {
+        }
+
+    virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len)
+    {
+        // Send Metrics
+        if (strcmp((char *)recv_buf, "commands"))
+        {
+            // TODO: construct information and send over the socket
+            Serial.printf("BLOOOOOOOOOOOOOOPIE");
+            out_buf = (uint8_t*)"temp";
+            out_len = 4;
+        }
+
+        // TODO: Add motor control
+        return (void*)-1;
+;
+
+    }
+
+    
 };

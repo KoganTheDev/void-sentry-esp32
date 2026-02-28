@@ -7,6 +7,7 @@
 
 #include "move_types.h"
 #include <esp_camera.h>
+#include "camera.h"
 #include <tuple>
 
 /**
@@ -31,5 +32,5 @@ public:
      * - Index 0 (MoveX): Left | Right | Stay
      * - Index 1 (MoveY): Up   | Down  | Stay
      */
-    virtual std::tuple<MoveX, MoveY> detect_object(camera_fb_t* frame) = 0;
+    virtual std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) = 0;
 };

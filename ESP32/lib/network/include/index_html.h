@@ -495,7 +495,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
     <div class="dashboard">
         <main class="video-box">
-            <img id="streamImg" src="/stream">
+            <img id="streamImg" alt="Stream image">
             <canvas id="overlayCanvas"></canvas>
         </main>
 
@@ -552,9 +552,12 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
         </section>
 
         <script>
+            // TODO: ADD loading animation while the WSs and the APP are initialized
+
             const App = {
                 state: {
-                    socket: null,
+                    stream_socket: null,
+                    commands_socket: null,
                     mode: 'AI',
                     activeKeys: new Set(),
                     latestData: null
@@ -578,7 +581,6 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
                     this.setupControls();
                     this.setupKeyboard();
-                    this.connect();
                     this.renderLoop();
                 },
 
@@ -630,7 +632,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                         const dir = getAction(e);
                         if (dir) {
                             this.state.activeKeys.add(lowKey); // Store as lowercase
-                            this.send(`move:${dir}`);
+                            this.state.commands_socket.send(`move:${dir}`);
                             const btn = document.querySelector(`.${dir}`);
                             if (btn) btn.classList.add('active');
                         }
@@ -652,7 +654,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                             if (btn) btn.classList.remove('active');
 
                             if (this.state.activeKeys.size === 0) {
-                                this.send(`move:stop`);
+                                this.state.commands_socket.send(`move:stop`);
                             }
                         }
 
@@ -691,67 +693,46 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                     canvas.style.height = actualH + 'px';
                 },
 
-                connect() {
-                    const url = `ws://${window.location.host}/ws`;
-                    this.state.socket = new WebSocket(url);
-                    this.state.socket.onopen = () => this.updateStatus("ONLINE", "#00ff41");
-                    this.state.socket.onclose = () => {
-                        this.updateStatus("RETRYING", "orange");
-                        setTimeout(() => this.connect(), 2000);
-                    };
-                    this.state.socket.onmessage = (e) => {
-                        try {
-                            console.log("Data received:", e.data)
-                            const data = JSON.parse(e.data);
-                            this.handleData(data);
-                        } catch (err) { }
-                    };
-                },
-
                 updateStatus(txt, clr) {
                     const el = document.getElementById('metric-sys');
                     if (el) { el.textContent = txt; el.style.color = clr; }
                 },
 
-                handleData(data) {
-                    this.state.latestData = data;
-                    this.elements.pos.textContent = `${data.x},${data.y}`;
+                // handleData(data) {
+                //     this.state.latestData = data;
+                //     this.elements.pos.textContent = `${data.x},${data.y}`;
 
-                    const lockEl = document.getElementById('metric-lock');
+                //     const lockEl = document.getElementById('metric-lock');
 
-                    if (data.lock) {
-                        lockEl.textContent = "TARGET_ACQUIRED";
-                        lockEl.classList.add('status-locked');
+                //     if (data.lock) {
+                //         lockEl.textContent = "TARGET_ACQUIRED";
+                //         lockEl.classList.add('status-locked');
 
-                        // ENABLE the button
-                        this.elements.fireBtn.disabled = false;
-                    } else {
-                        lockEl.textContent = "SCANNING...";
-                        lockEl.classList.remove('status-locked');
+                //         // ENABLE the button
+                //         this.elements.fireBtn.disabled = false;
+                //     } else {
+                //         lockEl.textContent = "SCANNING...";
+                //         lockEl.classList.remove('status-locked');
 
-                        // DISABLE the button
-                        this.elements.fireBtn.disabled = true;
+                //         // DISABLE the button
+                //         this.elements.fireBtn.disabled = true;
 
-                        // Safety: If the user was holding fire while the lock was lost, turn it off
-                        this.fire(false);
-                    }
-                    this.draw(data);
-                },
-
-                send(msg) {
-                    if (this.state.socket?.readyState === 1) this.state.socket.send(msg);
-                },
+                //         // Safety: If the user was holding fire while the lock was lost, turn it off
+                //         this.fire(false);
+                //     }
+                //     this.draw(data);
+                // },
 
                 setupControls() {
                     document.querySelectorAll('.btn').forEach(b => {
                         const d = b.dataset.dir;
                         b.onmousedown = b.ontouchstart = (e) => {
                             e.preventDefault();
-                            this.send(`move:${d}`);
+                            this.state.commands_socket.send(`move:${d}`);
                             b.classList.add('active');
                         };
                         b.onmouseup = b.ontouchend = () => {
-                            this.send(`move:stop`);
+                            this.state.commands_socket.send(`move:stop`);
                             b.classList.remove('active');
                         };
                     });
@@ -759,7 +740,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 
                 fire(on) {
                     if (!on || (this.state.latestData && this.state.latestData.lock)) {
-                        this.send(on ? "fire:on" : "fire:off");
+                        this.state.commands_socket.send(on ? "fire:on" : "fire:off");
                     }
                 },
 
@@ -768,7 +749,7 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                     document.getElementById('metric-mode').textContent = this.state.mode;
                     document.querySelector('.toggle-btn').textContent =
                         this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
-                    this.send(`mode:${this.state.mode}`);
+                    this.state.commands_socket.send(`mode:${this.state.mode}`);
                 },
 
                 draw(data) {
@@ -792,6 +773,90 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
                     requestAnimationFrame(() => this.renderLoop());
                 }
             };
+
+            /**
+             * Converts a Blob object to a Base64 data URL string.
+             * @param {Blob} blob The Blob to convert.
+             * @returns {Promise<string>} A promise that resolves with the Base64 string (data URL).
+             */
+            function blobToBase64(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    // Event handler when the reading is complete
+                    reader.onloadend = () => {
+                        resolve(btoa(reader.result)); // reader.result is the data URL (e.g., "data:image/png;base64,...")
+                    };
+
+                    // Event handler for errors
+                    reader.onerror = () => {
+                        reject(new Error("Error reading blob"));
+                    };
+
+                    // Start reading the blob as a data URL
+                    reader.readAsBinaryString(blob);
+                });
+            }
+
+            const imgElement = document.getElementById('streamImg');
+
+            // Connect to the WebSocket server running on localhost
+            const ws_stream = new WebSocket(`ws:/${window.location.host}/stream`);
+
+            // Register WS to the App instance
+            App.state.stream_socket = ws_stream;
+
+            ws_stream.onopen = () => {
+                App.updateStatus("ONLINE", "#00ff41");
+                ws_stream.send(" ")
+            };
+
+            ws_stream.onmessage = async (event) => {
+                // Reconstruct the image using the Base64 data URI format
+                let image = await blobToBase64(event.data)
+                console.log("data", image)
+                imgElement.src = 'data:image/jpeg;base64,' + image;
+                setTimeout(() => ws_stream.send(" "), 40); // When sending a message, a frame is sent back
+            };
+
+            ws_stream.onclose = () => {
+                App.updateStatus("DISCONNECTED", "#ff0000");
+            };
+
+            ws_stream.onerror = (error) => {
+                console.error('WebSocket Error: ', error);
+                App.updateStatus("RETRYING", "orange");
+                // TODO: implement reconnection logic
+                // setTimeout(() => App.connect(), 2000);
+            };
+
+            //* NOTE: DUPLICATE CODE - refactor
+            // This code is used for the detection and metrics WS
+
+            // Connect to the WebSocket server running on localhost
+            const ws_commands = new WebSocket(`ws:/${window.location.host}/commands`);
+
+            // Register WS to the App instance
+            App.state.ws_commands = ws_commands;
+
+            ws_commands.onopen = () => {
+                ws_commands.send(" ")
+            };
+
+            ws_commands.onmessage = async (event) => {
+            };
+
+            ws_commands.onclose = () => {
+            };
+
+            ws_commands.onerror = (error) => {
+                // TODO: implement reconnection logic
+                // setTimeout(() => App.connect(), 2000);
+            };
+
+
+
+
             App.init();
         </script>
 </body>

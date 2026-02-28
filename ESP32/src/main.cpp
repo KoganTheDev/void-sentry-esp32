@@ -82,6 +82,7 @@ void setup()
 
 void loop()
 {
+    camera.capture();
     controller.run();        // Run main control loop
     WifiManager::maintain(); // Maintain WiFi connection
 }
