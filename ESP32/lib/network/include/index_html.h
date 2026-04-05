@@ -837,13 +837,51 @@ static const char HTML_PAGE[] PROGMEM = R"rawliteral(
             const ws_commands = new WebSocket(`ws:/${window.location.host}/commands`);
 
             // Register WS to the App instance
-            App.state.ws_commands = ws_commands;
+            App.state.commands_socket = ws_commands;
 
             ws_commands.onopen = () => {
                 ws_commands.send(" ")
             };
 
             ws_commands.onmessage = async (event) => {
+                try {
+                    // Parse the metrics JSON from the ESP32
+                    // event.data is already a string with TEXT frames
+                    const metrics = JSON.parse(event.data);
+                    console.log("Metrics received:", metrics);
+
+                    // Update App state with received metrics
+                    App.state.latestData = {
+                        lock: metrics.detected === 1,
+                        x: metrics.x,
+                        y: metrics.y,
+                        width: metrics.width,
+                        height: metrics.height,
+                        pixels: metrics.pixels
+                    };
+
+                    // Update UI elements
+                    App.elements.pos.textContent = `${metrics.x},${metrics.y}`;
+
+                    // Update lock status
+                    const lockEl = document.getElementById('metric-lock');
+                    if (metrics.detected) {
+                        lockEl.textContent = "TARGET_ACQUIRED";
+                        lockEl.classList.add('status-locked');
+                        App.elements.fireBtn.disabled = false;
+                    } else {
+                        lockEl.textContent = "SCANNING...";
+                        lockEl.classList.remove('status-locked');
+                        App.elements.fireBtn.disabled = true;
+                        App.fire(false);  // Safety: disable fire if lock is lost
+                    }
+                } catch (error) {
+                    console.error('Error parsing metrics:', error);
+                    console.error('Raw event data:', event.data);
+                }
+
+                // Continue polling for metrics
+                setTimeout(() => ws_commands.send(" "), 40);
             };
 
             ws_commands.onclose = () => {

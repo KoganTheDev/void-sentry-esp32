@@ -5,9 +5,10 @@
 
 #pragma once
 
+#include "camera.h"
+#include "motion_data.h"
 #include "move_types.h"
 #include <esp_camera.h>
-#include "camera.h"
 #include <tuple>
 
 /**
@@ -33,4 +34,16 @@ public:
      * - Index 1 (MoveY): Up   | Down  | Stay
      */
     virtual std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) = 0;
+
+    /**
+     * @brief Get the latest motion data from the detection module.
+     * @details This method provides access to the motion metrics detected.
+     * Derived classes should override this to return their current metrics.
+     * @return MotionData containing the latest detection results.
+     */
+    virtual MotionData get_motion_data() const
+    {
+        // Default implementation returns empty motion data
+        return MotionData();
+    }
 };

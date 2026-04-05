@@ -1,7 +1,11 @@
 #pragma once
 
 // TODO: Change name to the header file and split to cpp file as well
+#include "base_detection_module.h"
 #include "camera.h"
+#include "motion_data.h"
+#include <cstdio>
+#include <cstring>
 #include <esp_http_server.h>
 #include <esp_log.h>
 
@@ -80,13 +84,17 @@ public:
         }
 
         httpd_ws_frame_t response_pkt = {0};
-        response_pkt.type = HTTPD_WS_TYPE_BINARY;
+        response_pkt.type = _this->get_frame_type();
 
         void* resource = _this->handler(ws_pkt.payload, ws_pkt.len, response_pkt.payload, response_pkt.len);
         if (resource == NULL)
         {
+            ESP_LOGE(TAG_WEBSOCKETS, "Handler returned NULL for %s", _this->_uri);
             return ESP_FAIL;
         }
+
+        ESP_LOGD(TAG_WEBSOCKETS, "Sending response on %s, type=%d, len=%d", _this->_uri, response_pkt.type,
+                 response_pkt.len);
 
         ret = httpd_ws_send_frame(req, &response_pkt);
         if (ret != ESP_OK)
@@ -105,6 +113,12 @@ public:
     virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len) = 0;
 
     virtual void release_resource(void* resource) {} // release resources if needed
+
+    /**
+     * @brief Get the WebSocket frame type for this handler
+     * @return HTTPD_WS_TYPE_TEXT for text data (JSON), HTTPD_WS_TYPE_BINARY for binary data (JPEG)
+     */
+    virtual httpd_ws_type_t get_frame_type() const { return HTTPD_WS_TYPE_TEXT; }
 
 private:
     httpd_handle_t _server_handle;
@@ -136,6 +150,8 @@ public:
         return (void*)-1;
     }
 
+    virtual httpd_ws_type_t get_frame_type() const override { return HTTPD_WS_TYPE_BINARY; }
+
     virtual void release_resource(void* resource)
     {
         // NOTE: this assums that the buffer is the first field of camera_fb_t
@@ -146,31 +162,62 @@ private:
     Camera& _camera;
 };
 
-
 class CommandsWebSocketHandler : public WebsocketHandler
 {
 public:
-    CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri) 
-        : WebsocketHandler(server_handle, uri)
-        {
-        }
+    CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri, BaseDetectionModule* detection = nullptr)
+        : WebsocketHandler(server_handle, uri), _detection_instance(detection)
+    {
+    }
 
     virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len)
     {
-        // Send Metrics
-        if (strcmp((char *)recv_buf, "commands"))
+        // Allocate buffer for JSON response (256 bytes should be sufficient)
+        uint8_t* json_buf = (uint8_t*)malloc(256);
+        if (!json_buf)
         {
-            // TODO: construct information and send over the socket
-            Serial.printf("BLOOOOOOOOOOOOOOPIE");
-            out_buf = (uint8_t*)"temp";
-            out_len = 4;
+            ESP_LOGE(TAG_WEBSOCKETS, "Failed to allocate JSON buffer");
+            out_buf = (uint8_t*)"{}";
+            out_len = 2;
+            return NULL; // Return NULL to indicate error
         }
 
-        // TODO: Add motor control
-        return (void*)-1;
-;
+        // Serialize metrics to JSON format
+        if (_detection_instance != nullptr)
+        {
+            MotionData motion = _detection_instance->get_motion_data();
 
+            // Format: {"detected": bool, "x": int, "y": int, "width": int, "height": int, "pixels": int}
+            int len = snprintf((char*)json_buf, 256,
+                               "{\"detected\":%d,\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"pixels\":%d}",
+                               motion.is_detected() ? 1 : 0, motion.get_centroid_x(), motion.get_centroid_y(),
+                               motion.get_frame_width(), motion.get_frame_height(), motion.get_pixel_count());
+
+            out_buf = json_buf;
+            out_len = len;
+            ESP_LOGD(TAG_WEBSOCKETS, "Metrics: detected=%d, x=%d, y=%d, pixels=%d", motion.is_detected(),
+                     motion.get_centroid_x(), motion.get_centroid_y(), motion.get_pixel_count());
+        } else
+        {
+            // Fallback if no detection module
+            int len = snprintf((char*)json_buf, 256,
+                               "{\"detected\":0,\"x\":0,\"y\":0,\"width\":320,\"height\":240,\"pixels\":0}");
+            out_buf = json_buf;
+            out_len = len;
+            ESP_LOGW(TAG_WEBSOCKETS, "No detection module connected, sending fallback metrics");
+        }
+
+        return (void*)json_buf; // Return the allocated buffer for cleanup
     }
 
-    
+    virtual void release_resource(void* resource)
+    {
+        if (resource != nullptr)
+        {
+            free(resource);
+        }
+    }
+
+private:
+    BaseDetectionModule* _detection_instance;
 };

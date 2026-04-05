@@ -50,7 +50,7 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
         this->_stream_handler = new StreamWebsocketHandler(this->_server_handle, "/stream", *camera);
         this->_stream_handler->register_endpoint();
 
-        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands");
+        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection);
         this->_commands_handler->register_endpoint();
 
         Serial.println("[HTTP] Server started successfully");

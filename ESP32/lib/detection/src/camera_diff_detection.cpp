@@ -30,7 +30,17 @@ CameraDiffDetection::~CameraDiffDetection()
 
 std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t frame)
 {
-    return std::make_tuple<MoveX, MoveY>(MoveX::Left, MoveY::Up);
+    // Initialize frame dimensions on first call
+    if (frame.width > 0 && frame.height > 0)
+    {
+        // Update motion data with frame dimensions, even if no motion detected
+        // This ensures the client always knows the frame resolution
+        this->_last_motion_data = MotionData(0, 0, frame.width, frame.height, 0);
+    }
+
+    // TODO: Implement actual motion detection
+    // For now, return no motion
+    return std::make_tuple<MoveX, MoveY>(MoveX::None, MoveY::None);
 }
 
 // std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t frame)
@@ -78,8 +88,6 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
 //         ESP_LOGI(TAG, "Buffers allocated successfully");
 //     }
 
-
-
 //     // === STEP 2: Decompress JPEG to greyscale for analysis AND RGB565 for overlay ===
 //     // ESP_LOGD(TAG, "Starting JPEG decompression...");
 //     //if (!jpeg_to_greyscale(frame.buffer, this->_curr_frame))
@@ -102,7 +110,8 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
 //     int motion_centroid_x = 0, motion_centroid_y = 0;
 //     int motion_pixel_count = 0;
 
-//     bool motion_found = find_motion(this->_prev_frame, this->_curr_frame, frame.width, frame.height, motion_centroid_x,
+//     bool motion_found = find_motion(this->_prev_frame, this->_curr_frame, frame.width, frame.height,
+//     motion_centroid_x,
 //                                     motion_centroid_y, motion_pixel_count);
 
 //     // === STEP 5: Save current frame as previous for next iteration ===
