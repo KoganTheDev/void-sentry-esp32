@@ -72,7 +72,7 @@ jobs:
             # Saves the HTML report for 14 days, accessible via the Actions tab.
             - name: Upload HTML Artifact
               if: always()
-              uses: actions/upload-artifact@v6 # Kept as v6 per your request
+              uses: actions/upload-artifact@v7 # Kept as v6 per your request
               with:
                   name: cppcheck-dashboard
                   path: report/
