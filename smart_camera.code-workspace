@@ -4,10 +4,20 @@
             "path": "."
         },
         {
-            "path": "src/ESP32"
+            "path": "ESP32"
         }
     ],
     "settings": {
-        "liveServer.settings.multiRootWorkspaceName": "Smart_Camera_ESP32"
+        "liveServer.settings.multiRootWorkspaceName": "Smart_Camera_ESP32",
+        "chat.tools.terminal.autoApprove": {
+            "/^platformio run 2>&1 \\| head -100$/": {
+                "approve": true,
+                "matchCommandLine": true
+            },
+            "/^platformio run 2>&1 \\| head -50$/": {
+                "approve": true,
+                "matchCommandLine": true
+            }
+        }
     }
 }
