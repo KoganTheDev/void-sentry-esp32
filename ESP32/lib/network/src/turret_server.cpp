@@ -7,7 +7,7 @@
 #include "esp_camera.h"
 #include "motion_data.h"
 #include "websockets.h"
-#include <index_html.h>
+#include "index_html.h"
 
 static const char* TAG_HTTP = "HTTP_SERVER";
 
@@ -76,4 +76,19 @@ void HttpServer::stop()
     }
 }
 
-esp_err_t HttpServer::index_handler(httpd_req_t* req) { return httpd_resp_send(req, HTML_PAGE, HTTPD_RESP_USE_STRLEN); }
+/**
+ * @brief HTTP GET handler for the root ("/") URI.
+ * This function serves the primary web interface of the turret. To optimize 
+ * memory usage and transmission speed, it sends a Gzip-compressed HTML payload.
+ * @param[in] req Pointer to the HTTP request context provided by the ESP-IDF server.
+ * @return 
+ * - ESP_OK: The index page was sent successfully.
+ * - ESP_FAIL: There was an error sending the response.
+ * - ESP_ERR_HTTPD_RESP_SEND: Specifically indicates a failure in the response send call.
+ */
+esp_err_t HttpServer::index_handler(httpd_req_t* req) {
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+
+    return httpd_resp_send(req, (const char*)HTML_PAGE_GZ, HTML_PAGE_GZ_LEN);
+}
