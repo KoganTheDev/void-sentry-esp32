@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wifimanager_0',['WifiManager',['../classWifiManager.html',1,'']]]
+  ['testdetection_0',['TestDetection',['../classTestDetection.html',1,'']]]
 ];

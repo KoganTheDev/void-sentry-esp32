@@ -103,28 +103,31 @@ $(function(){initNavTree('classCamera.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Manages camera initialization, frame capture, and memory lifecycle.  
+<p>Singleton-style manager for camera lifecycle and frame acquisition.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="camera_8h_source.html">camera.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:aa4d8cff366d7dca54185e45620f675ba" id="r_aa4d8cff366d7dca54185e45620f675ba"><td class="memItemLeft" align="right" valign="top"><a id="aa4d8cff366d7dca54185e45620f675ba" name="aa4d8cff366d7dca54185e45620f675ba"></a>
+const <a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get_frame_buffer</b> ()</td></tr>
+<tr class="separator:aa4d8cff366d7dca54185e45620f675ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Lifecycle Management</div></td></tr>
 <tr class="memitem:a01f94c3543f56ede7af49dc778f19331" id="r_a01f94c3543f56ede7af49dc778f19331"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01f94c3543f56ede7af49dc778f19331">Camera</a> ()</td></tr>
-<tr class="memdesc:a01f94c3543f56ede7af49dc778f19331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor: Initializes the default hardware configuration.  <br /></td></tr>
+<tr class="memdesc:a01f94c3543f56ede7af49dc778f19331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor: Pre-configures the sensor for optimal CV performance.  <br /></td></tr>
 <tr class="separator:a01f94c3543f56ede7af49dc778f19331"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf5ae93972c164692f27be6dbae37ee4" id="r_acf5ae93972c164692f27be6dbae37ee4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf5ae93972c164692f27be6dbae37ee4">begin</a> ()</td></tr>
-<tr class="memdesc:acf5ae93972c164692f27be6dbae37ee4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the sensor and allocates memory for the frame buffer.  <br /></td></tr>
+<tr class="memdesc:acf5ae93972c164692f27be6dbae37ee4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the hardware and mounts the sensor.  <br /></td></tr>
 <tr class="separator:acf5ae93972c164692f27be6dbae37ee4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12f96bbc1c8bd54d6021cd1325bea8c7" id="r_a12f96bbc1c8bd54d6021cd1325bea8c7"><td class="memItemLeft" align="right" valign="top">camera_fb_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a12f96bbc1c8bd54d6021cd1325bea8c7">capture</a> ()</td></tr>
-<tr class="memdesc:a12f96bbc1c8bd54d6021cd1325bea8c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Captures a new image frame.  <br /></td></tr>
-<tr class="separator:a12f96bbc1c8bd54d6021cd1325bea8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aecb2fa80ce30d7e9d6b984c42e771a69" id="r_aecb2fa80ce30d7e9d6b984c42e771a69"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aecb2fa80ce30d7e9d6b984c42e771a69">release</a> (camera_fb_t *fb)</td></tr>
-<tr class="memdesc:aecb2fa80ce30d7e9d6b984c42e771a69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the frame buffer to the driver to be reused.  <br /></td></tr>
-<tr class="separator:aecb2fa80ce30d7e9d6b984c42e771a69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Image Acquisition</div></td></tr>
+<tr class="memitem:a3ca730dcbd7ea6bfba12931a15066f6c" id="r_a3ca730dcbd7ea6bfba12931a15066f6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ca730dcbd7ea6bfba12931a15066f6c">capture</a> ()</td></tr>
+<tr class="memdesc:a3ca730dcbd7ea6bfba12931a15066f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously captures a frame from the sensor.  <br /></td></tr>
+<tr class="separator:a3ca730dcbd7ea6bfba12931a15066f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Manages camera initialization, frame capture, and memory lifecycle. </p>
+<div class="textblock"><p>Singleton-style manager for camera lifecycle and frame acquisition. </p>
+<p>Encapsulates the <code>esp_camera</code> driver. It is configured by default for <b>Void Sentry's</b> real-time requirements: Low latency over high resolution. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a01f94c3543f56ede7af49dc778f19331" name="a01f94c3543f56ede7af49dc778f19331"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a01f94c3543f56ede7af49dc778f19331">&#9670;&#160;</a></span>Camera()</h2>
@@ -149,8 +152,12 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Constructor: Initializes the default hardware configuration. </p>
-<p>Sets default values for QVGA resolution, JPEG format, and PSRAM usage. </p>
+<p>Constructor: Pre-configures the sensor for optimal CV performance. </p>
+<ul>
+<li><b>Resolution</b>: QVGA (320x240) to maintain high FPS.</li>
+<li><b>Buffering</b>: Double-buffering enabled to allow simultaneous capture and processing.</li>
+<li><b>Grab Mode</b>: <code>CAMERA_GRAB_LATEST</code> ensures we never process "stale" motion data. </li>
+</ul>
 
 </div>
 </div>
@@ -170,19 +177,21 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes the sensor and allocates memory for the frame buffer. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if initialization succeeded, false if sensor not found or PSRAM failed. </dd></dl>
+<p>Initializes the hardware and mounts the sensor. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if the sensor was identified and PSRAM was allocated. </dd>
+<dd>
+false if the SCCB bus failed or the camera is not powered. </dd></dl>
 
 </div>
 </div>
-<a id="a12f96bbc1c8bd54d6021cd1325bea8c7" name="a12f96bbc1c8bd54d6021cd1325bea8c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12f96bbc1c8bd54d6021cd1325bea8c7">&#9670;&#160;</a></span>capture()</h2>
+<a id="a3ca730dcbd7ea6bfba12931a15066f6c" name="a3ca730dcbd7ea6bfba12931a15066f6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ca730dcbd7ea6bfba12931a15066f6c">&#9670;&#160;</a></span>capture()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">camera_fb_t * Camera::capture </td>
+          <td class="memname">void Camera::capture </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -190,34 +199,10 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Captures a new image frame. </p>
-<dl class="section return"><dt>Returns</dt><dd>camera_fb_t* Pointer to the frame buffer. </dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>Must call <a class="el" href="#aecb2fa80ce30d7e9d6b984c42e771a69" title="Returns the frame buffer to the driver to be reused.">release()</a> after processing to avoid memory leaks. </dd></dl>
-
-</div>
-</div>
-<a id="aecb2fa80ce30d7e9d6b984c42e771a69" name="aecb2fa80ce30d7e9d6b984c42e771a69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aecb2fa80ce30d7e9d6b984c42e771a69">&#9670;&#160;</a></span>release()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Camera::release </td>
-          <td>(</td>
-          <td class="paramtype">camera_fb_t *</td>          <td class="paramname"><span class="paramname"><em>fb</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Returns the frame buffer to the driver to be reused. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fb</td><td>Pointer to the captured frame buffer. </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Synchronously captures a frame from the sensor. </p>
+<dl class="section return"><dt>Returns</dt><dd>camera_fb_t* Pointer to the ESP-Camera frame buffer structure. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This function blocks until a full frame is clocked into memory. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd><b>Memory Safety</b>: You MUST call release() with this pointer to return the buffer to the DMA pool. </dd></dl>
 
 </div>
 </div>

@@ -103,7 +103,7 @@ $(function(){initNavTree('classBaseDetectionModule.html',''); initResizable(true
 </div><!--header-->
 <div class="contents">
 
-<p>An abstract base class (Interface) that defines the contract for detection algorithms. This class allows the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> to remain agnostic of the specific detection method (e.g., Color, AI, or Motion) by providing a consistent interface.  
+<p>An abstract base class (Interface) that defines the contract for detection algorithms. This class allows the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> to remain agnostic of the specific detection method (e.g., Color, AI, or Motion) by providing a consistent interface.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="base__detection__module_8h_source.html">base_detection_module.h</a>&gt;</code></p>
@@ -113,7 +113,7 @@ Inheritance diagram for BaseDetectionModule:</div>
  <div class="center">
   <img src="classBaseDetectionModule.png" usemap="#BaseDetectionModule_map" alt=""/>
   <map id="BaseDetectionModule_map" name="BaseDetectionModule_map">
-<area href="classCameraDiffDetection.html" alt="CameraDiffDetection" shape="rect" coords="0,56,135,80"/>
+<area href="classCameraDiffDetection.html" title="Motion detection using frame differencing." alt="CameraDiffDetection" shape="rect" coords="0,56,135,80"/>
 <area href="classTestDetection.html" alt="TestDetection" shape="rect" coords="145,56,280,80"/>
   </map>
 </div></div>
@@ -124,15 +124,18 @@ Public Member Functions</h2></td></tr>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModule</b> ()=default</td></tr>
 <tr class="memdesc:aa264fc7c05d9458b299bc53f03cabb59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Virtual destructor to ensure proper cleanup of derived classes. <br /></td></tr>
 <tr class="separator:aa264fc7c05d9458b299bc53f03cabb59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adaa902668dc91333a7683660a6cbefbe" id="r_adaa902668dc91333a7683660a6cbefbe"><td class="memItemLeft" align="right" valign="top">virtual std::tuple&lt; MoveDirectionX, MoveDirectionY &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adaa902668dc91333a7683660a6cbefbe">detect_object</a> (camera_fb_t *frame)=0</td></tr>
-<tr class="memdesc:adaa902668dc91333a7683660a6cbefbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analyzes a camera frame to locate a specific object.  <br /></td></tr>
-<tr class="separator:adaa902668dc91333a7683660a6cbefbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7cb10ab2baa1de9c82f0ef6c2a71cdd" id="r_af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="memItemLeft" align="right" valign="top">virtual std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7cb10ab2baa1de9c82f0ef6c2a71cdd">detect_object</a> (<a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> frame)=0</td></tr>
+<tr class="memdesc:af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analyzes a camera frame to locate a specific object.  <br /></td></tr>
+<tr class="separator:af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7135fc24d3eb3fa3ce64d054a4c943bc" id="r_a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classMotionData.html">MotionData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7135fc24d3eb3fa3ce64d054a4c943bc">get_motion_data</a> () const</td></tr>
+<tr class="memdesc:a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the latest motion data from the detection module.  <br /></td></tr>
+<tr class="separator:a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>An abstract base class (Interface) that defines the contract for detection algorithms. This class allows the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> to remain agnostic of the specific detection method (e.g., Color, AI, or Motion) by providing a consistent interface. </p>
+<div class="textblock"><p>An abstract base class (Interface) that defines the contract for detection algorithms. This class allows the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> to remain agnostic of the specific detection method (e.g., Color, AI, or Motion) by providing a consistent interface. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="adaa902668dc91333a7683660a6cbefbe" name="adaa902668dc91333a7683660a6cbefbe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adaa902668dc91333a7683660a6cbefbe">&#9670;&#160;</a></span>detect_object()</h2>
+<a id="af7cb10ab2baa1de9c82f0ef6c2a71cdd" name="af7cb10ab2baa1de9c82f0ef6c2a71cdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7cb10ab2baa1de9c82f0ef6c2a71cdd">&#9670;&#160;</a></span>detect_object()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -141,9 +144,9 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual std::tuple&lt; MoveDirectionX, MoveDirectionY &gt; BaseDetectionModule::detect_object </td>
+          <td class="memname">virtual std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt; BaseDetectionModule::detect_object </td>
           <td>(</td>
-          <td class="paramtype">camera_fb_t *</td>          <td class="paramname"><span class="paramname"><em>frame</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a></td>          <td class="paramname"><span class="paramname"><em>frame</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -162,12 +165,42 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>std::tuple&lt;uint8_t, uint8_t&gt; Returns a tuple containing:<ul>
-<li>Index 0 (MoveDirectionX): Left | Right | Stay</li>
-<li>Index 1 (MoveDirectionY): Up | Down | Stay </li>
+<li>Index 0 (<a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a>): Left | Right | Stay</li>
+<li>Index 1 (<a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a>): Up | Down | Stay </li>
 </ul>
 </dd></dl>
 
-<p>Implemented in <a class="el" href="classCameraDiffDetection.html#a8e57003ed855c75196f3cde40040126b">CameraDiffDetection</a>, and <a class="el" href="classTestDetection.html#a4e844c9ecdadb3abcce55c296294349b">TestDetection</a>.</p>
+<p>Implemented in <a class="el" href="classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7">CameraDiffDetection</a>.</p>
+
+</div>
+</div>
+<a id="a7135fc24d3eb3fa3ce64d054a4c943bc" name="a7135fc24d3eb3fa3ce64d054a4c943bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7135fc24d3eb3fa3ce64d054a4c943bc">&#9670;&#160;</a></span>get_motion_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classMotionData.html">MotionData</a> BaseDetectionModule::get_motion_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the latest motion data from the detection module. </p>
+<p>This method provides access to the motion metrics detected. Derived classes should override this to return their current metrics. </p><dl class="section return"><dt>Returns</dt><dd><a class="el" href="classMotionData.html" title="Clean abstraction for motion detection results.">MotionData</a> containing the latest detection results. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0">CameraDiffDetection</a>.</p>
 
 </div>
 </div>

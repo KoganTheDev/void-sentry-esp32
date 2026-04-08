@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['esp32_3a_20motion_20target_20acquisition_0',['🎯 Smart Camera ESP32: Motion Target Acquisition',['../index.html',1,'']]]
+  ['it_20s_20confusing_0',['Rename the folder&apos;s name since it&apos;s confusing',['../index.html',1,'']]]
 ];

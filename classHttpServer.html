@@ -111,9 +111,9 @@ $(function(){initNavTree('classHttpServer.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac7ed7d3c8d7a05be48553e0a3be3c8ad" id="r_ac7ed7d3c8d7a05be48553e0a3be3c8ad"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac7ed7d3c8d7a05be48553e0a3be3c8ad">start</a> (<a class="el" href="classCamera.html">Camera</a> *camera)</td></tr>
-<tr class="memdesc:ac7ed7d3c8d7a05be48553e0a3be3c8ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
-<tr class="separator:ac7ed7d3c8d7a05be48553e0a3be3c8ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5238dfb325fa6edd997f8b872e0331c" id="r_ac5238dfb325fa6edd997f8b872e0331c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac5238dfb325fa6edd997f8b872e0331c">start</a> (<a class="el" href="classCamera.html">Camera</a> *camera, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr)</td></tr>
+<tr class="memdesc:ac5238dfb325fa6edd997f8b872e0331c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
+<tr class="separator:ac5238dfb325fa6edd997f8b872e0331c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad9c63d3f8cda248e3c87067ac3ac5a5" id="r_aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="memItemLeft" align="right" valign="top"><a id="aad9c63d3f8cda248e3c87067ac3ac5a5" name="aad9c63d3f8cda248e3c87067ac3ac5a5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
 <tr class="memdesc:aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shut down the server and unregister all URI handlers. <br /></td></tr>
@@ -124,51 +124,11 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ac37693f45d9eac094872a2c67cb44245" id="r_ac37693f45d9eac094872a2c67cb44245"><td class="memItemLeft" align="right" valign="top">static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac37693f45d9eac094872a2c67cb44245">index_handler</a> (httpd_req_t *req)</td></tr>
 <tr class="memdesc:ac37693f45d9eac094872a2c67cb44245"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP handler for the root ("/") URI. This method is called by the ESP HTTP server whenever a client accesses the root IP address. It serves the primary web interface stored in Flash memory.  <br /></td></tr>
 <tr class="separator:ac37693f45d9eac094872a2c67cb44245"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98ec97583d59b1fe2851de5669325d1e" id="r_a98ec97583d59b1fe2851de5669325d1e"><td class="memItemLeft" align="right" valign="top">static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a98ec97583d59b1fe2851de5669325d1e">stream_handler</a> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:a98ec97583d59b1fe2851de5669325d1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP GET Handler for the MJPEG stream.  <br /></td></tr>
-<tr class="separator:a98ec97583d59b1fe2851de5669325d1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad63324c85188ed1173155460c2b40065" id="r_ad63324c85188ed1173155460c2b40065"><td class="memItemLeft" align="right" valign="top">static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad63324c85188ed1173155460c2b40065">cmd_handler</a> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:ad63324c85188ed1173155460c2b40065"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP GET Handler for control commands.  <br /></td></tr>
-<tr class="separator:ad63324c85188ed1173155460c2b40065"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Manages the ESP32-CAM web interface and control API. </p>
 <p>This class wraps the ESP-IDF HTTP server component. It provides a video stream endpoint and a command endpoint for remote movement. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ad63324c85188ed1173155460c2b40065" name="ad63324c85188ed1173155460c2b40065"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad63324c85188ed1173155460c2b40065">&#9670;&#160;</a></span>cmd_handler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">esp_err_t HttpServer::cmd_handler </td>
-          <td>(</td>
-          <td class="paramtype">httpd_req_t *</td>          <td class="paramname"><span class="paramname"><em>req</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>HTTP GET Handler for control commands. </p>
-<p>Parses URL parameters (e.g., ?pan=90&amp;tilt=45) to drive motors. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">req</td><td>Pointer to the HTTP request structure. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>esp_err_t ESP_OK on success. </dd></dl>
-
-</div>
-</div>
 <a id="ac37693f45d9eac094872a2c67cb44245" name="ac37693f45d9eac094872a2c67cb44245"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac37693f45d9eac094872a2c67cb44245">&#9670;&#160;</a></span>index_handler()</h2>
 
@@ -193,6 +153,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>HTTP handler for the root ("/") URI. This method is called by the ESP HTTP server whenever a client accesses the root IP address. It serves the primary web interface stored in Flash memory. </p>
+<p>HTTP GET handler for the root ("/") URI. This function serves the primary web interface of the turret. To optimize memory usage and transmission speed, it sends a Gzip-compressed HTML payload.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">req</td><td>Pointer to the HTTP request object containing session data. </td></tr>
@@ -200,12 +161,24 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>esp_err_t Returns ESP_OK if the response was sent successfully, otherwise returns an error code from the underlying HTTP server. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="index__html_8h.html" title="Web Interface for the ESP32-CAM Turret system. This file contains the raw HTML, CSS,...">index_html.h</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="index__html_8h.html" title="Compressed Web Interface for the ESP32-CAM Turret system. This file contains the Gzip-compressed bina...">index_html.h</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">req</td><td>Pointer to the HTTP request context provided by the ESP-IDF server. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><ul>
+<li>ESP_OK: The index page was sent successfully.</li>
+<li>ESP_FAIL: There was an error sending the response.</li>
+<li>ESP_ERR_HTTPD_RESP_SEND: Specifically indicates a failure in the response send call. </li>
+</ul>
+</dd></dl>
 
 </div>
 </div>
-<a id="ac7ed7d3c8d7a05be48553e0a3be3c8ad" name="ac7ed7d3c8d7a05be48553e0a3be3c8ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac7ed7d3c8d7a05be48553e0a3be3c8ad">&#9670;&#160;</a></span>start()</h2>
+<a id="ac5238dfb325fa6edd997f8b872e0331c" name="ac5238dfb325fa6edd997f8b872e0331c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5238dfb325fa6edd997f8b872e0331c">&#9670;&#160;</a></span>start()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -213,8 +186,12 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">bool HttpServer::start </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classCamera.html">Camera</a> *</td>          <td class="paramname"><span class="paramname"><em>camera</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="classCamera.html">Camera</a> *</td>          <td class="paramname"><span class="paramname"><em>camera</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *</td>          <td class="paramname"><span class="paramname"><em>detection</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -222,45 +199,12 @@ Static Public Member Functions</h2></td></tr>
 <p>Configures and launches the web server on port 80. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">camera</td><td>Pointer to the initialized <a class="el" href="classCamera.html" title="Manages camera initialization, frame capture, and memory lifecycle.">Camera</a> object for streaming. </td></tr>
+    <tr><td class="paramname">camera</td><td>Pointer to the initialized <a class="el" href="classCamera.html" title="Singleton-style manager for camera lifecycle and frame acquisition.">Camera</a> object for streaming. </td></tr>
+    <tr><td class="paramname">detection</td><td>Optional pointer to detection module for motion visualization. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if the server was created and handlers were registered. </dd></dl>
-
-</div>
-</div>
-<a id="a98ec97583d59b1fe2851de5669325d1e" name="a98ec97583d59b1fe2851de5669325d1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98ec97583d59b1fe2851de5669325d1e">&#9670;&#160;</a></span>stream_handler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">esp_err_t HttpServer::stream_handler </td>
-          <td>(</td>
-          <td class="paramtype">httpd_req_t *</td>          <td class="paramname"><span class="paramname"><em>req</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>HTTP GET Handler for the MJPEG stream. </p>
-<p>Continuously captures frames from the camera and pushes them to the client using "multipart/x-mixed-replace". </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">req</td><td>Pointer to the HTTP request structure. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>esp_err_t ESP_OK on success. </dd></dl>
 
 </div>
 </div>

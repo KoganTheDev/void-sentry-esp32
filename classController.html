@@ -97,34 +97,43 @@ $(function(){initNavTree('classController.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classController-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">Controller Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Handles logic for object detection and movement calculations. details The <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> class implements the main control loop. It arbitrates between manual joystick input and autonomous detection tracking, ensuring that the <a class="el" href="classBaseMovementManager.html" title="Abstract base class for turret movement hardware abstraction.">BaseMovementManager</a> receives the correct vector for the turret motors.  
+<p>Handles logic for object detection and movement calculations.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="controller_8h_source.html">controller.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab58d3ebaec40d97038630549c1d5e0f7" id="r_ab58d3ebaec40d97038630549c1d5e0f7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab58d3ebaec40d97038630549c1d5e0f7">Controller</a> (<a class="el" href="classBaseMovementManager.html">BaseMovementManager</a> &amp;movement_manager, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick)</td></tr>
-<tr class="memdesc:ab58d3ebaec40d97038630549c1d5e0f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> object.  <br /></td></tr>
-<tr class="separator:ab58d3ebaec40d97038630549c1d5e0f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Lifecycle Management</div></td></tr>
+<tr class="memitem:a8c0a045b07fa2b34556c291a19d75ab8" id="r_a8c0a045b07fa2b34556c291a19d75ab8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c0a045b07fa2b34556c291a19d75ab8">Controller</a> (<a class="el" href="classBaseMovementManager.html">BaseMovementManager</a> &amp;movement_manager, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick, <a class="el" href="classCamera.html">Camera</a> &amp;camera)</td></tr>
+<tr class="memdesc:a8c0a045b07fa2b34556c291a19d75ab8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object.  <br /></td></tr>
+<tr class="separator:a8c0a045b07fa2b34556c291a19d75ab8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ab87934c4f7a266cfdb86e0f36bc1b5" id="r_a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ab87934c4f7a266cfdb86e0f36bc1b5">~Controller</a> ()</td></tr>
-<tr class="memdesc:a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> object.  <br /></td></tr>
+<tr class="memdesc:a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object.  <br /></td></tr>
 <tr class="separator:a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Core Execution</div></td></tr>
 <tr class="memitem:a692f0f5dc600cdcb79786a31cf283ce1" id="r_a692f0f5dc600cdcb79786a31cf283ce1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a692f0f5dc600cdcb79786a31cf283ce1">run</a> ()</td></tr>
-<tr class="memdesc:a692f0f5dc600cdcb79786a31cf283ce1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main execution loop for the turret system.  <br /></td></tr>
+<tr class="memdesc:a692f0f5dc600cdcb79786a31cf283ce1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main processing cycle for the turret system.  <br /></td></tr>
 <tr class="separator:a692f0f5dc600cdcb79786a31cf283ce1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe59521d4bd5650eb939f2526f7fa3c7" id="r_abe59521d4bd5650eb939f2526f7fa3c7"><td class="memItemLeft" align="right" valign="top"><a id="abe59521d4bd5650eb939f2526f7fa3c7" name="abe59521d4bd5650eb939f2526f7fa3c7"></a>
+const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>user_mode</b> () const</td></tr>
+<tr class="separator:abe59521d4bd5650eb939f2526f7fa3c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Handles logic for object detection and movement calculations. details The <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> class implements the main control loop. It arbitrates between manual joystick input and autonomous detection tracking, ensuring that the <a class="el" href="classBaseMovementManager.html" title="Abstract base class for turret movement hardware abstraction.">BaseMovementManager</a> receives the correct vector for the turret motors. </p>
+<div class="textblock"><p>Handles logic for object detection and movement calculations. </p>
+<p>The <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> implements a <b>State-Driven architecture</b>. It acts as the bridge between the Computer Vision pipeline and the physical servos.</p><ul>
+<li><b>Control Arbitration Logic:</b></li>
+<li><b>AI_MODE</b>: The controller requests a frame from the <a class="el" href="classCamera.html">Camera</a>, passes it to the <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a>, and calculates the error vector to center the target.</li>
+<li><b>USER_MODE</b>: The controller bypasses the CV pipeline and maps <a class="el" href="classJoystick.html">Joystick</a> input directly to the <a class="el" href="classBaseMovementManager.html">BaseMovementManager</a>. </li>
+</ul>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ab58d3ebaec40d97038630549c1d5e0f7" name="ab58d3ebaec40d97038630549c1d5e0f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab58d3ebaec40d97038630549c1d5e0f7">&#9670;&#160;</a></span>Controller()</h2>
+<a id="a8c0a045b07fa2b34556c291a19d75ab8" name="a8c0a045b07fa2b34556c291a19d75ab8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c0a045b07fa2b34556c291a19d75ab8">&#9670;&#160;</a></span>Controller()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -145,7 +154,12 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classJoystick.html">Joystick</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>joystick</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="classJoystick.html">Joystick</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>joystick</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classCamera.html">Camera</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>camera</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -155,15 +169,17 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> object. </p>
+<p>Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">movement_manager</td><td>Reference to an implementation of <a class="el" href="classBaseMovementManager.html" title="Abstract base class for turret movement hardware abstraction.">BaseMovementManager</a>. </td></tr>
-    <tr><td class="paramname">detection_module</td><td>Reference to an implementation of <a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a>. </td></tr>
-    <tr><td class="paramname">joystick</td><td>Reference to the <a class="el" href="classJoystick.html" title="Handles 12-bit analog input and debounced button state.">Joystick</a> input handler. </td></tr>
+    <tr><td class="paramname">movement_manager</td><td>Reference to the movement implementation. </td></tr>
+    <tr><td class="paramname">detection_module</td><td>Reference to the detection implementation. </td></tr>
+    <tr><td class="paramname">joystick</td><td>Reference to the <a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> input handler. </td></tr>
+    <tr><td class="paramname">camera</td><td>Reference to the <a class="el" href="classCamera.html" title="Singleton-style manager for camera lifecycle and frame acquisition.">Camera</a> object. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>Defaults to <code>AI_MODE</code> upon initialization. </dd></dl>
 
 </div>
 </div>
@@ -190,8 +206,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Destroy the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations. details The Controller class implements...">Controller</a> object. </p>
-<p>Ensures all movement is halted and resources are released safely. </p>
+<p>Destroy the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object. </p>
+<p>Ensures the turret is safely parked and motor signals are neutralized. </p>
 
 </div>
 </div>
@@ -211,9 +227,29 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Main execution loop for the turret system. </p>
-<p>When called, this method polls the detection module for targets and the joystick for user input. It calculates the necessary PWM or step values and updates the movement manager state. </p>
-<p>Used Null since it's' currently isn't attached to the camera logic</p>
+<p>Main processing cycle for the turret system. </p>
+<p>This method should be called inside the primary <code>loop()</code> of the application.</p><ul>
+<li><b>Workflow:</b></li>
+</ul>
+<ol type="1">
+<li>Check current <code><a class="el" href="classSystemControl.html" title="Encapsulates the primary control authority of the turret.">SystemControl</a></code> state.</li>
+<li>If <b>USER_MODE</b>:</li>
+</ol>
+<ul>
+<li>Poll <code>_joystick</code> for X/Y offsets.</li>
+<li>Call <code>_movement_manager.move()</code>.</li>
+</ul>
+<ol type="1">
+<li>If <b>AI_MODE</b>:</li>
+</ol>
+<ul>
+<li>Capture frame from <code>_camera</code>.</li>
+<li>Perform inference via <code>_detection_module</code>.</li>
+<li>Translate target coordinates to motor pulses.</li>
+<li><dl class="section warning"><dt>Warning</dt><dd>This function is blocking relative to the frame-rate of the camera. </dd></dl>
+</li>
+</ul>
+<p>THIS is my problem and I need to find a way to solve it, too tired though :X</p>
 
 </div>
 </div>

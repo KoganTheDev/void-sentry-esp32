@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['httpserver_0',['HttpServer',['../classHttpServer.html',1,'']]]
+  ['detectionmetrics_0',['DetectionMetrics',['../classDetectionMetrics.html',1,'']]]
 ];

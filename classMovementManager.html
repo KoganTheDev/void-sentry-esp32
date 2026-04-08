@@ -122,15 +122,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1332de4fa00695f623334605f0e42cfb" id="r_a1332de4fa00695f623334605f0e42cfb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1332de4fa00695f623334605f0e42cfb">MovementManager</a> (Stepper &amp;stepper, Servo &amp;servo)</td></tr>
 <tr class="memdesc:a1332de4fa00695f623334605f0e42cfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new Movement Manager object.  <br /></td></tr>
 <tr class="separator:a1332de4fa00695f623334605f0e42cfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a687108e2497d91439702209c6474c6b7" id="r_a687108e2497d91439702209c6474c6b7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a687108e2497d91439702209c6474c6b7">move_relative</a> (const std::tuple&lt; MoveDirectionX, MoveDirectionY &gt; move_directions)</td></tr>
-<tr class="memdesc:a687108e2497d91439702209c6474c6b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements relative movement using Stepper and Servo hardware.  <br /></td></tr>
-<tr class="separator:a687108e2497d91439702209c6474c6b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd571aa69a0eacf0d09e673c16c93c8d" id="r_acd571aa69a0eacf0d09e673c16c93c8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acd571aa69a0eacf0d09e673c16c93c8d">move_stepper</a> (const MoveDirectionX yaw_direction)</td></tr>
-<tr class="memdesc:acd571aa69a0eacf0d09e673c16c93c8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes horizontal rotation (Yaw) using the stepper motor.  <br /></td></tr>
-<tr class="separator:acd571aa69a0eacf0d09e673c16c93c8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95656a770dc565940f34f8c747e80d56" id="r_a95656a770dc565940f34f8c747e80d56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a95656a770dc565940f34f8c747e80d56">move_servo</a> (const MoveDirectionY pitch_direction)</td></tr>
-<tr class="memdesc:a95656a770dc565940f34f8c747e80d56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes vertical tilting (Pitch) using the servo motor.  <br /></td></tr>
-<tr class="separator:a95656a770dc565940f34f8c747e80d56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a224d1d199527ba2392486cc3fa63ef5a" id="r_a224d1d199527ba2392486cc3fa63ef5a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a224d1d199527ba2392486cc3fa63ef5a">move_relative</a> (const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt; move_directions)</td></tr>
+<tr class="memdesc:a224d1d199527ba2392486cc3fa63ef5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements relative movement using Stepper and Servo hardware.  <br /></td></tr>
+<tr class="separator:a224d1d199527ba2392486cc3fa63ef5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2202337221ffde0e9a9ae73485b4748f" id="r_a2202337221ffde0e9a9ae73485b4748f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2202337221ffde0e9a9ae73485b4748f">move_stepper</a> (const <a class="el" href="classMoveX.html">MoveX</a> yaw_direction)</td></tr>
+<tr class="memdesc:a2202337221ffde0e9a9ae73485b4748f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes horizontal rotation (Yaw) using the stepper motor.  <br /></td></tr>
+<tr class="separator:a2202337221ffde0e9a9ae73485b4748f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4dd595f6e9188381e5a8b4954c909e76" id="r_a4dd595f6e9188381e5a8b4954c909e76"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4dd595f6e9188381e5a8b4954c909e76">move_servo</a> (const <a class="el" href="classMoveY.html">MoveY</a> pitch_direction)</td></tr>
+<tr class="memdesc:a4dd595f6e9188381e5a8b4954c909e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes vertical tilting (Pitch) using the servo motor.  <br /></td></tr>
+<tr class="separator:a4dd595f6e9188381e5a8b4954c909e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classBaseMovementManager"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classBaseMovementManager')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classBaseMovementManager.html">BaseMovementManager</a></td></tr>
 <tr class="memitem:a09cea5158a2b2d4f328c25ae99d8919c inherit pub_methods_classBaseMovementManager" id="r_a09cea5158a2b2d4f328c25ae99d8919c"><td class="memItemLeft" align="right" valign="top">
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManager</b> ()=default</td></tr>
@@ -179,8 +179,8 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a687108e2497d91439702209c6474c6b7" name="a687108e2497d91439702209c6474c6b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a687108e2497d91439702209c6474c6b7">&#9670;&#160;</a></span>move_relative()</h2>
+<a id="a224d1d199527ba2392486cc3fa63ef5a" name="a224d1d199527ba2392486cc3fa63ef5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a224d1d199527ba2392486cc3fa63ef5a">&#9670;&#160;</a></span>move_relative()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -191,7 +191,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
         <tr>
           <td class="memname">void MovementManager::move_relative </td>
           <td>(</td>
-          <td class="paramtype">const std::tuple&lt; MoveDirectionX, MoveDirectionY &gt;</td>          <td class="paramname"><span class="paramname"><em>move_directions</em></span></td><td>)</td>
+          <td class="paramtype">const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>move_directions</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -203,7 +203,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
 </div><div class="memdoc">
 
 <p>Implements relative movement using Stepper and Servo hardware. </p>
-<p>Translates MoveDirectionX and MoveDirectionY into actuator actions. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Translates <a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a> and <a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a> into actuator actions. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>Directional command for the stepper motor. </td></tr>
     <tr><td class="paramname">y</td><td>Directional command for the servo motor. </td></tr>
@@ -211,12 +211,12 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="classBaseMovementManager.html#a9cbbbe3137401eb48171b99bb25fb585">BaseMovementManager</a>.</p>
+<p>Implements <a class="el" href="classBaseMovementManager.html#a48b9896193262eb5e2d6ccd63d1a8386">BaseMovementManager</a>.</p>
 
 </div>
 </div>
-<a id="a95656a770dc565940f34f8c747e80d56" name="a95656a770dc565940f34f8c747e80d56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95656a770dc565940f34f8c747e80d56">&#9670;&#160;</a></span>move_servo()</h2>
+<a id="a4dd595f6e9188381e5a8b4954c909e76" name="a4dd595f6e9188381e5a8b4954c909e76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dd595f6e9188381e5a8b4954c909e76">&#9670;&#160;</a></span>move_servo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -224,7 +224,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
         <tr>
           <td class="memname">void MovementManager::move_servo </td>
           <td>(</td>
-          <td class="paramtype">const MoveDirectionY</td>          <td class="paramname"><span class="paramname"><em>pitch_direction</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="classMoveY.html">MoveY</a></td>          <td class="paramname"><span class="paramname"><em>pitch_direction</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -240,8 +240,8 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
 
 </div>
 </div>
-<a id="acd571aa69a0eacf0d09e673c16c93c8d" name="acd571aa69a0eacf0d09e673c16c93c8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd571aa69a0eacf0d09e673c16c93c8d">&#9670;&#160;</a></span>move_stepper()</h2>
+<a id="a2202337221ffde0e9a9ae73485b4748f" name="a2202337221ffde0e9a9ae73485b4748f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2202337221ffde0e9a9ae73485b4748f">&#9670;&#160;</a></span>move_stepper()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -249,14 +249,14 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
         <tr>
           <td class="memname">void MovementManager::move_stepper </td>
           <td>(</td>
-          <td class="paramtype">const MoveDirectionX</td>          <td class="paramname"><span class="paramname"><em>yaw_direction</em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="classMoveX.html">MoveX</a></td>          <td class="paramname"><span class="paramname"><em>yaw_direction</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Executes horizontal rotation (Yaw) using the stepper motor. </p>
-<p>Checks the MoveDirectionX enum; if Left or Right, the stepper moves by the predefined _STEP_INCREMENT. Negative steps rotate in one direction, positive in the other. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Checks the <a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a> enum; if Left or Right, the stepper moves by the predefined _STEP_INCREMENT. Negative steps rotate in one direction, positive in the other. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">yaw_direction</td><td>The direction to rotate (Left, Right, or None). </td></tr>
   </table>

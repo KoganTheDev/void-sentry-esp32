@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['acquisition_0',['🎯 Smart Camera ESP32: Motion Target Acquisition',['../index.html',1,'']]]
+  ['confusing_0',['Rename the folder&apos;s name since it&apos;s confusing',['../index.html',1,'']]]
 ];

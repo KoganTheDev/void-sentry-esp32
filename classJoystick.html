@@ -97,45 +97,51 @@ $(function(){initNavTree('classJoystick.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classJoystick-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">Joystick Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Handles 12-bit analog input and debounced button state.  
+<p>High-level interface for 12-bit analog joystick input.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="joystick_8h_source.html">joystick.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr><td colspan="2"><div class="groupHeader">Initialization</div></td></tr>
 <tr class="memitem:a446881cfdacc5cdbbcbbfe0183ba4949" id="r_a446881cfdacc5cdbbcbbfe0183ba4949"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a446881cfdacc5cdbbcbbfe0183ba4949">Joystick</a> (uint8_t pin_x, uint8_t pin_y, uint8_t pin_z, int deadzone=JOYSTICK_DEADZONE)</td></tr>
+<tr class="memdesc:a446881cfdacc5cdbbcbbfe0183ba4949"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> object.  <br /></td></tr>
 <tr class="separator:a446881cfdacc5cdbbcbbfe0183ba4949"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63105c47384cf6696021985fd852992b" id="r_a63105c47384cf6696021985fd852992b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63105c47384cf6696021985fd852992b">begin</a> ()</td></tr>
-<tr class="memdesc:a63105c47384cf6696021985fd852992b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes hardware pins and performs auto-calibration of the center point.  <br /></td></tr>
+<tr class="memdesc:a63105c47384cf6696021985fd852992b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures hardware and performs auto-calibration.  <br /></td></tr>
 <tr class="separator:a63105c47384cf6696021985fd852992b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2eb41379e88150aca8ec23b408f5ed49" id="r_a2eb41379e88150aca8ec23b408f5ed49"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2eb41379e88150aca8ec23b408f5ed49">get_x</a> ()</td></tr>
-<tr class="separator:a2eb41379e88150aca8ec23b408f5ed49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab22583249a6f6d99357381bfab876381" id="r_ab22583249a6f6d99357381bfab876381"><td class="memItemLeft" align="right" valign="top"><a id="ab22583249a6f6d99357381bfab876381" name="ab22583249a6f6d99357381bfab876381"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>get_y</b> ()</td></tr>
-<tr class="separator:ab22583249a6f6d99357381bfab876381"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Positional Data</div></td></tr>
+<tr class="memitem:afd2a78cd13bf73d65bcf519f936cb3ae" id="r_afd2a78cd13bf73d65bcf519f936cb3ae"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afd2a78cd13bf73d65bcf519f936cb3ae">get_x</a> () const</td></tr>
+<tr class="separator:afd2a78cd13bf73d65bcf519f936cb3ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab201351a439c108946b341c856c714fb" id="r_ab201351a439c108946b341c856c714fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab201351a439c108946b341c856c714fb">get_y</a> () const</td></tr>
+<tr class="separator:ab201351a439c108946b341c856c714fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e404f73565562f8b2fb0e13d809d68d" id="r_a2e404f73565562f8b2fb0e13d809d68d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e404f73565562f8b2fb0e13d809d68d">is_active</a> () const</td></tr>
+<tr class="memdesc:a2e404f73565562f8b2fb0e13d809d68d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the joystick is currently deflected beyond the deadzone.  <br /></td></tr>
+<tr class="separator:a2e404f73565562f8b2fb0e13d809d68d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Button Input</div></td></tr>
 <tr class="memitem:ac75bdb237df7b3b305af353468d7d185" id="r_ac75bdb237df7b3b305af353468d7d185"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac75bdb237df7b3b305af353468d7d185">is_z_pressed</a> ()</td></tr>
+<tr class="memdesc:ac75bdb237df7b3b305af353468d7d185"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detects a button press (Falling Edge).  <br /></td></tr>
 <tr class="separator:ac75bdb237df7b3b305af353468d7d185"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a9b93194e4622ba6a6f17a072ae53c1" id="r_a7a9b93194e4622ba6a6f17a072ae53c1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a9b93194e4622ba6a6f17a072ae53c1">is_z_held</a> () const</td></tr>
+<tr class="memdesc:a7a9b93194e4622ba6a6f17a072ae53c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check the current physical state of the button.  <br /></td></tr>
 <tr class="separator:a7a9b93194e4622ba6a6f17a072ae53c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc4c9f9dd95402760cbf69d5c35ec435" id="r_afc4c9f9dd95402760cbf69d5c35ec435"><td class="memItemLeft" align="right" valign="top"><a id="afc4c9f9dd95402760cbf69d5c35ec435" name="afc4c9f9dd95402760cbf69d5c35ec435"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>get_speed_x</b> (int min_out=-255, int max_out=255)</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Motor Control Mapping</div></td></tr>
+<tr class="memitem:afc4c9f9dd95402760cbf69d5c35ec435" id="r_afc4c9f9dd95402760cbf69d5c35ec435"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc4c9f9dd95402760cbf69d5c35ec435">get_speed_x</a> (int min_out=-255, int max_out=255)</td></tr>
+<tr class="memdesc:afc4c9f9dd95402760cbf69d5c35ec435"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps X deflection to a motor speed range.  <br /></td></tr>
 <tr class="separator:afc4c9f9dd95402760cbf69d5c35ec435"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae78d70c3b5f357b7cd31d2bc79b76669" id="r_ae78d70c3b5f357b7cd31d2bc79b76669"><td class="memItemLeft" align="right" valign="top"><a id="ae78d70c3b5f357b7cd31d2bc79b76669" name="ae78d70c3b5f357b7cd31d2bc79b76669"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>get_speed_y</b> (int min_out=-255, int max_out=255)</td></tr>
+<tr class="memitem:ae78d70c3b5f357b7cd31d2bc79b76669" id="r_ae78d70c3b5f357b7cd31d2bc79b76669"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae78d70c3b5f357b7cd31d2bc79b76669">get_speed_y</a> (int min_out=-255, int max_out=255)</td></tr>
+<tr class="memdesc:ae78d70c3b5f357b7cd31d2bc79b76669"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps Y deflection to a motor speed range.  <br /></td></tr>
 <tr class="separator:ae78d70c3b5f357b7cd31d2bc79b76669"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4d471e73b6fc5469fb3cd47925d8a4aa" id="r_a4d471e73b6fc5469fb3cd47925d8a4aa"><td class="memItemLeft" align="right" valign="top"><a id="a4d471e73b6fc5469fb3cd47925d8a4aa" name="a4d471e73b6fc5469fb3cd47925d8a4aa"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td></tr>
-<tr class="separator:a4d471e73b6fc5469fb3cd47925d8a4aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Handles 12-bit analog input and debounced button state. </p>
+<div class="textblock"><p>High-level interface for 12-bit analog joystick input. </p>
+<p>Manages the translation of raw ADC voltage into meaningful movement vectors. Includes auto-calibration routines to compensate for mechanical center-point drift. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a446881cfdacc5cdbbcbbfe0183ba4949" name="a446881cfdacc5cdbbcbbfe0183ba4949"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a446881cfdacc5cdbbcbbfe0183ba4949">&#9670;&#160;</a></span>Joystick()</h2>
@@ -173,9 +179,14 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Construct a new <a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> object. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">pin_z</td><td>GPIO for the joystick button. </td></tr>
+    <tr><td class="paramname">pin_x</td><td>Analog Pin (VRX). </td></tr>
+    <tr><td class="paramname">pin_y</td><td>Analog Pin (VRY). </td></tr>
+    <tr><td class="paramname">pin_z</td><td>Digital Pin (SW). </td></tr>
+    <tr><td class="paramname">deadzone</td><td>The sensitivity threshold (Defaults to JOYSTICK_DEADZONE). </td></tr>
   </table>
   </dd>
 </dl>
@@ -198,19 +209,89 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes hardware pins and performs auto-calibration of the center point. </p>
-<ol type="1">
-<li>Sets X and Y pins to INPUT mode.</li>
-<li>Sets Z (button) pin to INPUT_PULLUP to prevent floating states.</li>
-<li>Configures the Global ADC resolution to 12-bit (0-4095).</li>
-<li>Calibrates the joystick by averaging the first 10 readings at rest. <dl class="section warning"><dt>Warning</dt><dd>Ensure the joystick is untouched at the moment this is called, as it defines the "zero" point for all future movement logic. </dd></dl>
-</li>
-</ol>
+<p>Configures hardware and performs auto-calibration. </p>
+<dl class="section warning"><dt>Warning</dt><dd><b>Important</b>: The joystick must be at the neutral (resting) position during this call. It averages 10 samples to establish the baseline center. </dd></dl>
 
 </div>
 </div>
-<a id="a2eb41379e88150aca8ec23b408f5ed49" name="a2eb41379e88150aca8ec23b408f5ed49"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2eb41379e88150aca8ec23b408f5ed49">&#9670;&#160;</a></span>get_x()</h2>
+<a id="afc4c9f9dd95402760cbf69d5c35ec435" name="afc4c9f9dd95402760cbf69d5c35ec435"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc4c9f9dd95402760cbf69d5c35ec435">&#9670;&#160;</a></span>get_speed_x()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Joystick::get_speed_x </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>min_out</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-255</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>max_out</em></span><span class="paramdefsep"> = </span><span class="paramdefval">255</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maps X deflection to a motor speed range. </p>
+<p>*</p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">min_out</td><td>Minimum speed (default -255). </td></tr>
+    <tr><td class="paramname">max_out</td><td>Maximum speed (default 255). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae78d70c3b5f357b7cd31d2bc79b76669" name="ae78d70c3b5f357b7cd31d2bc79b76669"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae78d70c3b5f357b7cd31d2bc79b76669">&#9670;&#160;</a></span>get_speed_y()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Joystick::get_speed_y </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>min_out</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-255</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>max_out</em></span><span class="paramdefsep"> = </span><span class="paramdefval">255</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maps Y deflection to a motor speed range. </p>
+<p>*</p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">min_out</td><td>Minimum speed (default -255). </td></tr>
+    <tr><td class="paramname">max_out</td><td>Maximum speed (default 255). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afd2a78cd13bf73d65bcf519f936cb3ae" name="afd2a78cd13bf73d65bcf519f936cb3ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd2a78cd13bf73d65bcf519f936cb3ae">&#9670;&#160;</a></span>get_x()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -222,7 +303,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
           <td class="memname">int Joystick::get_x </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -231,7 +312,53 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>Relative deflection (-2048 to 2048). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Relative horizontal deflection (-2048 to 2048). </dd></dl>
+
+</div>
+</div>
+<a id="ab201351a439c108946b341c856c714fb" name="ab201351a439c108946b341c856c714fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab201351a439c108946b341c856c714fb">&#9670;&#160;</a></span>get_y()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Joystick::get_y </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>Relative vertical deflection (-2048 to 2048). </dd></dl>
+
+</div>
+</div>
+<a id="a2e404f73565562f8b2fb0e13d809d68d" name="a2e404f73565562f8b2fb0e13d809d68d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e404f73565562f8b2fb0e13d809d68d">&#9670;&#160;</a></span>is_active()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Joystick::is_active </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if the joystick is currently deflected beyond the deadzone. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if either axis is active. </dd></dl>
 
 </div>
 </div>
@@ -257,7 +384,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>true if the button is currently held down. </dd></dl>
+
+<p>Check the current physical state of the button. </p>
+<p>*</p><dl class="section return"><dt>Returns</dt><dd>true if the button is currently held down. </dd></dl>
 
 </div>
 </div>
@@ -275,7 +404,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_active</b> ()</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>true only on the moment the button is pressed (falling edge). </dd></dl>
+
+<p>Detects a button press (Falling Edge). </p>
+<p>*</p><dl class="section return"><dt>Returns</dt><dd>true only on the frame the button is first depressed. </dd></dl>
 
 </div>
 </div>

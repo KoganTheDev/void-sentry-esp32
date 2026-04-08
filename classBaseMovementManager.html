@@ -123,16 +123,16 @@ Public Member Functions</h2></td></tr>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManager</b> ()=default</td></tr>
 <tr class="memdesc:a09cea5158a2b2d4f328c25ae99d8919c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Virtual destructor for safe polymorphic cleanup. <br /></td></tr>
 <tr class="separator:a09cea5158a2b2d4f328c25ae99d8919c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cbbbe3137401eb48171b99bb25fb585" id="r_a9cbbbe3137401eb48171b99bb25fb585"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9cbbbe3137401eb48171b99bb25fb585">move_relative</a> (std::tuple&lt; MoveDirectionX, MoveDirectionY &gt; move_directions)=0</td></tr>
-<tr class="memdesc:a9cbbbe3137401eb48171b99bb25fb585"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the turret relative to its current orientation.  <br /></td></tr>
-<tr class="separator:a9cbbbe3137401eb48171b99bb25fb585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48b9896193262eb5e2d6ccd63d1a8386" id="r_a48b9896193262eb5e2d6ccd63d1a8386"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a48b9896193262eb5e2d6ccd63d1a8386">move_relative</a> (std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt; move_directions)=0</td></tr>
+<tr class="memdesc:a48b9896193262eb5e2d6ccd63d1a8386"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the turret relative to its current orientation.  <br /></td></tr>
+<tr class="separator:a48b9896193262eb5e2d6ccd63d1a8386"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Abstract base class for turret movement hardware abstraction. </p>
 <p>This interface defines the contract for any class responsible for physical movement. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a9cbbbe3137401eb48171b99bb25fb585" name="a9cbbbe3137401eb48171b99bb25fb585"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9cbbbe3137401eb48171b99bb25fb585">&#9670;&#160;</a></span>move_relative()</h2>
+<a id="a48b9896193262eb5e2d6ccd63d1a8386" name="a48b9896193262eb5e2d6ccd63d1a8386"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48b9896193262eb5e2d6ccd63d1a8386">&#9670;&#160;</a></span>move_relative()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -143,7 +143,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
         <tr>
           <td class="memname">virtual void BaseMovementManager::move_relative </td>
           <td>(</td>
-          <td class="paramtype">std::tuple&lt; MoveDirectionX, MoveDirectionY &gt;</td>          <td class="paramname"><span class="paramname"><em>move_directions</em></span></td><td>)</td>
+          <td class="paramtype">std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>move_directions</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -156,7 +156,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseMovementManag
 
 <p>Moves the turret relative to its current orientation. </p>
 
-<p>Implemented in <a class="el" href="classMovementManager.html#a687108e2497d91439702209c6474c6b7">MovementManager</a>.</p>
+<p>Implemented in <a class="el" href="classMovementManager.html#a224d1d199527ba2392486cc3fa63ef5a">MovementManager</a>.</p>
 
 </div>
 </div>

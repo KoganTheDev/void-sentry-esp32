@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['movementmanager_0',['MovementManager',['../classMovementManager.html',1,'']]]
+  ['joystick_0',['Joystick',['../classJoystick.html',1,'']]]
 ];
