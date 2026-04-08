@@ -38,7 +38,7 @@ private:
 public:
     HttpServer();
     ~HttpServer();
-    
+
     /**
      * @brief Configures and launches the web server on port 80.
      * @param camera Pointer to the initialized Camera object for streaming.
