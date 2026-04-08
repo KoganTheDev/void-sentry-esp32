@@ -31,14 +31,14 @@ jobs:
             # 4. Logic Check (Mental Peace)
             # Targets the ESP32 subfolder and only reports serious issues.
             - name: Run PlatformIO Check
-              working-directory: src/ESP32
+              working-directory: ESP32
               run: pio check --severity=high --severity=medium
 
             # 5. Format Fixer (Silent cleaning)
             # Uses your .clang-format file to fix braces
             - name: Run Clang-Format
               run: |
-                  find src/ESP32/src src/ESP32/include src/ESP32/lib -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format -i
+                  find ESP32/src ESP32/include ESP32/lib -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format -i
 
             # 6. Automation: Push fixes back
             # If the code didn't match your style, the robot commits the fixes.

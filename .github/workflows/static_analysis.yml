@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v6 # Kept as v6 per your request
+              uses: actions/checkout@v6
 
             - name: Install Cppcheck
               run: |
@@ -40,9 +40,9 @@ jobs:
                            --suppress=unusedFunction \
                            --suppress=missingIncludeSystem --suppress=missingInclude \
                            --error-exitcode=1 \
-                           src/ESP32/src/ src/ESP32/lib/ src/ESP32/include/ \
-                           -I src/ESP32/include/ -I src/ESP32/src/ \
-                           $(find src/ESP32/lib -type d -printf "-I %p " 2>/dev/null) \
+                           ESP32/src/ ESP32/lib/ ESP32/include/ \
+                           -I ESP32/include/ -I ESP32/src/ \
+                           $(find ESP32/lib -type d -printf "-I %p " 2>/dev/null) \
                            2> cppcheck_report.xml
 
             # 3. User Feedback: Console Summary
@@ -54,9 +54,9 @@ jobs:
                            --template="{file}:{line}:{column}: {severity}: {message}" \
                            --suppress=unusedFunction \
                            --suppress=missingIncludeSystem --suppress=missingInclude \
-                           src/ESP32/src/ src/ESP32/lib/ src/ESP32/include/ \
-                           -I src/ESP32/include/ -I src/ESP32/src/ \
-                           $(find src/ESP32/lib -type d -printf "-I %p " 2>/dev/null)
+                           ESP32/src/ ESP32/lib/ ESP32/include/ \
+                           -I ESP32/include/ -I ESP32/src/ \
+                           $(find ESP32/lib -type d -printf "-I %p " 2>/dev/null)
 
             # 4. Visualization: HTML Dashboard
             # Converts the raw results into a detailed HTML website for deep-debugging.

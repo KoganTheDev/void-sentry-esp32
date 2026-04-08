@@ -14,19 +14,19 @@ jobs:
         steps:
             # 1. Pull the latest code
             - name: Checkout Code
-              uses: actions/checkout@v6 # Kept as v6 per your request
+              uses: actions/checkout@v6
 
             # 2. Run Doxygen
-            # We set the working-directory to src/ESP32 so it finds your code and Doxyfile.
+            # We set the working-directory to ESP32 so it finds your code and Doxyfile.
             - name: Generate Doxygen
               uses: mattnotmitt/doxygen-action@v1.12.0
               with:
-                  working-directory: "src/ESP32"
+                  working-directory: "ESP32"
 
             # 3. Deploy to the Web
             # Doxygen creates the 'html' folder inside the working-directory.
             - name: Upload to GitHub Pages
               uses: JamesIves/github-pages-deploy-action@v4
               with:
-                  folder: src/ESP32/html 
+                  folder: ESP32/html 
                   branch: gh-pages
