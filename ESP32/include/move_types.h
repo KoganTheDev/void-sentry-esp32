@@ -19,7 +19,7 @@ enum class MoveXValue : uint8_t {
     Left = 2   /**< Movement to the left. */
 };
 
-/** 
+/**
  * @enum MoveYValue
  * @brief Raw underlying values for vertical movement.
  */
