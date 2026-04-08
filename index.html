@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Smart Camera ESP32: Main Page</title>
+<title>Smart Camera ESP32: Smart Camera ESP32</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -96,10 +96,52 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 </div>
 </div>
 
-<div class="header">
-  <div class="headertitle"><div class="title">Smart Camera ESP32 Documentation</div></div>
+<div><div class="header">
+  <div class="headertitle"><div class="title">Smart <a class="el" href="classCamera.html" title="Singleton-style manager for camera lifecycle and frame acquisition.">Camera</a> ESP32 </div></div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a></p>
+<div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>The Autonomous Computer Vision &amp; Kinetic Tracking System for ESP32-CAM</b></div><div align="center"> <img src="https://img.shields.io/badge/Status-Active_Development-ff6b00" alt="Status" class="inline"/> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen - Documentation Generator" style="pointer-events: none;" class="inline"/></a> </div><p><b>Void Sentry</b> is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized <b>Frame Differencing</b> algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.</p>
+<hr  />
+<h2><a class="anchor" id="autotoc_md1"></a>
+System Architecture</h2>
+<p>The system operates on a dual-core cycle to ensure low-latency video delivery while maintaining a high-frequency tracking loop.</p>
+<ul>
+<li><b>Computer Vision Pipeline</b>: Optimized for <b>QVGA (320x240)</b> resolution to maximize frames-per-second (FPS) and minimize computational jitter.</li>
+<li><b>Kinetic Engine</b>: Translates motion "blob" centroids into PWM signals for high-torque servo response.</li>
+<li><b>Visual Feedback</b>: A real-time Augmented Reality (AR) overlay is injected directly into the MJPEG stream, providing zero-latency target telemetry.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md2"></a>
+Technical Specifications</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadLeft">Feature   </th><th class="markdownTableHeadLeft">Implementation    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>Detection Algorithm</b>   </td><td class="markdownTableBodyLeft">Temporal Frame Differencing (Greyscale)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><b>Tracking Logic</b>   </td><td class="markdownTableBodyLeft">Geometric Centroid Calculation (X, Y Coordinates)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>Noise Reduction</b>   </td><td class="markdownTableBodyLeft">Adaptive Hysteresis Thresholding    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><b>I/O Protocol</b>   </td><td class="markdownTableBodyLeft">PWM (Pan/Tilt Servos) + HTTP MJPEG Stream    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><b>Resolution</b>   </td><td class="markdownTableBodyLeft">320x240 (Optimized for Edge Inference)   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Core Capabilities</h2>
+<ul>
+<li><b>Intelligent Thresholding</b>: Dynamically filters out sensor noise and environment fluctuations (e.g., lighting changes) to prevent false positives.</li>
+<li><b>Target Locking</b>: Implements "stickiness" logic to maintain focus on the primary moving mass while ignoring secondary background static.</li>
+<li><b>Low-Latency Dashboard</b>: A web-based HUD designed for mobile and desktop, featuring real-time telemetry stats and manual override controls.</li>
+<li><b>Modular Servo Control</b>: Easily adaptable for various Pan/Tilt hardware configurations.</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md4"></a>
+Software Setup</h3>
+<ol type="1">
+<li>Clone the repository: <div class="fragment"><div class="line">git clone [https://github.com/KoganTheDev/void-sentry-esp32.git](https://github.com/KoganTheDev/void-sentry-esp32.git)</div>
+</div><!-- fragment --> </li>
+</ol>
+</div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->

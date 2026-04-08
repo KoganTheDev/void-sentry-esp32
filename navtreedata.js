@@ -24,12 +24,36 @@
 */
 var NAVTREE =
 [
-  [ "Smart Camera ESP32", "index.html", ]
+  [ "Smart Camera ESP32", "index.html", [
+    [ "Namespaces", "namespaces.html", [
+      [ "System Architecture", "index.html#autotoc_md1", null ],
+      [ "Technical Specifications", "index.html#autotoc_md2", null ],
+      [ "Core Capabilities", "index.html#autotoc_md3", [
+        [ "Software Setup", "index.html#autotoc_md4", null ]
+      ] ],
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
+    ] ],
+    [ "Classes", "annotated.html", [
+      [ "Class List", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", null ],
+        [ "Functions", "functions_func.html", null ],
+        [ "Variables", "functions_vars.html", null ],
+        [ "Enumerations", "functions_enum.html", null ],
+        [ "Enumerator", "functions_eval.html", null ]
+      ] ]
+    ] ],
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ]
+    ] ]
+  ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"annotated.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

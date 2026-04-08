@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['get_5faverage_5ffps_0',['get_average_fps',['../classDetectionMetrics.html#a94384ee9d6107e05da0e24c381b29172',1,'DetectionMetrics']]],
+  ['get_5fcentroid_5fx_1',['get_centroid_x',['../classMotionData.html#a0b19fae3b9625a4856c9ea639c976f49',1,'MotionData']]],
+  ['get_5fcentroid_5fy_2',['get_centroid_y',['../classMotionData.html#a2d2832c63a1b45ba54351f4c18d662c3',1,'MotionData']]],
+  ['get_5fconsecutive_5fmotion_5fframes_3',['get_consecutive_motion_frames',['../classDetectionMetrics.html#ae82031bb5f1102d912d7876e11c275cd',1,'DetectionMetrics']]],
+  ['get_5fconsecutive_5fstatic_5fframes_4',['get_consecutive_static_frames',['../classDetectionMetrics.html#ac194694328d52c2076d3b89a7c9f6fd3',1,'DetectionMetrics']]],
+  ['get_5fdetection_5ftime_5fms_5',['get_detection_time_ms',['../classDetectionMetrics.html#a671765020d70a2b866076e2d35b04d75',1,'DetectionMetrics']]],
+  ['get_5fframe_5fheight_6',['get_frame_height',['../classMotionData.html#a10d13682fd5dba4e68a54454d090c823',1,'MotionData']]],
+  ['get_5fframe_5ftype_7',['get_frame_type',['../classWebsocketHandler.html#accd36e81737b024cfd9ae5e6793fc038',1,'WebsocketHandler::get_frame_type()'],['../classStreamWebsocketHandler.html#a03d34d643a9447209d6f1218c44de9c7',1,'StreamWebsocketHandler::get_frame_type()']]],
+  ['get_5fframe_5fwidth_8',['get_frame_width',['../classMotionData.html#a33f2982a0db254ab74d3fd1d216d166b',1,'MotionData']]],
+  ['get_5fip_9',['get_ip',['../classWifiManager.html#ab6d404b26fe156a38983439275e309d1',1,'WifiManager']]],
+  ['get_5flast_5fframe_5ftimestamp_10',['get_last_frame_timestamp',['../classDetectionMetrics.html#a423a2a8fc5091d079cabbe5d3c96affc',1,'DetectionMetrics']]],
+  ['get_5fmode_11',['get_mode',['../classSystemControl.html#a3cbbe75b0b10f56cffe4c371bff53510',1,'SystemControl']]],
+  ['get_5fmotion_5fconfidence_12',['get_motion_confidence',['../classDetectionMetrics.html#a5d2c15aee679e700dfd16378724910bb',1,'DetectionMetrics']]],
+  ['get_5fmotion_5fdata_13',['get_motion_data',['../classBaseDetectionModule.html#a7135fc24d3eb3fa3ce64d054a4c943bc',1,'BaseDetectionModule::get_motion_data()'],['../classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0',1,'CameraDiffDetection::get_motion_data()']]],
+  ['get_5fpixel_5fcount_14',['get_pixel_count',['../classMotionData.html#a2246b008fdd7bae27294453d0bea62b4',1,'MotionData']]],
+  ['get_5fpixels_5fchanged_15',['get_pixels_changed',['../classDetectionMetrics.html#a6587eb8eb4224f2bd76ce2dc5f7fa154',1,'DetectionMetrics']]],
+  ['get_5fspeed_5fx_16',['get_speed_x',['../classJoystick.html#afc4c9f9dd95402760cbf69d5c35ec435',1,'Joystick']]],
+  ['get_5fspeed_5fy_17',['get_speed_y',['../classJoystick.html#ae78d70c3b5f357b7cd31d2bc79b76669',1,'Joystick']]],
+  ['get_5ftotal_5fdetections_18',['get_total_detections',['../classDetectionMetrics.html#a6012474f9be173b10e95c80666a6ffd3',1,'DetectionMetrics']]],
+  ['get_5ftotal_5fframes_19',['get_total_frames',['../classDetectionMetrics.html#a24030496f207da91c0754d2423e4a145',1,'DetectionMetrics']]],
+  ['get_5fused_5fspace_20',['get_used_space',['../classSDManager.html#a27c445458f69a4d161bae9ee87db62e0',1,'SDManager']]],
+  ['get_5fvalue_21',['get_value',['../classMoveDirection.html#ad02f2c26b334a6522dcfdda8597be072',1,'MoveDirection']]],
+  ['get_5fx_22',['get_x',['../classJoystick.html#afd2a78cd13bf73d65bcf519f936cb3ae',1,'Joystick']]],
+  ['get_5fy_23',['get_y',['../classJoystick.html#ab201351a439c108946b341c856c714fb',1,'Joystick']]]
+];
