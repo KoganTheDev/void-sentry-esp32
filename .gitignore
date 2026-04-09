@@ -227,12 +227,17 @@ pyrightconfig.json
 secrets.h
 !/src/ESP32/lib
 
-#! Remove files to upload them to GitHub
+#! Remove files from being uploaded to GitHub
 README
 Code_Standards.md
 /src/ESP32/README.md
 .vscode
+smart_camera.code-workspace
 
 #? For now don't upload the music folder
 music
-smart_camera.code-workspace
+
+# Remove this ignored file once the web ui is almost finished so if soemone downloads the software they`ll get the latest web ui version
+ESP32/lib/network/include/index_html.h 
+# Did: git update-index --assume-unchanged <path_to_file>
+# In order to freeze the file locally, to reverse do: git update-index --no-assume-unchanged <path_to_file>
