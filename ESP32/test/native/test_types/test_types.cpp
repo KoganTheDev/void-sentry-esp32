@@ -88,10 +88,7 @@ void test_pin_checker_knows_camera_and_adc1(void)
     TEST_ASSERT_FALSE(pins::check::is_adc1(14));
 }
 
-void test_turret_uses_all_eight_free_pins(void)
-{
-    TEST_ASSERT_EQUAL_UINT(8, pins::check::TURRET_COUNT);
-}
+void test_turret_uses_all_eight_free_pins(void) { TEST_ASSERT_EQUAL_UINT(8, pins::check::TURRET_COUNT); }
 
 int main(int argc, char** argv)
 {

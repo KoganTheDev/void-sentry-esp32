@@ -46,10 +46,10 @@ constexpr uint8_t CAM_VSYNC = 25;
 constexpr uint8_t CAM_HREF = 23;
 constexpr uint8_t CAM_PCLK = 22;
 
-constexpr uint8_t CAMERA[] = {CAM_XCLK, CAM_SIOD, CAM_SIOC, CAM_Y9,    CAM_Y8,   CAM_Y7,  CAM_Y6,
+constexpr uint8_t CAMERA[] = {CAM_XCLK, CAM_SIOD, CAM_SIOC, CAM_Y9, CAM_Y8,    CAM_Y7,   CAM_Y6,
                               CAM_Y5,   CAM_Y4,   CAM_Y3,   CAM_Y2, CAM_VSYNC, CAM_HREF, CAM_PCLK};
 
-constexpr uint8_t TURRET[] = {JOYSTICK_X, JOYSTICK_Y,  JOYSTICK_SW, SERVO,
+constexpr uint8_t TURRET[] = {JOYSTICK_X,  JOYSTICK_Y,  JOYSTICK_SW, SERVO,
                               STEPPER_IN1, STEPPER_IN2, STEPPER_IN3, STEPPER_IN4};
 
 namespace check

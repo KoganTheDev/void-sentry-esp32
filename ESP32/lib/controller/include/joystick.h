@@ -73,7 +73,7 @@ public:
      */
     Joystick(uint8_t pin_x, uint8_t pin_y, uint8_t pin_z, int deadzone = JOYSTICK_DEADZONE)
         : _pin_x(pin_x), _pin_y(pin_y), _pin_z(pin_z), _deadzone(deadzone), _center_x(0), _center_y(0),
-          _last_btn_state(HIGH), _last_debounce_time(0){};
+          _last_btn_state(HIGH), _last_debounce_time(0) {};
 
     /**
      * @brief Configures hardware and performs auto-calibration.
