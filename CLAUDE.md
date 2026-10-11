@@ -53,6 +53,6 @@ Single-threaded Arduino `loop()`: `camera.capture()` → `controller.run()` → 
 
 ## Web UI pipeline
 
-- Edit `web/web_ui.html` only. `web/update_index_html.py` is a PlatformIO `pre:` extra script that gzips it on every build and regex-replaces the byte array and `HTML_PAGE_GZ_LEN` in `ESP32/lib/network/include/index_html.h`. Never hand-edit the array in `index_html.h`.
-- `index_html.h` is marked `git update-index --assume-unchanged` locally, so its regenerated contents don't show in `git status`. To commit a new UI build, run `git update-index --no-assume-unchanged ESP32/lib/network/include/index_html.h` first.
+- Edit `web/web_ui.html` only. `ESP32/lib/network/include/index_html.h` is **generated and gitignored**: `web/update_index_html.py` (a PlatformIO `pre:` script) runs before compilation and writes it via `web/html_header.py`, only when the content changed. Gzip uses `mtime=0` so the output is deterministic.
+- `python -m unittest discover -s web -p "test_*.py"` tests the generator (also run in CI).
 - `web/compress_HTML_to_C_header.py` / `decompress_C_header_to_HTML.py` are standalone manual converters, not part of the build.
