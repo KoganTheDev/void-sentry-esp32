@@ -9,21 +9,26 @@ Void Sentry: ESP32-CAM (Freenove ESP32-WROVER, OV3660) pan/tilt turret that trac
 All PlatformIO commands run from `ESP32/`. `pio` is not on PATH on this machine; use `~/.platformio/penv/Scripts/pio.exe` (or the VS Code PlatformIO extension).
 
 ```bash
-pio run                                   # build (single env: freenove_esp32_wrover)
-pio run -t upload                         # flash
+pio run -e freenove_esp32_wrover          # build the turret firmware
+pio run -e freenove_esp32_wrover -t upload
+pio run -e pin_check -t upload            # wiring bring-up test (no camera/WiFi), read serial after
 pio device monitor                        # serial @ 115200, exception decoder enabled
-pio test -f test_joystick                 # run one test suite (folder name under ESP32/test/)
-pio check --severity=high --severity=medium   # cppcheck, same as CI
+pio test -e native                        # host-side unit tests, no board needed
+pio test -e freenove_esp32_wrover -f test_joystick   # one on-device suite (board connected)
+pio check --severity=high --severity=medium   # cppcheck
 ```
 
-- **Tests run on the device, not natively.** Every suite under `ESP32/test/` is a Unity sketch (`setup()` calls `UNITY_BEGIN()`); `pio test` builds, flashes and reads results over serial, so a board must be connected. There is no `native` env.
+- Envs: `freenove_esp32_wrover` (firmware, excludes `src/pin_check/`), `pin_check` (only `src/pin_check/`), `native` (host gcc, tests under `test/native/`). Device envs ignore `test/native/*`; `native` only runs it.
+- `native` needs `gcc`/`g++` on PATH (this machine: MinGW GCC 6.3, so stay within C++14 in anything the native env compiles). Code under test there must not include Arduino/ESP-IDF headers.
+- On-device suites under `ESP32/test/` are Unity sketches (`setup()` calls `UNITY_BEGIN()`), flashed and read over serial. Several are placeholders or stale (`test_motion/test_servo.cpp` targets a `Turret::Servo` class that no longer exists).
+- Serial port is COM3 (CH340). To read the board without resetting it, open the port with DTR/RTS held low.
 - Formatting: `.clang-format` (LLVM base, Allman braces for functions/classes/control statements, 4-space indent, 120 columns, `int* p`). CI runs `clang-format -i` on `ESP32/src`, `ESP32/include`, `ESP32/lib` and **auto-commits the result back to the branch** ("GITHUB-ACTIONS: auto-formmated code"). Pull after pushing, or format locally first to avoid the extra commit.
-- CI static analysis (`static_analysis.yml`) runs cppcheck with `--error-exitcode=1` and blocks on warning/performance/portability findings. Use `// cppcheck-suppress <id>` inline when a finding is intentional.
+- CI static analysis (`static_analysis.yml`) runs cppcheck with `--error-exitcode=1 --std=c++11` and blocks on warning/performance/portability findings. Use `// cppcheck-suppress <id>` inline when a finding is intentional. Avoid C++17-only preprocessor features (`__has_include`) in firmware sources: cppcheck at `--std=c++11` reports them as syntax errors.
 - Doxygen (`ESP32/Doxyfile`) publishes to `gh-pages` on push to `main`. Public headers use Doxygen `@brief`/`@details` blocks; keep that style for new APIs.
 
 ## Required local setup
 
-- `ESP32/include/secrets.h` is gitignored and **must exist** to build: it defines `WIFI_SSID` and `WIFI_PASSWORD` (used by `main.cpp` and the wifi/server tests). Never commit it or print its contents.
+- `ESP32/include/secrets.h` is gitignored and **must exist** to build the firmware env: copy `include/secrets.h.example` and set `WIFI_SSID` / `WIFI_PASSWORD`. Never commit it, read it, or print its contents.
 
 ## Architecture
 
@@ -38,7 +43,11 @@ Single-threaded Arduino `loop()`: `camera.capture()` → `controller.run()` → 
 
 ## Pin constraints
 
-`include/constants.h` (joystick, servo, stepper) and the `WroverPins` macros in `lib/detection/include/camera.h` share one GPIO budget. The camera bus occupies 4, 5, 18, 19, 21-23, 25-27, 34-36, 39. Avoid strapping pins 2 and 12. Check both files before reassigning any pin. (`constants.h` currently has GPIO 33 on both `JOYSTICK_PIN_Y` and `STEPPER_PIN2`.)
+`include/pins.h` is the only place GPIOs are defined (turret and camera). Its `static_assert`s reject flash/PSRAM pins (6-11, 16, 17), camera collisions, duplicates, non-ADC1 joystick axes and the stepper on GPIO0. The map is verified on hardware; don't change it without a reason.
+
+- With the camera attached exactly 8 GPIOs are free (0, 2, 12, 13, 14, 15, 32, 33) and the turret uses all 8. The stepper sits on strapping pins 12/15/2, which is safe only because ULN2003 inputs pull low.
+- **GPIO12 high at reset selects 1.8V flash** -> boot loop with `invalid header: 0xffffffff`, and uploads fail with `Wrong boot mode detected (0x2b)`. Seen on this build when the ULN2003's `+`/`-` were reversed (it then leaks current out of its IN pins and energizes every coil, so the motor gets hot). In the ROM's `boot:0x..` value, bit 5 is GPIO12, bit 4 is GPIO0.
+- Wiring is on a breadboard via the Freenove GPIO Extension Board, which feeds USB 5V/GND to the left rails and 3.3V/GND to the right rails. Motors run from the left 5V rail.
 
 ## Web UI pipeline
 

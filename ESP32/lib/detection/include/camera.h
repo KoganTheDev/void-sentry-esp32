@@ -9,42 +9,7 @@
 #pragma once
 
 #include "esp_camera.h"
-
-/**
- * @namespace WroverPins
- * @brief GPIO mapping specifically for the ESP32-Wrover-kit.
- * @note If using a different board (like AI-Thinker), these pins must be remapped.
- */
-namespace WroverPins
-{
-/** @brief Power down pin; set to -1 if hardware is always on. */
-#define PWDN_GPIO_NUM -1
-/** @brief Hardware reset pin; set to -1 if managed by external RC circuit. */
-#define RESET_GPIO_NUM -1
-/** @brief External Clock (XCLK). Drives the internal timing of the sensor. */
-#define XCLK_GPIO_NUM 21
-/** @brief Serial Data line for SCCB (I2C) bus. Requires external pull-up. */
-#define SIOD_GPIO_NUM 26
-/** @brief Serial Clock line for SCCB (I2C) bus. */
-#define SIOC_GPIO_NUM 27
-
-/* Parallel Data Bus (Y2-Y9) */
-#define Y9_GPIO_NUM 35
-#define Y8_GPIO_NUM 34
-#define Y7_GPIO_NUM 39
-#define Y6_GPIO_NUM 36
-#define Y5_GPIO_NUM 19
-#define Y4_GPIO_NUM 18
-#define Y3_GPIO_NUM 5
-#define Y2_GPIO_NUM 4
-
-/** @brief Vertical Sync: High pulse indicates a new frame start. */
-#define VSYNC_GPIO_NUM 25
-/** @brief Horizontal Reference: High pulse indicates valid pixel data on the row. */
-#define HREF_GPIO_NUM 23
-/** @brief Pixel Clock: The ESP32 samples data on the rising edge of this clock. */
-#define PCLK_GPIO_NUM 22
-} // namespace WroverPins
+#include "pins.h" // Camera bus GPIOs (pins::CAM_*)
 
 typedef struct {
     void* buffer;
@@ -82,22 +47,22 @@ public:
     {
         this->_config.ledc_channel = LEDC_CHANNEL_0;
         this->_config.ledc_timer = LEDC_TIMER_0;
-        this->_config.pin_d0 = Y2_GPIO_NUM;
-        this->_config.pin_d1 = Y3_GPIO_NUM;
-        this->_config.pin_d2 = Y4_GPIO_NUM;
-        this->_config.pin_d3 = Y5_GPIO_NUM;
-        this->_config.pin_d4 = Y6_GPIO_NUM;
-        this->_config.pin_d5 = Y7_GPIO_NUM;
-        this->_config.pin_d6 = Y8_GPIO_NUM;
-        this->_config.pin_d7 = Y9_GPIO_NUM;
-        this->_config.pin_xclk = XCLK_GPIO_NUM;
-        this->_config.pin_pclk = PCLK_GPIO_NUM;
-        this->_config.pin_vsync = VSYNC_GPIO_NUM;
-        this->_config.pin_href = HREF_GPIO_NUM;
-        this->_config.pin_sccb_sda = SIOD_GPIO_NUM;
-        this->_config.pin_sccb_scl = SIOC_GPIO_NUM;
-        this->_config.pin_pwdn = PWDN_GPIO_NUM;
-        this->_config.pin_reset = RESET_GPIO_NUM;
+        this->_config.pin_d0 = pins::CAM_Y2;
+        this->_config.pin_d1 = pins::CAM_Y3;
+        this->_config.pin_d2 = pins::CAM_Y4;
+        this->_config.pin_d3 = pins::CAM_Y5;
+        this->_config.pin_d4 = pins::CAM_Y6;
+        this->_config.pin_d5 = pins::CAM_Y7;
+        this->_config.pin_d6 = pins::CAM_Y8;
+        this->_config.pin_d7 = pins::CAM_Y9;
+        this->_config.pin_xclk = pins::CAM_XCLK;
+        this->_config.pin_pclk = pins::CAM_PCLK;
+        this->_config.pin_vsync = pins::CAM_VSYNC;
+        this->_config.pin_href = pins::CAM_HREF;
+        this->_config.pin_sccb_sda = pins::CAM_SIOD;
+        this->_config.pin_sccb_scl = pins::CAM_SIOC;
+        this->_config.pin_pwdn = pins::CAM_PWDN;
+        this->_config.pin_reset = pins::CAM_RESET;
 
         this->_config.xclk_freq_hz = 20000000;       // 20MHz: Balance between speed and signal noise
         this->_config.pixel_format = PIXFORMAT_JPEG; // Required for MJPEG streaming

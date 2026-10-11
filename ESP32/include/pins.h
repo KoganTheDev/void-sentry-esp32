@@ -28,8 +28,26 @@ constexpr uint8_t STEPPER_IN2 = 12;
 constexpr uint8_t STEPPER_IN3 = 15;
 constexpr uint8_t STEPPER_IN4 = 2;
 
-// --- Camera bus (fixed by the board) ---
-constexpr uint8_t CAMERA[] = {4, 5, 18, 19, 21, 22, 23, 25, 26, 27, 34, 35, 36, 39};
+// --- Camera bus (fixed by the Freenove WROVER board) ---
+constexpr int8_t CAM_PWDN = -1;  // Not wired: sensor is always powered
+constexpr int8_t CAM_RESET = -1; // Not wired: reset by an RC circuit
+constexpr uint8_t CAM_XCLK = 21;
+constexpr uint8_t CAM_SIOD = 26; // SCCB (I2C) data
+constexpr uint8_t CAM_SIOC = 27; // SCCB (I2C) clock
+constexpr uint8_t CAM_Y9 = 35;
+constexpr uint8_t CAM_Y8 = 34;
+constexpr uint8_t CAM_Y7 = 39;
+constexpr uint8_t CAM_Y6 = 36;
+constexpr uint8_t CAM_Y5 = 19;
+constexpr uint8_t CAM_Y4 = 18;
+constexpr uint8_t CAM_Y3 = 5;
+constexpr uint8_t CAM_Y2 = 4;
+constexpr uint8_t CAM_VSYNC = 25;
+constexpr uint8_t CAM_HREF = 23;
+constexpr uint8_t CAM_PCLK = 22;
+
+constexpr uint8_t CAMERA[] = {CAM_XCLK, CAM_SIOD, CAM_SIOC, CAM_Y9,    CAM_Y8,   CAM_Y7,  CAM_Y6,
+                              CAM_Y5,   CAM_Y4,   CAM_Y3,   CAM_Y2, CAM_VSYNC, CAM_HREF, CAM_PCLK};
 
 constexpr uint8_t TURRET[] = {JOYSTICK_X, JOYSTICK_Y,  JOYSTICK_SW, SERVO,
                               STEPPER_IN1, STEPPER_IN2, STEPPER_IN3, STEPPER_IN4};
