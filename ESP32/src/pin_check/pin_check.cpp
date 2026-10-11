@@ -77,8 +77,8 @@ static void check_servo()
 
 static void check_joystick()
 {
-    Serial.printf("[joystick] %lu s window: move the stick to all four corners and press it a few times\n",
-                  JOYSTICK_WINDOW_MS / 1000);
+    Serial.printf("[joystick] %u s window: move the stick to all four corners and press it a few times\n",
+                  static_cast<unsigned>(JOYSTICK_WINDOW_MS / 1000));
 
     int min_x = 4095, max_x = 0, min_y = 4095, max_y = 0, presses = 0;
     bool was_pressed = false;

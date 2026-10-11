@@ -14,14 +14,14 @@ pio run -e freenove_esp32_wrover -t upload
 pio run -e pin_check -t upload            # wiring bring-up test (no camera/WiFi), read serial after
 pio device monitor                        # serial @ 115200, exception decoder enabled
 pio test -e native                        # host-side unit tests, no board needed
-pio test -e freenove_esp32_wrover -f test_joystick   # one on-device suite (board connected)
+pio test -e freenove_esp32_wrover -f test_wifi_manager   # one on-device suite (board connected)
 pio check --severity=high --severity=medium   # cppcheck
 ```
 
 - Envs: `freenove_esp32_wrover` (firmware, excludes `src/pin_check/`), `pin_check` (only `src/pin_check/`), `native` (host gcc, tests under `test/native/`). Device envs ignore `test/native/*`; `native` only runs it.
 - **Language standard is C++17 everywhere** (firmware via `build_unflags = -std=gnu++11`, native, cppcheck locally and in CI). The firmware toolchain is GCC 8.4 (Arduino core 2.0.17), so C++20 features are not available; moving to C++20/23 means Arduino core 3.x via pioarduino, planned as its own stage.
 - `native` uses the first `g++` on PATH and needs GCC >= 8. This machine has WinLibs GCC 14.2 + LLVM 19 (clang-format, clangd) from winget, but an old MinGW 6.3 at `C:\MinGW\bin` may still shadow it. Check `g++ --version` if native builds fail on C++17. Code under test there must not include Arduino/ESP-IDF headers.
-- On-device suites under `ESP32/test/` are Unity sketches (`setup()` calls `UNITY_BEGIN()`), flashed and read over serial. Several are placeholders or stale (`test_motion/test_servo.cpp` targets a `Turret::Servo` class that no longer exists).
+- On-device suites under `ESP32/test/` are Unity sketches (`setup()` calls `UNITY_BEGIN()`), flashed and read over serial. Several are placeholders or stale: `test_motion/test_servo.cpp` (targets a `Turret::Servo` class that no longer exists) and `test_joystick/test_joystick.cpp` (passes 150 as the button pin and includes `"Joystick.h"` with the wrong case for Linux).
 - Never pipe `pio` into something that exits early (`grep -m1`, `head`): on Windows pio blocks forever writing to the closed pipe and the build looks hung. Redirect to a log file and grep the file. A clean firmware build takes about 1 minute.
 - Serial port is COM3 (CH340). To read the board without resetting it, open the port with DTR/RTS held low.
 - Formatting: `.clang-format` (LLVM base, Allman braces for functions/classes/control statements, 4-space indent, 120 columns, `int* p`), clang-format **19** locally (WinLibs LLVM) and in CI (`pip install "clang-format==19.1.*"`). A Claude Code `PostToolUse` hook (`.claude/hooks/format_cpp.py`) formats firmware C/C++ files on edit. CI (`ci.yml`) only checks with `--dry-run --Werror` and never commits to the branch.
@@ -32,6 +32,7 @@ pio check --severity=high --severity=medium   # cppcheck
 ## Required local setup
 
 - `ESP32/include/secrets.h` is gitignored and **must exist** to build the firmware env: copy `include/secrets.h.example` and set `WIFI_SSID` / `WIFI_PASSWORD`. Never commit it, read it, or print its contents. This is enforced: `.claude/settings.json` denies Read/Edit on `**/secrets.h`, and `.claude/hooks/guard_wifi_credentials.py` blocks any shell command containing the substring `secret` (so ask the user for anything involving that file, including copying the template; put commit messages that mention it in a file and use `git commit -F`). The hook is an accident guard, not a security boundary. Planned: replace it with on-device WiFi provisioning (SoftAP setup page + NVS) in Stage 1.
+- The project's Claude Code hooks (`.claude/settings.json`) invoke `python`; on a machine that only has `python3` they exit 127, which fails open (the WiFi-credential shell guard then does nothing).
 
 ## Architecture
 
