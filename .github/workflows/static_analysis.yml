@@ -35,7 +35,7 @@ jobs:
             - name: Run Cppcheck Analysis (The Blocker)
               run: |
                   mkdir -p report
-                  cppcheck --enable=warning,performance,portability --inline-suppr --std=c++11 --force \
+                  cppcheck --enable=warning,performance,portability --inline-suppr --std=c++17 --force \
                            --xml --xml-version=2 \
                            --suppress=unusedFunction \
                            --suppress=missingIncludeSystem --suppress=missingInclude \
@@ -50,7 +50,7 @@ jobs:
             - name: Generate Console Output
               if: failure() || success()
               run: |
-                  cppcheck --enable=warning,performance,portability --inline-suppr --std=c++11 --force \
+                  cppcheck --enable=warning,performance,portability --inline-suppr --std=c++17 --force \
                            --template="{file}:{line}:{column}: {severity}: {message}" \
                            --suppress=unusedFunction \
                            --suppress=missingIncludeSystem --suppress=missingInclude \
