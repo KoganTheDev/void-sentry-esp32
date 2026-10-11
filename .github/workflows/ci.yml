@@ -1,0 +1,75 @@
+# Builds, tests and format-checks the firmware. Never rewrites the branch:
+# format locally (the Claude Code hook does it on edit) and CI only verifies.
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - name: Install clang-format 19 (same major version as local LLVM 19)
+              run: pip install "clang-format==19.1.*"
+            - name: Check formatting
+              run: |
+                  clang-format --version
+                  find ESP32/src ESP32/include ESP32/lib ESP32/test -type f \
+                      \( -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) \
+                      ! -name index_html.h -print0 \
+                      | xargs -0 clang-format --dry-run --Werror --style=file
+
+    web-ui-generator:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - name: Test index_html.h generator
+              run: python -m unittest discover -s web -p "test_*.py" -v
+
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - uses: actions/cache@v4
+              with:
+                  path: ~/.platformio
+                  key: pio-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
+            - name: Install PlatformIO
+              run: pip install -U platformio
+            - name: Use placeholder WiFi credentials
+              run: cp ESP32/include/secrets.h.example ESP32/include/secrets.h
+            - name: Build turret firmware
+              working-directory: ESP32
+              run: pio run -e freenove_esp32_wrover
+            - name: Build pin_check
+              working-directory: ESP32
+              run: pio run -e pin_check
+
+    native-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - uses: actions/cache@v4
+              with:
+                  path: ~/.platformio
+                  key: pio-native-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
+            - name: Install PlatformIO
+              run: pip install -U platformio
+            - name: Run host unit tests
+              working-directory: ESP32
+              run: pio test -e native
