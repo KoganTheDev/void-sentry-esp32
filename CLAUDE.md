@@ -30,7 +30,7 @@ pio check --severity=high --severity=medium   # cppcheck
 
 ## Required local setup
 
-- `ESP32/include/secrets.h` is gitignored and **must exist** to build the firmware env: copy `include/secrets.h.example` and set `WIFI_SSID` / `WIFI_PASSWORD`. Never commit it, read it, or print its contents. This is enforced: `.claude/settings.json` denies Read/Edit on `**/secrets.h`, and `.claude/hooks/block_secrets.py` blocks any shell command mentioning `secrets.h` (so ask the user for anything involving that file, including copying the template). Planned: replace it with on-device WiFi provisioning (SoftAP setup page + NVS) in Stage 1.
+- `ESP32/include/secrets.h` is gitignored and **must exist** to build the firmware env: copy `include/secrets.h.example` and set `WIFI_SSID` / `WIFI_PASSWORD`. Never commit it, read it, or print its contents. This is enforced: `.claude/settings.json` denies Read/Edit on `**/secrets.h`, and `.claude/hooks/guard_wifi_credentials.py` blocks any shell command containing the substring `secret` (so ask the user for anything involving that file, including copying the template; put commit messages that mention it in a file and use `git commit -F`). The hook is an accident guard, not a security boundary. Planned: replace it with on-device WiFi provisioning (SoftAP setup page + NVS) in Stage 1.
 
 ## Architecture
 
