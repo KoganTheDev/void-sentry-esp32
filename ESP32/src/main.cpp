@@ -6,11 +6,14 @@
 #include "pins.h"
 #include <Arduino.h>
 #include <esp_log.h>
+#include <esp_system.h>
 
 #include "secrets.h" // Not committed: copy include/secrets.h.example to include/secrets.h and set your WiFi
 #include "wifi_manager.h"
 
 #include "camera.h"
+#include "camera_task.h"
+#include "frame_store.h"
 #include "turret_server.h"
 
 static const char* TAG_MAIN = "MAIN";
@@ -24,8 +27,33 @@ CameraDiffDetection detection_manager;
 Joystick joystick(pins::JOYSTICK_X, pins::JOYSTICK_Y, pins::JOYSTICK_SW);
 HttpServer http_server;
 Camera camera;
+FrameStore frame_store;
+CameraTaskStats camera_stats;
 
-Controller controller(movement_manager, detection_manager, joystick, camera);
+Controller controller(movement_manager, detection_manager, joystick, frame_store);
+
+// One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
+static void log_stream_stats()
+{
+    static uint32_t last_ms = 0;
+    const uint32_t now = millis();
+    if (now - last_ms < 5000)
+    {
+        return;
+    }
+    last_ms = now;
+
+    const FrameStoreStats store = frame_store.stats();
+    const uint32_t copies = camera_stats.copies.load();
+    const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
+    ESP_LOGI(TAG_MAIN,
+             "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
+             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u",
+             (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
+             (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
+             (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
+             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram());
+}
 
 void setup()
 {
@@ -36,6 +64,7 @@ void setup()
     ESP_LOGI(TAG_MAIN, "==== SMART CAMERA TURRET SYSTEM ====");
     ESP_LOGI(TAG_MAIN, "====  Initialization Sequence   ====");
     ESP_LOGI(TAG_MAIN, "====================================");
+    ESP_LOGI(TAG_MAIN, "Reset reason: %d", (int)esp_reset_reason()); // lets a soak test confirm no reboots
     ESP_LOGI(TAG_MAIN, "Initializing components...");
     ESP_LOGI(TAG_MAIN, "[SYSTEM] Initializing components...");
 
@@ -46,23 +75,25 @@ void setup()
 
     // Initialize Camera
     ESP_LOGI(TAG_MAIN, "Initializing Camera...");
-    if (camera.begin())
+    if (!camera.begin())
     {
-        ESP_LOGI(TAG_MAIN, "Camera initialized successfully");
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed - continuing without video");
+    } else if (!frame_store.begin() || !start_camera_task(frame_store, camera_stats))
+    {
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame pipeline failed to start - continuing without video");
     } else
     {
-        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed!");
-        return; // TODO: Decide if to stop running with a harsher stop
+        ESP_LOGI(TAG_MAIN, "Camera and frame pipeline running");
     }
 
     // Connect WiFi
-    ESP_LOGI(TAG_MAIN, "Connecting to WiFi: %s", WIFI_SSID);
+    ESP_LOGI(TAG_MAIN, "Connecting to WiFi...");
     WifiManager::connect(WIFI_SSID, WIFI_PASSWORD);
     ESP_LOGI(TAG_MAIN, "WiFi connection sequence initiated");
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(&camera, &detection_manager))
+    if (http_server.start(frame_store, &detection_manager))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else
@@ -84,7 +115,10 @@ void setup()
 
 void loop()
 {
-    camera.capture();
     controller.run();        // Run main control loop
     WifiManager::maintain(); // Maintain WiFi connection
+    log_stream_stats();
+
+    // capture() used to pace loop(); now it spins unpaced, so always yield one tick to idle/other tasks.
+    vTaskDelay(pdMS_TO_TICKS(1));
 }

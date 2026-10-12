@@ -13,33 +13,28 @@ static const char* TAG_HTTP = "HTTP_SERVER";
 
 httpd_handle_t HttpServer::_server_handle = nullptr;
 
-Camera* HttpServer::_camera_instance = nullptr;
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
 
-HttpServer::HttpServer() : _stream_handler(NULL), _commands_handler(NULL) {}
+HttpServer::HttpServer() : _commands_handler(NULL) {}
 
 HttpServer::~HttpServer()
 {
-    if (this->_stream_handler != NULL)
-    {
-        delete this->_stream_handler;
-    }
-
     if (this->_commands_handler != NULL)
     {
         delete this->_commands_handler;
     }
 }
 
-bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
+bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
 {
-    this->_camera_instance = camera;
     this->_detection_instance = detection;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.stack_size = 8192;       // Increase stack for JSON/String handling
-    config.max_uri_handlers = 12;   // Just to be safe
-    config.lru_purge_enable = true; // Purge oldest connection if full
+    config.stack_size = 8192;                               // Increase stack for JSON/String handling
+    config.max_uri_handlers = 12;                           // Just to be safe
+    config.send_wait_timeout = 2;                           // seconds; stalled viewers would block httpd 5 s
+    config.lru_purge_enable = true;                         // Purge oldest connection if full
+    config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
@@ -47,8 +42,13 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
         httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
 
-        this->_stream_handler = new StreamWebsocketHandler(this->_server_handle, "/stream", *camera);
-        this->_stream_handler->register_endpoint();
+        if (!this->_broadcaster.start(this->_server_handle, store))
+        {
+            ESP_LOGE(TAG_HTTP, "Failed to start the /stream broadcaster");
+            httpd_stop(this->_server_handle); // no half-started server
+            this->_server_handle = NULL;
+            return false;
+        }
 
         this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection);
         this->_commands_handler->register_endpoint();
@@ -64,6 +64,7 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
 void HttpServer::stop()
 {
     ESP_LOGI(TAG_HTTP, "Stopping HTTP Server...");
+    this->_broadcaster.stop(); // before httpd_stop: the stream task must not touch a dead server
     if (this->_server_handle)
     {
         ESP_LOGD(TAG_HTTP, "Calling httpd_stop()...");

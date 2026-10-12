@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <tuple>
 
-class Camera; // Forward declaration to minimize header inter-dependency
+class FrameStore; // Forward declaration to minimize header inter-dependency
 
 /**
  * @class Controller
@@ -27,10 +27,10 @@ class Camera; // Forward declaration to minimize header inter-dependency
  * @details The Controller implements a **State-Driven architecture**. It acts as the
  * bridge between the Computer Vision pipeline and the physical servos.
  * * **Control Arbitration Logic:**
- * - **AI_MODE**: The controller requests a frame from the @ref Camera, passes it to the
- * @ref BaseDetectionModule, and calculates the error vector to center the target.
- * - **USER_MODE**: The controller bypasses the CV pipeline and maps @ref Joystick
- * input directly to the @ref BaseMovementManager.
+ * - **AI_MODE**: The controller leases the latest published frame from the @ref FrameStore (once per new
+ * frame sequence), passes it to the @ref BaseDetectionModule, and calculates the error vector to center the target.
+ * - **USER_MODE**: The controller bypasses the CV pipeline and frames entirely, and maps @ref Joystick
+ * input directly to the @ref BaseMovementManager at most once per kUserModePeriodMs.
  */
 class Controller
 {
@@ -47,8 +47,17 @@ private:
     /** @brief Reference to the input handler for manual control. */
     Joystick& _joystick;
 
-    /** @brief Reference to the camera sensor interface. */
-    Camera& _camera;
+    /** @brief Reference to the store holding the latest published camera frame. */
+    FrameStore& _frame_store;
+
+    /** @brief Minimum time between joystick-driven moves in USER_MODE (25 Hz). */
+    static constexpr uint32_t kUserModePeriodMs = 40;
+
+    /** @brief Timestamp (millis) of the last USER_MODE move. */
+    uint32_t _last_user_move_ms = 0;
+
+    /** @brief Sequence of the last frame processed in AI_MODE; skips frames already handled. */
+    uint32_t _last_sequence = 0;
 
 public:
     /**
@@ -61,13 +70,13 @@ public:
      * @param movement_manager Reference to the movement implementation.
      * @param detection_module Reference to the detection implementation.
      * @param joystick Reference to the Joystick input handler.
-     * @param camera Reference to the Camera object.
+     * @param frame_store Reference to the FrameStore the camera task publishes into.
      * @note Defaults to `AI_MODE` upon initialization.
      */
     Controller(BaseMovementManager& movement_manager, BaseDetectionModule& detection_module, Joystick& joystick,
-               Camera& camera)
+               FrameStore& frame_store)
         : _system_control_state(SystemControl::AI_MODE), _movement_manager(movement_manager),
-          _detection_module(detection_module), _joystick(joystick), _camera(camera)
+          _detection_module(detection_module), _joystick(joystick), _frame_store(frame_store)
     {
     }
 
@@ -89,13 +98,13 @@ public:
      * * **Workflow:**
      * 1. Check current `SystemControl` state.
      * 2. If **USER_MODE**:
-     * - Poll `_joystick` for X/Y offsets.
-     * - Call `_movement_manager.move()`.
+     * - Poll `_joystick` for X/Y offsets (no frame needed).
+     * - Call `_movement_manager.move_relative()` at most once per kUserModePeriodMs.
      * 3. If **AI_MODE**:
-     * - Capture frame from `_camera`.
-     * - Perform inference via `_detection_module`.
-     * - Translate target coordinates to motor pulses.
-     * * @warning This function is blocking relative to the frame-rate of the camera.
+     * - Borrow the latest frame from the `_frame_store` via a lease; return if none or already processed.
+     * - Perform inference via `_detection_module`, release the lease, then move.
+     * @warning Not paced by the camera: returns immediately when there is nothing to do, so the caller's loop
+     * must yield. A move blocks for roughly 15 ms while the stepper steps.
      */
     void run();
 

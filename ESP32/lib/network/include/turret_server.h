@@ -6,8 +6,9 @@
 #pragma once
 
 #include "base_detection_module.h"
-#include "camera.h"
+#include "frame_store.h"
 #include "motion_data.h"
+#include "stream_broadcaster.h"
 #include "websockets.h"
 #include <esp_http_server.h>
 
@@ -23,17 +24,12 @@ private:
     static httpd_handle_t _server_handle; ///< Internal handle for the ESP-IDF server instance.
 
     /**
-     * @brief Static reference to the camera for use in C-style callbacks.
-     */
-    static Camera* _camera_instance;
-
-    /**
      * @brief Static reference to motion detection module for drawing targets.
      */
     static BaseDetectionModule* _detection_instance;
 
-    StreamWebsocketHandler* _stream_handler;
     CommandsWebSocketHandler* _commands_handler; // Used both for commands to the motors & sending metrics
+    StreamBroadcaster _broadcaster;              // Pushes frames from the FrameStore to /stream viewers
 
 public:
     HttpServer();
@@ -41,11 +37,17 @@ public:
 
     /**
      * @brief Configures and launches the web server on port 80.
-     * @param camera Pointer to the initialized Camera object for streaming.
+     * @param store FrameStore the /stream endpoint reads frames from. Must outlive the server.
      * @param detection Optional pointer to detection module for motion visualization.
      * @return true if the server was created and handlers were registered.
      */
-    bool start(Camera* camera, BaseDetectionModule* detection = nullptr);
+    bool start(FrameStore& store, BaseDetectionModule* detection = nullptr);
+
+    /** @brief Frames successfully sent to /stream viewers since boot. */
+    uint32_t frames_sent() const { return _broadcaster.frames_sent(); }
+
+    /** @brief Number of currently connected /stream viewers. */
+    size_t viewer_count() { return _broadcaster.viewer_count(); }
 
     /**
      * @brief Shut down the server and unregister all URI handlers.

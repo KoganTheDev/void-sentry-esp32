@@ -20,15 +20,15 @@ typedef struct {
 
 /**
  * @class Camera
- * @brief Singleton-style manager for camera lifecycle and frame acquisition.
- * @details Encapsulates the `esp_camera` driver. It is configured by default for
+ * @brief Camera setup and sensor tuning.
+ * @details Encapsulates the `esp_camera` driver initialisation and sensor settings. Frame acquisition is done by
+ * the camera task (see camera_task.h), not by this class. It is configured by default for
  * **Void Sentry's** real-time requirements: Low latency over high resolution.
  */
 class Camera
 {
 private:
     camera_config_t _config; ///< Internal configuration struct for the ESP-Camera driver.
-    camera_buffer_t _buffer;
 
 public:
     /**
@@ -43,7 +43,7 @@ public:
      * - **Buffering**: Double-buffering enabled to allow simultaneous capture and processing.
      * - **Grab Mode**: `CAMERA_GRAB_LATEST` ensures we never process "stale" motion data.
      */
-    Camera() : _buffer()
+    Camera()
     {
         this->_config.ledc_channel = LEDC_CHANNEL_0;
         this->_config.ledc_timer = LEDC_TIMER_0;
@@ -64,21 +64,13 @@ public:
         this->_config.pin_pwdn = pins::CAM_PWDN;
         this->_config.pin_reset = pins::CAM_RESET;
 
-        this->_config.xclk_freq_hz = 20000000;       // 20MHz: Balance between speed and signal noise
+        this->_config.xclk_freq_hz = 12000000;       // 12 MHz: >=15 fps QVGA without wrecking WiFi (see CLAUDE.md)
         this->_config.pixel_format = PIXFORMAT_JPEG; // Required for MJPEG streaming
         this->_config.frame_size = FRAMESIZE_QVGA;   // 320x240
         this->_config.jpeg_quality = 12;             // 0-63 (lower is higher quality, 12 is optimal for Sentry)
         this->_config.fb_count = 2;                  // Double buffering in PSRAM
         this->_config.fb_location = CAMERA_FB_IN_PSRAM;
         this->_config.grab_mode = CAMERA_GRAB_LATEST;
-    }
-
-    ~Camera()
-    {
-        if (this->_buffer.buffer != NULL)
-        {
-            free(this->_buffer.buffer);
-        }
     }
 
     /**
@@ -88,21 +80,4 @@ public:
      */
     bool begin();
     /** @} */
-
-    /**
-     * @name Image Acquisition
-     * @{
-     */
-
-    /**
-     * @brief Synchronously captures a frame from the sensor.
-     * @return camera_fb_t* Pointer to the ESP-Camera frame buffer structure.
-     * @note This function blocks until a full frame is clocked into memory.
-     * @warning **Memory Safety**: You MUST call @ref release() with this pointer
-     * to return the buffer to the DMA pool.
-     */
-    void capture();
-    /** @} */
-
-    const camera_buffer_t& get_frame_buffer() { return this->_buffer; }
 };

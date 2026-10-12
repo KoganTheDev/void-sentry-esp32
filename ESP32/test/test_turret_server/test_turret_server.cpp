@@ -1,4 +1,6 @@
-#include "camera.h"  // Your Camera class
+#include "camera.h" // Your Camera class
+#include "camera_task.h"
+#include "frame_store.h"
 #include "secrets.h" // For WIFI_SSID, WIFI_PASSWORD
 #include "turret_server.h"
 #include "wifi_manager.h" // Your Network class
@@ -7,12 +9,15 @@
 
 HttpServer* test_server;
 Camera* test_camera;
+FrameStore* test_store;
+CameraTaskStats test_camera_stats;
 
 // Runs before every test
 void setUp(void)
 {
     test_server = new HttpServer();
     test_camera = new Camera();
+    test_store = new FrameStore();
 }
 
 // Runs after every test
@@ -21,28 +26,18 @@ void tearDown(void)
     test_server->stop();
     delete test_server;
     delete test_camera;
+    delete test_store;
 }
 
 // 1. Test Lifecycle: Start and Stop without crashing
 void test_server_lifecycle(void)
 {
-    // Note: start() requires a camera pointer now
-    TEST_ASSERT_TRUE_MESSAGE(test_server->start(test_camera), "Server failed to start");
+    // start() takes a FrameStore; it does not need to be ready (viewers simply receive nothing)
+    TEST_ASSERT_TRUE_MESSAGE(test_server->start(*test_store), "Server failed to start");
     test_server->stop();
 
     // Ensure it can restart cleanly
-    TEST_ASSERT_TRUE_MESSAGE(test_server->start(test_camera), "Server failed to restart");
-}
-
-// 2. Test Safety: Handlers should not crash with NULL requests
-void test_handlers_null_safety(void)
-{
-    // Testing the guard clause: if (req == NULL) { return ESP_ERR_INVALID_ARG; }
-    esp_err_t res_stream = test_server->stream_handler(NULL);
-    esp_err_t res_cmd = test_server->cmd_handler(NULL);
-
-    TEST_ASSERT_EQUAL(ESP_ERR_INVALID_ARG, res_stream);
-    TEST_ASSERT_EQUAL(ESP_ERR_INVALID_ARG, res_cmd);
+    TEST_ASSERT_TRUE_MESSAGE(test_server->start(*test_store), "Server failed to restart");
 }
 
 // 3. Test Integration: Live Stream and Command Access
@@ -51,6 +46,8 @@ void test_live_interaction(void)
     // Initialize Hardware
     bool cam_ok = test_camera->begin();
     TEST_ASSERT_TRUE_MESSAGE(cam_ok, "Camera Hardware failed to initialize");
+    TEST_ASSERT_TRUE_MESSAGE(test_store->begin(), "FrameStore failed to initialize");
+    TEST_ASSERT_TRUE_MESSAGE(start_camera_task(*test_store, test_camera_stats), "Camera task failed to start");
 
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -59,7 +56,7 @@ void test_live_interaction(void)
     }
 
     // Start Server
-    test_server->start(test_camera);
+    test_server->start(*test_store);
 
     Serial.println("\n==========================================");
     Serial.println("LIVE TEST ACTIVE FOR 60 SECONDS");
@@ -83,7 +80,6 @@ void setup()
 
     // Now these tests will find a valid TCP/IP stack
     RUN_TEST(test_server_lifecycle);
-    RUN_TEST(test_handlers_null_safety);
     RUN_TEST(test_live_interaction);
 
     UNITY_END();

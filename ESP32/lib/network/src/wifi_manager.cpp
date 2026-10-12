@@ -12,6 +12,7 @@ void WifiManager::connect(const String& ssid, const String& password)
     }
 
     WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false); // modem power-save batches packets/ACKs to DTIM wakeups (~100 ms), ruining stream latency
     WiFi.begin(ssid.c_str(), password.c_str());
     WiFi.setAutoReconnect(true);
 
