@@ -29,6 +29,11 @@ public:
     /** @brief Register the /stream WebSocket endpoint and start the stream task (core 1, priority 1). */
     bool start(httpd_handle_t server, FrameStore& store);
 
+    /**
+     * @brief Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.
+     */
+    void stop();
+
     /** @brief httpd close_fn: forget the viewer and close the socket (required when close_fn is set). */
     static void on_session_closed(httpd_handle_t server, int sockfd);
 
@@ -39,6 +44,8 @@ private:
     struct SendJob {
         StreamBroadcaster* owner = nullptr;
         int fd = -1;
+        size_t index = 0;        ///< viewer slot this job was claimed for
+        uint32_t generation = 0; ///< generation_[index] at claim time
         bool in_flight = false;
         std::optional<frames::FrameLease> lease;
     };
@@ -53,7 +60,9 @@ private:
     FrameStore* store_ = nullptr;
     frames::ViewerSet viewers_;
     std::array<SendJob, frames::kMaxViewers> jobs_{};
-    SemaphoreHandle_t mutex_ = nullptr; // guards viewers_ and jobs_[i].in_flight
+    std::array<uint32_t, frames::kMaxViewers> generation_{}; // bumped per new viewer in a slot; guards viewers_
+    TaskHandle_t task_ = nullptr;
+    SemaphoreHandle_t mutex_ = nullptr; // guards viewers_, generation_ and jobs_[i].in_flight
     std::atomic<uint32_t> sent_{0};
 
     static StreamBroadcaster* instance_; // close_fn has no user context

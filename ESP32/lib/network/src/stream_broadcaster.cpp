@@ -24,6 +24,10 @@ private:
 
 bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
 {
+    if (task_ != nullptr)
+    {
+        return true; // already started
+    }
     server_ = server;
     store_ = &store;
     mutex_ = xSemaphoreCreateMutex();
@@ -43,6 +47,7 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
     if (httpd_register_uri_handler(server_, &uri) != ESP_OK)
     {
         ESP_LOGE(TAG_STREAM, "Failed to register /stream");
+        stop();
         return false;
     }
 
@@ -50,14 +55,50 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
     if (xTaskCreatePinnedToCore(stream_task, "stream", 4096, this, 1, &task, 1) != pdPASS)
     {
         ESP_LOGE(TAG_STREAM, "Failed to create stream task");
+        stop();
         return false;
     }
+    task_ = task;
     store_->set_subscriber(task);
     return true;
 }
 
+void StreamBroadcaster::stop()
+{
+    if (task_ != nullptr)
+    {
+        vTaskDelete(task_);
+        task_ = nullptr;
+    }
+    if (store_ != nullptr)
+    {
+        store_->set_subscriber(nullptr);
+    }
+    if (instance_ == this)
+    {
+        instance_ = nullptr;
+    }
+    if (mutex_ != nullptr)
+    {
+        SemaphoreHandle_t mutex = mutex_;
+        mutex_ = nullptr;
+        vSemaphoreDelete(mutex);
+    }
+    // Task is gone and the mutex too: drop any leases still parked in queued jobs (the server is about to stop).
+    for (SendJob& job : jobs_)
+    {
+        job.lease.reset();
+        job.in_flight = false;
+    }
+    viewers_ = frames::ViewerSet{};
+}
+
 size_t StreamBroadcaster::viewer_count()
 {
+    if (mutex_ == nullptr)
+    {
+        return 0;
+    }
     Lock lock(mutex_);
     return viewers_.size();
 }
@@ -72,7 +113,15 @@ esp_err_t StreamBroadcaster::ws_handler(httpd_req_t* req)
         bool added = false;
         {
             Lock lock(self->mutex_);
+            const bool is_new = !self->viewers_.index_of(fd);
             added = self->viewers_.add(fd);
+            if (added && is_new)
+            {
+                if (auto index = self->viewers_.index_of(fd))
+                {
+                    ++self->generation_[*index]; // identifies this viewer, not just its (reusable) fd
+                }
+            }
         }
         if (!added)
         {
@@ -116,6 +165,10 @@ void StreamBroadcaster::on_session_closed(httpd_handle_t, int sockfd)
 
 void StreamBroadcaster::remove_viewer(int fd)
 {
+    if (mutex_ == nullptr)
+    {
+        return;
+    }
     Lock lock(mutex_);
     if (viewers_.index_of(fd))
     {
@@ -162,6 +215,8 @@ void StreamBroadcaster::run()
                 }
                 job = &jobs_[*index];
                 job->in_flight = true;
+                job->index = *index;
+                job->generation = generation_[*index];
                 viewers_.mark_sending(fd, lease->meta().sequence);
             }
 
@@ -184,28 +239,56 @@ void StreamBroadcaster::send_job(void* arg)
     auto* job = static_cast<SendJob*>(arg);
     StreamBroadcaster* self = job->owner;
 
+    const int fd = job->fd;
+
+    if (self->mutex_ == nullptr) // broadcaster was stopped while this job was queued
+    {
+        job->lease.reset();
+        job->in_flight = false;
+        return;
+    }
+
+    // A queued job can outlive its viewer, and the OS may reuse the fd for an unrelated session. So the job carries
+    // the viewer's slot index and generation; it only acts on the fd if that exact viewer is still registered.
+    // The check is exact because ws_handler (add), close_fn (remove) and this job all run on the httpd task, so no
+    // close/add can interleave between the check and the send below.
+    auto still_same_viewer = [&]() {
+        Lock lock(self->mutex_);
+        const std::optional<size_t> index = self->viewers_.index_of(fd);
+        return index && *index == job->index && self->generation_[job->index] == job->generation;
+    };
+
+    if (!still_same_viewer())
+    {
+        job->lease.reset(); // release the slot before touching the broadcaster mutex
+        Lock lock(self->mutex_);
+        job->in_flight = false;
+        return; // viewer is gone: send nothing, close nothing
+    }
+
     httpd_ws_frame_t frame = {};
     frame.final = true;
     frame.type = HTTPD_WS_TYPE_BINARY;
     frame.payload = const_cast<uint8_t*>(self->store_->data(*job->lease));
     frame.len = job->lease->meta().length;
 
-    const esp_err_t err = httpd_ws_send_frame_async(self->server_, job->fd, &frame);
+    const esp_err_t err = httpd_ws_send_frame_async(self->server_, fd, &frame);
     job->lease.reset(); // release the slot before touching the broadcaster mutex
 
-    // Known, accepted race: if this viewer's socket closed and the OS reused the same fd for a brand-new connection
-    // while this job was still queued, a failed send here can remove and close the new viewer instead of the old one.
-    // This is rare and harmless: the new viewer just reconnects. close_fn (on_session_closed) removes the viewer on
-    // every close, so the set never holds a stale fd for long.
-    const int fd = job->fd;
+    bool matched = false;
     {
         Lock lock(self->mutex_);
-        if (err == ESP_OK)
+        const std::optional<size_t> index = self->viewers_.index_of(fd);
+        matched = index && *index == job->index && self->generation_[job->index] == job->generation;
+        if (matched)
         {
-            self->viewers_.mark_done(fd);
-        } else
-        {
-            self->viewers_.remove(fd);
+            if (err == ESP_OK)
+            {
+                self->viewers_.mark_done(fd);
+            } else
+            {
+                self->viewers_.remove(fd);
+            }
         }
         job->in_flight = false;
     }
@@ -213,9 +296,16 @@ void StreamBroadcaster::send_job(void* arg)
     if (err == ESP_OK)
     {
         self->sent_++;
-    } else
+    } else if (matched)
     {
-        ESP_LOGW(TAG_STREAM, "Send to fd %d failed (%s), dropping viewer", fd, esp_err_to_name(err));
+        // ESP_ERR_INVALID_ARG means the session is already gone: expected during disconnects, not worth a warning.
+        if (err == ESP_ERR_INVALID_ARG)
+        {
+            ESP_LOGD(TAG_STREAM, "Send to fd %d failed (session gone), dropping viewer", fd);
+        } else
+        {
+            ESP_LOGW(TAG_STREAM, "Send to fd %d failed (%s), dropping viewer", fd, esp_err_to_name(err));
+        }
         httpd_sess_trigger_close(self->server_, fd);
     }
 }

@@ -44,6 +44,8 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
         if (!this->_broadcaster.start(this->_server_handle, store))
         {
             ESP_LOGE(TAG_HTTP, "Failed to start the /stream broadcaster");
+            httpd_stop(this->_server_handle); // no half-started server
+            this->_server_handle = NULL;
             return false;
         }
 
@@ -61,6 +63,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
 void HttpServer::stop()
 {
     ESP_LOGI(TAG_HTTP, "Stopping HTTP Server...");
+    this->_broadcaster.stop(); // before httpd_stop: the stream task must not touch a dead server
     if (this->_server_handle)
     {
         ESP_LOGD(TAG_HTTP, "Calling httpd_stop()...");
