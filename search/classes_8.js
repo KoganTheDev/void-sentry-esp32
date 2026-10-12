@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['websockethandler_0',['WebsocketHandler',['../classWebsocketHandler.html',1,'']]],
-  ['wifimanager_1',['WifiManager',['../classWifiManager.html',1,'']]]
+  ['testdetection_0',['TestDetection',['../classTestDetection.html',1,'']]]
 ];

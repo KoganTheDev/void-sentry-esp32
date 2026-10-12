@@ -1,15 +1,14 @@
 var searchData=
 [
-  ['save_5fframe_0',['save_frame',['../classSDManager.html#a531c372761fe7a00b388f93037597ca9',1,'SDManager']]],
-  ['sdmanager_1',['SDManager',['../classSDManager.html',1,'']]],
-  ['set_5fmotion_5fconfidence_2',['set_motion_confidence',['../classDetectionMetrics.html#a98c5fff518e0a99c7e63f87313ff6f1b',1,'DetectionMetrics']]],
-  ['setup_3',['Software Setup',['../index.html#autotoc_md4',1,'']]],
-  ['smart_20camera_20esp32_4',['Smart Camera ESP32',['../index.html',1,'']]],
-  ['software_20setup_5',['Software Setup',['../index.html#autotoc_md4',1,'']]],
-  ['specifications_6',['Technical Specifications',['../index.html#autotoc_md2',1,'']]],
-  ['start_7',['start',['../classHttpServer.html#ac5238dfb325fa6edd997f8b872e0331c',1,'HttpServer']]],
-  ['stop_8',['stop',['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer']]],
-  ['streamwebsockethandler_9',['StreamWebsocketHandler',['../classStreamWebsocketHandler.html',1,'']]],
-  ['system_20architecture_10',['System Architecture',['../index.html#autotoc_md1',1,'']]],
-  ['systemcontrol_11',['SystemControl',['../classSystemControl.html',1,'SystemControl'],['../classSystemControl.html#a5041b67acd9f496bcb10a542853d9ec9',1,'SystemControl::SystemControl()']]]
+  ['implementation_20plan_0',['Void Sentry Stage 0 Tooling Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html',1,'']]],
+  ['index_5fhandler_1',['index_handler',['../classHttpServer.html#ac37693f45d9eac094872a2c67cb44245',1,'HttpServer']]],
+  ['index_5fhtml_20h_20tt_20at_20build_20time_20model_3a_20sonnet_2',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]],
+  ['is_5factive_3',['is_active',['../classJoystick.html#a2e404f73565562f8b2fb0e13d809d68d',1,'Joystick']]],
+  ['is_5fai_4',['is_ai',['../classSystemControl.html#a2ecccc377e865ccdd74bc8e61f333842',1,'SystemControl']]],
+  ['is_5fconnected_5',['is_connected',['../classWifiManager.html#ab90b63a72a420c96e221b57ea64b9b4a',1,'WifiManager']]],
+  ['is_5fdetected_6',['is_detected',['../classMotionData.html#a93a2bded6a7b4812c90559338517f48d',1,'MotionData']]],
+  ['is_5fnone_7',['is_none',['../classMoveDirection.html#ab434475cdc40a3a5ccb8fedae3b54ec2',1,'MoveDirection']]],
+  ['is_5fuser_8',['is_user',['../classSystemControl.html#a1f3a9c1dab1c424ec0c73f6e27e639e2',1,'SystemControl']]],
+  ['is_5fz_5fheld_9',['is_z_held',['../classJoystick.html#a7a9b93194e4622ba6a6f17a072ae53c1',1,'Joystick']]],
+  ['is_5fz_5fpressed_10',['is_z_pressed',['../classJoystick.html#ac75bdb237df7b3b305af353468d7d185',1,'Joystick']]]
 ];

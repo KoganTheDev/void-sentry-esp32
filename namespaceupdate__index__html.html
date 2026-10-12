@@ -99,30 +99,35 @@ $(function(){initNavTree('namespaceupdate__index__html.html',''); initResizable(
 
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">update_index_html Namespace Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a95f0b1db8a284e1f990ab1ff0acfa9d7" id="r_a95f0b1db8a284e1f990ab1ff0acfa9d7"><td class="memItemLeft" align="right" valign="top"><a id="a95f0b1db8a284e1f990ab1ff0acfa9d7" name="a95f0b1db8a284e1f990ab1ff0acfa9d7"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>update_index_html</b> (source, target, env)</td></tr>
-<tr class="separator:a95f0b1db8a284e1f990ab1ff0acfa9d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a29821af91abcf2ec8167af2a4da59fb3" id="r_a29821af91abcf2ec8167af2a4da59fb3"><td class="memItemLeft" align="right" valign="top"><a id="a29821af91abcf2ec8167af2a4da59fb3" name="a29821af91abcf2ec8167af2a4da59fb3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>project_dir</b> = env[&quot;PROJECT_DIR&quot;]</td></tr>
+<tr class="separator:a29821af91abcf2ec8167af2a4da59fb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adffe25261420189e9c41d363a1b37698" id="r_adffe25261420189e9c41d363a1b37698"><td class="memItemLeft" align="right" valign="top"><a id="adffe25261420189e9c41d363a1b37698" name="adffe25261420189e9c41d363a1b37698"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>web_dir</b> = os.path.normpath(os.path.join(project_dir, &quot;..&quot;, &quot;web&quot;))</td></tr>
+<tr class="separator:adffe25261420189e9c41d363a1b37698"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8536b256fb190100f27091d8dcb93da" id="r_ae8536b256fb190100f27091d8dcb93da"><td class="memItemLeft" align="right" valign="top"><a id="ae8536b256fb190100f27091d8dcb93da" name="ae8536b256fb190100f27091d8dcb93da"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>src_path</b> = os.path.join(web_dir, &quot;web_ui.html&quot;)</td></tr>
+<tr class="separator:ae8536b256fb190100f27091d8dcb93da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeef9fb65417ff10ff0f1dd0b4d2a3724" id="r_aeef9fb65417ff10ff0f1dd0b4d2a3724"><td class="memItemLeft" align="right" valign="top"><a id="aeef9fb65417ff10ff0f1dd0b4d2a3724" name="aeef9fb65417ff10ff0f1dd0b4d2a3724"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>dst_path</b> = os.path.join(project_dir, &quot;lib&quot;, &quot;network&quot;, &quot;include&quot;, &quot;index_html.h&quot;)</td></tr>
+<tr class="separator:aeef9fb65417ff10ff0f1dd0b4d2a3724"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7fbf7f3628f51c09d06fa9318ce331d8" id="r_a7fbf7f3628f51c09d06fa9318ce331d8"><td class="memItemLeft" align="right" valign="top"><a id="a7fbf7f3628f51c09d06fa9318ce331d8" name="a7fbf7f3628f51c09d06fa9318ce331d8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>header</b> = <a class="el" href="namespacehtml__header.html#ae5709d0112f15bb8236e5b0981076278">html_header.render_header</a>(f.read())</td></tr>
+<tr class="separator:a7fbf7f3628f51c09d06fa9318ce331d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><pre class="fragment">@file update_web_ui.py
-@brief PlatformIO Build Hook for Automated Web UI Compression.
+<div class="textblock"><pre class="fragment">@file update_index_html.py
+@brief PlatformIO pre-build script: generate ESP32/lib/network/include/index_html.h from web/web_ui.html.
 
-This script runs automatically before the ELF binary is linked. It performs 
-the following workflow:
-1. Locates the source 'web_ui.html' file outside the firmware source tree.
-2. Compresses the HTML/CSS/JS content using Gzip to minimize Flash usage.
-3. Generates a C++ compatible byte array and updates 'index_html.h'.
-4. Injects the new byte array and updated length constant using Regex.
-
-This ensures that any changes made to the Web UI are reflected in the 
-firmware without manual hex-conversion or copy-pasting.
+Runs when PlatformIO loads the script, before any source is compiled, so a fresh clone (which has no
+generated header) builds. The header is rewritten only when web_ui.html actually changed.
 </pre> </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

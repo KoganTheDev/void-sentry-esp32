@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['ai_5fmode_0',['AI_MODE',['../classSystemControl.html#a13a7bb84c5d3ab26831718e0a5caffe6a1b7db8c68e3b7ccdc33caaa86b1bfcb8',1,'SystemControl']]],
-  ['append_5flog_1',['append_log',['../classSDManager.html#a17aa88ee29056ded8092aac1c36102f0',1,'SDManager']]],
-  ['architecture_2',['System Architecture',['../index.html#autotoc_md1',1,'']]]
+  ['1_3a_20generate_20tt_20index_5fhtml_20h_20tt_20at_20build_20time_20model_3a_20sonnet_0',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]]
 ];

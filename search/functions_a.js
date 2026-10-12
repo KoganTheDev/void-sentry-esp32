@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['save_5fframe_0',['save_frame',['../classSDManager.html#a531c372761fe7a00b388f93037597ca9',1,'SDManager']]],
-  ['set_5fmotion_5fconfidence_1',['set_motion_confidence',['../classDetectionMetrics.html#a98c5fff518e0a99c7e63f87313ff6f1b',1,'DetectionMetrics']]],
-  ['start_2',['start',['../classHttpServer.html#ac5238dfb325fa6edd997f8b872e0331c',1,'HttpServer']]],
-  ['stop_3',['stop',['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer']]],
-  ['systemcontrol_4',['SystemControl',['../classSystemControl.html#a5041b67acd9f496bcb10a542853d9ec9',1,'SystemControl']]]
+  ['to_5fstring_0',['to_string',['../classMoveX.html#af98d9dcfd882ff9959be3bdbbd22125d',1,'MoveX::to_string()'],['../classMoveY.html#a52d06fd28d24038d654b6e2d2df9d8c3',1,'MoveY::to_string()'],['../classSystemControl.html#a6cccbcfaa319cfd81708208af0ad4ce7',1,'SystemControl::to_string() const']]],
+  ['toggle_5fmode_1',['toggle_mode',['../classSystemControl.html#ae3c7a7e75fd8bf4b8d9575ed3507030a',1,'SystemControl']]]
 ];

@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['_7ebasedetectionmodule_0',['~BaseDetectionModule',['../classBaseDetectionModule.html#aa264fc7c05d9458b299bc53f03cabb59',1,'BaseDetectionModule']]],
-  ['_7ebasemovementmanager_1',['~BaseMovementManager',['../classBaseMovementManager.html#a09cea5158a2b2d4f328c25ae99d8919c',1,'BaseMovementManager']]],
-  ['_7econtroller_2',['~Controller',['../classController.html#a0ab87934c4f7a266cfdb86e0f36bc1b5',1,'Controller']]]
+  ['native_20tests_20done_0',['Native tests (done)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md28',1,'']]],
+  ['non_20goals_20for_20stage_200_1',['Non-goals for Stage 0',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md34',1,'']]],
+  ['none_2',['None',['../classMoveX.html#a2a66fc9758d5b896e7de143f7d2b2659',1,'MoveX::None'],['../classMoveY.html#a9f510e17ce7a62e4d3b95e3cd18d0d03',1,'MoveY::None']]],
+  ['not_20delegated_3',['Task 5: Push, PR, green CI (main session, not delegated)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md20',1,'']]],
+  ['now_4',['WiFi credentials (done for now)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md27',1,'']]]
 ];

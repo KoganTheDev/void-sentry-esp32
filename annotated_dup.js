@@ -1,5 +1,9 @@
 var annotated_dup =
 [
+    [ "test_html_header", "namespacetest__html__header.html", [
+      [ "RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
+      [ "WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ]
+    ] ],
     [ "BaseDetectionModule", "classBaseDetectionModule.html", "classBaseDetectionModule" ],
     [ "BaseMovementManager", "classBaseMovementManager.html", "classBaseMovementManager" ],
     [ "Camera", "classCamera.html", "classCamera" ],
@@ -15,7 +19,6 @@ var annotated_dup =
     [ "MovementManager", "classMovementManager.html", "classMovementManager" ],
     [ "MoveX", "classMoveX.html", "classMoveX" ],
     [ "MoveY", "classMoveY.html", "classMoveY" ],
-    [ "SDManager", "classSDManager.html", "classSDManager" ],
     [ "StreamWebsocketHandler", "classStreamWebsocketHandler.html", "classStreamWebsocketHandler" ],
     [ "SystemControl", "classSystemControl.html", "classSystemControl" ],
     [ "TestDetection", "classTestDetection.html", null ],

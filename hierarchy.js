@@ -21,8 +21,11 @@ var hierarchy =
     [ "MoveDirection< MoveYValue >", "classMoveDirection.html", [
       [ "MoveY", "classMoveY.html", null ]
     ] ],
-    [ "SDManager", "classSDManager.html", null ],
     [ "SystemControl", "classSystemControl.html", null ],
+    [ "unittest.TestCase", null, [
+      [ "test_html_header.RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
+      [ "test_html_header.WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ]
+    ] ],
     [ "WebsocketHandler", "classWebsocketHandler.html", [
       [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
       [ "StreamWebsocketHandler", "classStreamWebsocketHandler.html", null ]

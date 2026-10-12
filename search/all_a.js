@@ -1,4 +1,12 @@
 var searchData=
 [
-  ['left_0',['Left',['../classMoveX.html#ade0a4fa37396171213158e852cbaf964',1,'MoveX']]]
+  ['definition_20of_20done_0',['Definition of done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md33',1,'']]],
+  ['delegated_1',['Task 5: Push, PR, green CI (main session, not delegated)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md20',1,'']]],
+  ['design_2',['design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md24',1,'Stage 0 design'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html',1,'Void Sentry rebuild: roadmap and Stage 0 design']]],
+  ['detect_5fobject_3',['detect_object',['../classBaseDetectionModule.html#af7cb10ab2baa1de9c82f0ef6c2a71cdd',1,'BaseDetectionModule::detect_object()'],['../classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7',1,'CameraDiffDetection::detect_object()']]],
+  ['detectionmetrics_4',['DetectionMetrics',['../classDetectionMetrics.html',1,'DetectionMetrics'],['../classDetectionMetrics.html#a9e330101526583d66120b8e3d160e3d6',1,'DetectionMetrics::DetectionMetrics()']]],
+  ['do_5',['do',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md30',1,'CI (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md29',1,'Formatting (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md31',1,'Generated web UI header (to do)']]],
+  ['done_6',['done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md33',1,'Definition of done'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md25',1,'Hardware and pin map (done)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md26',1,'Language and toolchain (done)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md28',1,'Native tests (done)']]],
+  ['done_20for_20now_7',['WiFi credentials (done for now)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md27',1,'']]],
+  ['down_8',['Down',['../classMoveY.html#ab9de7c2f5b705b8ee966d3012dadec2c',1,'MoveY']]]
 ];
