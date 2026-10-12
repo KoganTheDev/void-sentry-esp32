@@ -29,6 +29,17 @@ pio check --severity=high --severity=medium   # cppcheck
 - CI static analysis (`static_analysis.yml`) runs cppcheck with `--error-exitcode=1 --std=c++17` and blocks on warning/performance/portability findings. Use `// cppcheck-suppress <id>` inline when a finding is intentional.
 - Doxygen (`ESP32/Doxyfile`) publishes to `gh-pages` on push to `main`. Public headers use Doxygen `@brief`/`@details` blocks; keep that style for new APIs.
 
+## Sanitizers and profiling
+
+Use them throughout the project, on the target where each one actually works:
+
+- **ASan + UBSan, host only.** Any logic that can be native-tested must also pass under `-fsanitize=address,undefined -fno-omit-frame-pointer` (the `native_sanitize` env, run as a CI job on Ubuntu). New pure-logic modules are designed so they can run there. Never weaken a test to silence a sanitizer report; fix the bug.
+- **Not on Windows.** The MinGW toolchains here (WinLibs GCC 14 and Clang 19) ship no `libasan` or `libubsan` (`cannot find -lasan`, verified). Run sanitized tests locally only on Linux (WSL Ubuntu or a Docker container). Otherwise rely on the CI job.
+- **Not on the ESP32.** There's no ASan for Xtensa. On-device memory safety is covered by design (no per-frame allocation, bounded buffers) and by watching `heap_min` and `psram_min` in the serial stats line.
+- **`perf`, host only (Linux).** It can't profile the ESP32. Use it for host-side benchmarks of algorithm code (for example Stage 2 frame-diff detection run on recorded frames): `perf stat` for totals, `perf record -g` + `perf report` for hot spots, built with `-O2 -g -fno-omit-frame-pointer`.
+- **On-device profiling:** time code sections with `esp_timer_get_time()` (microseconds), use `ESP.getCycleCount()` for very short sections, and report per-stage averages in the periodic stats line rather than logging per frame (logging itself distorts timing).
+- **Benchmarks are reproducible:** each perf-relevant change records its method and numbers (fps, latency median, `heap_min`) in the PR description.
+
 ## Required local setup
 
 - `ESP32/include/secrets.h` is gitignored and **must exist** to build the firmware env: copy `include/secrets.h.example` and set `WIFI_SSID` / `WIFI_PASSWORD`. Never commit it, read it, or print its contents. This is enforced: `.claude/settings.json` denies Read/Edit on `**/secrets.h`, and `.claude/hooks/guard_wifi_credentials.py` blocks any shell command containing the substring `secret` (so ask the user for anything involving that file, including copying the template; put commit messages that mention it in a file and use `git commit -F`). The hook is an accident guard, not a security boundary. Planned: replace it with on-device WiFi provisioning (SoftAP setup page + NVS) in Stage 1.

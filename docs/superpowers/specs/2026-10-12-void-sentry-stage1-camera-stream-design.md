@@ -43,7 +43,7 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
 - `std::optional<size_t> begin_write()` returns a slot that is not the latest, has no readers, and is not already being written.
   - It returns `std::nullopt` when none qualifies. The caller then drops the frame, and `FrameSlots` counts the drop.
 - `void publish(size_t slot, FrameMeta meta)` marks the slot published, assigns the next `sequence`, and makes it the latest.
-- `void abort_write(size_t slot, AbortReason reason)` returns a slot to free. `AbortReason` is `Oversize` or `CaptureFailed`, and only `Oversize` increments a counter.
+- `void abort_write(size_t slot, AbortReason reason)` returns a slot to free. `AbortReason` is `Oversize`, `Corrupt` or `CaptureFailed`. `Oversize` and `Corrupt` each increment their own counter.
 
 **Reader API:**
 - `std::optional<FrameLease> acquire_latest()` increments the latest slot's reader count and returns a lease. It returns `nullopt` before the first publish.
@@ -52,7 +52,9 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
   - Its destructor (or `release()`) decrements the reader count. A moved-from lease releases nothing.
 - **When a slot becomes reusable:** a slot that is published but no longer the latest becomes free once its reader count drops to 0.
 
-**Stats:** `frames_published()`, `frames_dropped_no_slot()`, and `frames_dropped_oversize()`.
+**Stats:** `frames_published()`, `frames_dropped_no_slot()`, `frames_dropped_oversize()`, and `frames_dropped_corrupt()`.
+
+**JPEG check (pure, native-tested):** `bool is_complete_jpeg(const uint8_t* data, size_t length)` returns true only if the data starts with the SOI marker `FF D8` and ends with the EOI marker `FF D9`. A frame cut off mid-transfer fails this check.
 
 **Threading:** `FrameSlots` is **not** thread-safe on its own. `FrameStore` serializes every call.
 
@@ -74,7 +76,7 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
   1. `esp_camera_fb_get()`
   2. `begin_write()`. If there's no free slot, count a drop and skip to step 5.
   3. If the frame is bigger than `kSlotBytes`, call `abort_write(Oversize)` and skip to step 5.
-  4. Copy the frame into the slot, then `publish`.
+  4. If `is_complete_jpeg` fails on the driver's frame, call `abort_write(Corrupt)` and skip to step 5. Otherwise copy the frame into the slot and `publish`. Time the copy with `esp_timer_get_time()` so the stats line can report it.
   5. `esp_camera_fb_return()` **immediately**.
 - If the camera fails to initialize, the task isn't started, an error is logged, and the HTTP server still starts.
 
@@ -118,17 +120,34 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
 - **Commands socket:** unchanged.
 - **WebSocket URL:** fix it to `ws://${location.host}/stream`. It currently has a single slash.
 - **FPS:** show the received fps in the HUD, computed client-side over a 1 s window.
+- **Decode errors:** count frames that fail to display (`img.onerror`) and show the count in the HUD. It should stay at 0.
 
 ### 8. Diagnostics
 
 Every 5 seconds the firmware logs one line:
 
-`[stream] captured=N sent=N dropped_no_slot=N oversize=N viewers=N`
+`[stream] up=Ss captured=N sent=N dropped_no_slot=N oversize=N corrupt=N viewers=N copy_us_avg=N heap=N heap_min=N psram=N psram_min=N`
+
+- `heap` / `heap_min`: current and lowest-ever free internal RAM (`ESP.getFreeHeap()`, `ESP.getMinFreeHeap()`).
+- `psram` / `psram_min`: the same for PSRAM (`ESP.getFreePsram()`, `ESP.getMinFreePsram()`).
+- **Why the lowest-ever values matter:** a leak or any per-frame allocation shows up as a downward drift that never recovers.
 
 It uses `ESP_LOGI` and never prints credentials.
 
+## Benchmarks: how each success criterion is measured
+
+| Criterion | Method | Pass bar |
+|---|---|---|
+| Frame rate | Board: `captured` and `sent` deltas per 5 s window. Browser: HUD fps over 1 s windows. A gap between the two locates the bottleneck. | 15-25 fps received at QVGA |
+| Latency (glass to glass) | Point the camera at a phone showing a millisecond stopwatch, with the HUD open on a laptop beside it. One photo captures both screens, and the difference is the full lens-to-screen latency. No clock sync is needed. Take 5 shots and record the median in the PR. | Median recorded; aim below 250 ms |
+| No per-frame allocations / leaks | `heap_min` and `psram_min` over a 10-minute stream | Flat after warm-up (no monotonic drift) |
+| No corrupted frames | Device `corrupt` counter and HUD decode-error counter | Both 0 over 10 minutes |
+| No crashes | Reset reason at boot plus `up=` in the stats line over the 10-minute soak | No reboot |
+| Logic correctness | Native unit tests, also run under ASan and UBSan in CI (see CLAUDE.md, "Sanitizers and profiling") | All pass, no sanitizer reports |
+
 ## Testing
 
+- **Native (`pio test -e native`), `is_complete_jpeg`:** valid frame; empty input; missing SOI; truncated (no EOI); length below 4.
 - **Native (`pio test -e native`), `FrameSlots`:**
   - publish → acquire returns the newest frame
   - a leased slot is never handed to `begin_write`
@@ -142,6 +161,7 @@ It uses `ESP_LOGI` and never prints credentials.
   - busy viewers are skipped
   - a viewer never gets the same sequence twice
   - removing a busy viewer
+- **Sanitizers:** a new `native_sanitize` env runs the same native tests with `-fsanitize=address,undefined -fno-omit-frame-pointer`, as a new CI job on Ubuntu. Locally it needs Linux, because the Windows MinGW toolchains ship no `libasan` or `libubsan`. This was verified on the dev machine.
 - **Build:** both firmware envs build, and CI stays green.
 - **On hardware:**
   - The HUD shows live video.
