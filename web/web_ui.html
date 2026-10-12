@@ -767,46 +767,65 @@
             });
 
             // The board pushes one JPEG per message; nothing is requested from here.
-            const ws_stream = new WebSocket(`ws://${window.location.host}/stream`);
-            ws_stream.binaryType = 'blob';
-            App.state.stream_socket = ws_stream;
+            let keepaliveTimer = null;
 
-            ws_stream.onopen = () => {
-                App.updateStatus("ONLINE", "#00ff41");
-            };
+            function connectStream() {
+                const ws_stream = new WebSocket(`ws://${window.location.host}/stream`);
+                ws_stream.binaryType = 'blob';
+                App.state.stream_socket = ws_stream;
 
-            ws_stream.onmessage = (event) => {
-                const previousUrl = currentFrameUrl;
-                currentFrameUrl = URL.createObjectURL(event.data);
-                imgElement.src = currentFrameUrl;
-                if (previousUrl) {
-                    URL.revokeObjectURL(previousUrl);
-                }
+                ws_stream.onopen = () => {
+                    App.updateStatus("ONLINE", "#00ff41");
+                    // Push-only viewers send nothing, so httpd's LRU purge would evict them as idle. A 1-byte
+                    // message every 2 s refreshes the session (the server drains <=64-byte client frames).
+                    clearInterval(keepaliveTimer);
+                    keepaliveTimer = setInterval(() => {
+                        if (ws_stream.readyState === WebSocket.OPEN) {
+                            ws_stream.send("k");
+                        }
+                    }, 2000);
+                };
 
-                StreamStats.frames += 1;
+                ws_stream.onmessage = (event) => {
+                    const previousUrl = currentFrameUrl;
+                    currentFrameUrl = URL.createObjectURL(event.data);
+                    imgElement.src = currentFrameUrl;
+                    if (previousUrl) {
+                        URL.revokeObjectURL(previousUrl);
+                    }
+
+                    StreamStats.frames += 1;
+                };
+
+                ws_stream.onclose = () => {
+                    App.updateStatus("DISCONNECTED", "#ff0000");
+                    clearInterval(keepaliveTimer);
+                    keepaliveTimer = null;
+                    setTimeout(connectStream, 1000);
+                };
+
+                ws_stream.onerror = (error) => {
+                    console.error('WebSocket Error: ', error);
+                    App.updateStatus("RETRYING", "orange");
+                };
+            }
+
+            // fps is computed on a timer so it drops to 0 when frames stop arriving.
+            setInterval(() => {
                 const now = performance.now();
-                if (now - StreamStats.windowStart >= 1000) {
-                    const fps = Math.round((StreamStats.frames * 1000) / (now - StreamStats.windowStart));
-                    document.getElementById('metric-fps').textContent = fps;
-                    StreamStats.frames = 0;
-                    StreamStats.windowStart = now;
-                }
-            };
+                const fps = Math.round((StreamStats.frames * 1000) / (now - StreamStats.windowStart));
+                document.getElementById('metric-fps').textContent = fps;
+                StreamStats.frames = 0;
+                StreamStats.windowStart = now;
+            }, 1000);
 
-            ws_stream.onclose = () => {
-                App.updateStatus("DISCONNECTED", "#ff0000");
-            };
-
-            ws_stream.onerror = (error) => {
-                console.error('WebSocket Error: ', error);
-                App.updateStatus("RETRYING", "orange");
-            };
+            connectStream();
 
             //* NOTE: DUPLICATE CODE - refactor
             // This code is used for the detection and metrics WS
 
             // Connect to the WebSocket server running on localhost
-            const ws_commands = new WebSocket(`ws:/${window.location.host}/commands`);
+            const ws_commands = new WebSocket(`ws://${window.location.host}/commands`);
 
             // Register WS to the App instance
             App.state.commands_socket = ws_commands;

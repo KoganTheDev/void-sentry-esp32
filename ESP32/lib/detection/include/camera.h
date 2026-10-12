@@ -20,8 +20,9 @@ typedef struct {
 
 /**
  * @class Camera
- * @brief Singleton-style manager for camera lifecycle and frame acquisition.
- * @details Encapsulates the `esp_camera` driver. It is configured by default for
+ * @brief Camera setup and sensor tuning.
+ * @details Encapsulates the `esp_camera` driver initialisation and sensor settings. Frame acquisition is done by
+ * the camera task (see camera_task.h), not by this class. It is configured by default for
  * **Void Sentry's** real-time requirements: Low latency over high resolution.
  */
 class Camera

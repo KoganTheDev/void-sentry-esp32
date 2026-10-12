@@ -32,6 +32,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 8192;                               // Increase stack for JSON/String handling
     config.max_uri_handlers = 12;                           // Just to be safe
+    config.send_wait_timeout = 2;                           // seconds; stalled viewers would block httpd 5 s
     config.lru_purge_enable = true;                         // Purge oldest connection if full
     config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
 

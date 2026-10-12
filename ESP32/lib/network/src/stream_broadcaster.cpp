@@ -234,6 +234,14 @@ void StreamBroadcaster::run()
     }
 }
 
+void StreamBroadcaster::wake_task()
+{
+    if (task_ != nullptr)
+    {
+        xTaskNotifyGive(task_);
+    }
+}
+
 void StreamBroadcaster::send_job(void* arg)
 {
     auto* job = static_cast<SendJob*>(arg);
@@ -261,8 +269,11 @@ void StreamBroadcaster::send_job(void* arg)
     if (!still_same_viewer())
     {
         job->lease.reset(); // release the slot before touching the broadcaster mutex
-        Lock lock(self->mutex_);
-        job->in_flight = false;
+        {
+            Lock lock(self->mutex_);
+            job->in_flight = false;
+        }
+        self->wake_task();
         return; // viewer is gone: send nothing, close nothing
     }
 
@@ -292,6 +303,10 @@ void StreamBroadcaster::send_job(void* arg)
         }
         job->in_flight = false;
     }
+
+    // Wake the stream task so a viewer that just finished gets the newest frame now, not at the next publish.
+    // ready_for() already prevents sending the same sequence twice.
+    self->wake_task();
 
     if (err == ESP_OK)
     {

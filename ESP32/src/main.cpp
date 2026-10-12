@@ -6,6 +6,7 @@
 #include "pins.h"
 #include <Arduino.h>
 #include <esp_log.h>
+#include <esp_system.h>
 
 #include "secrets.h" // Not committed: copy include/secrets.h.example to include/secrets.h and set your WiFi
 #include "wifi_manager.h"
@@ -63,6 +64,7 @@ void setup()
     ESP_LOGI(TAG_MAIN, "==== SMART CAMERA TURRET SYSTEM ====");
     ESP_LOGI(TAG_MAIN, "====  Initialization Sequence   ====");
     ESP_LOGI(TAG_MAIN, "====================================");
+    ESP_LOGI(TAG_MAIN, "Reset reason: %d", (int)esp_reset_reason()); // lets a soak test confirm no reboots
     ESP_LOGI(TAG_MAIN, "Initializing components...");
     ESP_LOGI(TAG_MAIN, "[SYSTEM] Initializing components...");
 
@@ -116,4 +118,7 @@ void loop()
     controller.run();        // Run main control loop
     WifiManager::maintain(); // Maintain WiFi connection
     log_stream_stats();
+
+    // capture() used to pace loop(); now it spins unpaced, so always yield one tick to idle/other tasks.
+    vTaskDelay(pdMS_TO_TICKS(1));
 }

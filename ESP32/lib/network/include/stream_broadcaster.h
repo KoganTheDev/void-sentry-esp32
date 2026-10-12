@@ -55,6 +55,7 @@ private:
     static void send_job(void* arg);
     void run();
     void remove_viewer(int fd);
+    void wake_task(); // notify the stream task that a send finished
 
     httpd_handle_t server_ = nullptr;
     FrameStore* store_ = nullptr;
