@@ -126,42 +126,6 @@ private:
     bool _is_registered;
 };
 
-class StreamWebsocketHandler : public WebsocketHandler
-{
-public:
-    StreamWebsocketHandler(httpd_handle_t server_handle, const char* uri, Camera& camera)
-        : WebsocketHandler(server_handle, uri), _camera(camera)
-    {
-    }
-
-    virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len)
-    {
-        const camera_buffer_t& fb = this->_camera.get_frame_buffer();
-
-        if (fb.length == 0)
-        {
-            ESP_LOGE(TAG_WEBSOCKETS, "Frame buffer is invalid");
-            return NULL;
-        }
-
-        out_buf = (uint8_t*)fb.buffer;
-        out_len = fb.length;
-
-        return (void*)-1;
-    }
-
-    virtual httpd_ws_type_t get_frame_type() const override { return HTTPD_WS_TYPE_BINARY; }
-
-    virtual void release_resource(void* resource)
-    {
-        // NOTE: this assums that the buffer is the first field of camera_fb_t
-        // this->_camera.release((camera_fb_t*)resource);
-    }
-
-private:
-    Camera& _camera;
-};
-
 class CommandsWebSocketHandler : public WebsocketHandler
 {
 public:

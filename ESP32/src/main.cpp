@@ -11,6 +11,8 @@
 #include "wifi_manager.h"
 
 #include "camera.h"
+#include "camera_task.h"
+#include "frame_store.h"
 #include "turret_server.h"
 
 static const char* TAG_MAIN = "MAIN";
@@ -24,8 +26,10 @@ CameraDiffDetection detection_manager;
 Joystick joystick(pins::JOYSTICK_X, pins::JOYSTICK_Y, pins::JOYSTICK_SW);
 HttpServer http_server;
 Camera camera;
+FrameStore frame_store;
+CameraTaskStats camera_stats;
 
-Controller controller(movement_manager, detection_manager, joystick, camera);
+Controller controller(movement_manager, detection_manager, joystick, frame_store);
 
 void setup()
 {
@@ -46,13 +50,15 @@ void setup()
 
     // Initialize Camera
     ESP_LOGI(TAG_MAIN, "Initializing Camera...");
-    if (camera.begin())
+    if (!camera.begin())
     {
-        ESP_LOGI(TAG_MAIN, "Camera initialized successfully");
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed - continuing without video");
+    } else if (!frame_store.begin() || !start_camera_task(frame_store, camera_stats))
+    {
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame pipeline failed to start - continuing without video");
     } else
     {
-        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed!");
-        return; // TODO: Decide if to stop running with a harsher stop
+        ESP_LOGI(TAG_MAIN, "Camera and frame pipeline running");
     }
 
     // Connect WiFi
@@ -84,7 +90,6 @@ void setup()
 
 void loop()
 {
-    camera.capture();
     controller.run();        // Run main control loop
     WifiManager::maintain(); // Maintain WiFi connection
 }

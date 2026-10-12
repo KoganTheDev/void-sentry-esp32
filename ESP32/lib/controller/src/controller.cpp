@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "camera.h"
+#include "frame_store.h"
 #include <Arduino.h>
 #include <esp_log.h>
 
@@ -15,14 +16,14 @@ void Controller::run()
         ESP_LOGI(TAG, "Control mode changed to: %s", this->_system_control_state.to_string());
     }
 
-    const camera_buffer_t& fb = this->_camera.get_frame_buffer();
-
-    if (fb.length == 0)
+    std::optional<frames::FrameLease> lease = this->_frame_store.acquire_latest();
+    if (!lease)
     {
-        ESP_LOGW(TAG, "AI_MODE: Frame capture failed - returned NULL. Camera buffer unavailable.");
-        unsigned long now = millis();
+        ESP_LOGV(TAG, "No frame published yet");
         return;
     }
+    camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length,
+                       lease->meta().width, lease->meta().height};
     // ESP_LOGD(TAG, "AI_MODE: Frame captured successfully (%u bytes)", fb->len);
 
     std::tuple<MoveX, MoveY> move_directions;

@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <tuple>
 
-class Camera; // Forward declaration to minimize header inter-dependency
+class FrameStore; // Forward declaration to minimize header inter-dependency
 
 /**
  * @class Controller
@@ -47,8 +47,8 @@ private:
     /** @brief Reference to the input handler for manual control. */
     Joystick& _joystick;
 
-    /** @brief Reference to the camera sensor interface. */
-    Camera& _camera;
+    /** @brief Reference to the store holding the latest published camera frame. */
+    FrameStore& _frame_store;
 
 public:
     /**
@@ -61,13 +61,13 @@ public:
      * @param movement_manager Reference to the movement implementation.
      * @param detection_module Reference to the detection implementation.
      * @param joystick Reference to the Joystick input handler.
-     * @param camera Reference to the Camera object.
+     * @param frame_store Reference to the FrameStore the camera task publishes into.
      * @note Defaults to `AI_MODE` upon initialization.
      */
     Controller(BaseMovementManager& movement_manager, BaseDetectionModule& detection_module, Joystick& joystick,
-               Camera& camera)
+               FrameStore& frame_store)
         : _system_control_state(SystemControl::AI_MODE), _movement_manager(movement_manager),
-          _detection_module(detection_module), _joystick(joystick), _camera(camera)
+          _detection_module(detection_module), _joystick(joystick), _frame_store(frame_store)
     {
     }
 

@@ -32,7 +32,6 @@ private:
      */
     static BaseDetectionModule* _detection_instance;
 
-    StreamWebsocketHandler* _stream_handler;
     CommandsWebSocketHandler* _commands_handler; // Used both for commands to the motors & sending metrics
 
 public:

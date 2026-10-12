@@ -28,7 +28,6 @@ class Camera
 {
 private:
     camera_config_t _config; ///< Internal configuration struct for the ESP-Camera driver.
-    camera_buffer_t _buffer;
 
 public:
     /**
@@ -43,7 +42,7 @@ public:
      * - **Buffering**: Double-buffering enabled to allow simultaneous capture and processing.
      * - **Grab Mode**: `CAMERA_GRAB_LATEST` ensures we never process "stale" motion data.
      */
-    Camera() : _buffer()
+    Camera()
     {
         this->_config.ledc_channel = LEDC_CHANNEL_0;
         this->_config.ledc_timer = LEDC_TIMER_0;
@@ -73,14 +72,6 @@ public:
         this->_config.grab_mode = CAMERA_GRAB_LATEST;
     }
 
-    ~Camera()
-    {
-        if (this->_buffer.buffer != NULL)
-        {
-            free(this->_buffer.buffer);
-        }
-    }
-
     /**
      * @brief Initializes the hardware and mounts the sensor.
      * @return true if the sensor was identified and PSRAM was allocated.
@@ -89,20 +80,4 @@ public:
     bool begin();
     /** @} */
 
-    /**
-     * @name Image Acquisition
-     * @{
-     */
-
-    /**
-     * @brief Synchronously captures a frame from the sensor.
-     * @return camera_fb_t* Pointer to the ESP-Camera frame buffer structure.
-     * @note This function blocks until a full frame is clocked into memory.
-     * @warning **Memory Safety**: You MUST call @ref release() with this pointer
-     * to return the buffer to the DMA pool.
-     */
-    void capture();
-    /** @} */
-
-    const camera_buffer_t& get_frame_buffer() { return this->_buffer; }
 };

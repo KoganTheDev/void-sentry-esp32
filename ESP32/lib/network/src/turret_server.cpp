@@ -16,15 +16,10 @@ httpd_handle_t HttpServer::_server_handle = nullptr;
 Camera* HttpServer::_camera_instance = nullptr;
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
 
-HttpServer::HttpServer() : _stream_handler(NULL), _commands_handler(NULL) {}
+HttpServer::HttpServer() : _commands_handler(NULL) {}
 
 HttpServer::~HttpServer()
 {
-    if (this->_stream_handler != NULL)
-    {
-        delete this->_stream_handler;
-    }
-
     if (this->_commands_handler != NULL)
     {
         delete this->_commands_handler;
@@ -46,9 +41,6 @@ bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
         // Define Root Route
         httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
-
-        this->_stream_handler = new StreamWebsocketHandler(this->_server_handle, "/stream", *camera);
-        this->_stream_handler->register_endpoint();
 
         this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection);
         this->_commands_handler->register_endpoint();
