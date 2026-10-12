@@ -6,7 +6,6 @@
 #include "camera_diff_detection.h"
 #include "esp_camera.h"
 #include "index_html.h"
-#include "motion_data.h"
 #include "websockets.h"
 
 static const char* TAG_HTTP = "HTTP_SERVER";

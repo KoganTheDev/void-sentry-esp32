@@ -1,309 +1,128 @@
 #include "camera_diff_detection.h"
-#include "motion_data.h"
 
-#include <cstring>
-#include <esp_camera.h>
+#include "direction.h"
+#include "jpeg_gray.h"
+
+#include <algorithm>
+#include <esp32-hal-log.h> // without it this file's ESP_LOGx output is dropped
 #include <esp_heap_caps.h>
-#include <esp_log.h>
-#include <img_converters.h>
+#include <esp_timer.h>
+#include <new>
 
 static const char* TAG = "DETECTION";
 
-CameraDiffDetection::CameraDiffDetection()
-    : _prev_frame(nullptr), _curr_frame(nullptr), _diff_buffer(nullptr), _buffers_allocated(false), _first_frame(true),
-      _last_centroid_x(0), _last_centroid_y(0)
+namespace
 {
+TrackSnapshot make_snapshot(const tracking::TrackState& track, size_t frame_width, size_t frame_height)
+{
+    TrackSnapshot s;
+    s.frame_width = static_cast<int>(frame_width);
+    s.frame_height = static_cast<int>(frame_height);
+    s.state = track.state;
+    s.id = track.id;
+    if (track.state == tracking::TrackPhase::Idle)
+    {
+        return s;
+    }
+    const int sx = s.frame_width / tracking::kGridW; // 4 for QVGA
+    const int sy = s.frame_height / tracking::kGridH;
+    s.x = std::clamp(static_cast<int>(track.cx * sx + sx / 2), 0, s.frame_width - 1);
+    s.y = std::clamp(static_cast<int>(track.cy * sy + sy / 2), 0, s.frame_height - 1);
+    const int x0 = std::clamp(track.box.x0 * sx, 0, s.frame_width);
+    const int y0 = std::clamp(track.box.y0 * sy, 0, s.frame_height);
+    const int x1 = std::clamp((track.box.x1 + 1) * sx, 0, s.frame_width);
+    const int y1 = std::clamp((track.box.y1 + 1) * sy, 0, s.frame_height);
+    s.bx = x0;
+    s.by = y0;
+    s.bw = x1 - x0;
+    s.bh = y1 - y0;
+    s.vx = track.vx * static_cast<float>(sx);
+    s.vy = track.vy * static_cast<float>(sy);
+    s.area_px = track.area * sx * sy;
+    return s;
 }
+} // namespace
 
 CameraDiffDetection::~CameraDiffDetection()
 {
-    if (this->_buffers_allocated)
+    if (this->_pipeline)
     {
-        if (this->_prev_frame)
-            heap_caps_free(this->_prev_frame);
-        if (this->_curr_frame)
-            heap_caps_free(this->_curr_frame);
-        if (this->_diff_buffer)
-            heap_caps_free(this->_diff_buffer);
+        this->_pipeline->~Pipeline();
+        heap_caps_free(this->_pipeline);
     }
+}
+
+bool CameraDiffDetection::begin()
+{
+    if (this->_pipeline)
+    {
+        return true;
+    }
+    void* mem = heap_caps_malloc(sizeof(Pipeline), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (!mem)
+    {
+        ESP_LOGE(TAG, "Failed to allocate the %u-byte tracking pipeline in PSRAM", (unsigned)sizeof(Pipeline));
+        return false;
+    }
+    this->_pipeline = new (mem) Pipeline{};
+    ESP_LOGI(TAG, "Tracking pipeline ready (%u bytes in PSRAM)", (unsigned)sizeof(Pipeline));
+    return true;
 }
 
 std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t frame)
 {
-    // Initialize frame dimensions on first call
-    if (frame.width > 0 && frame.height > 0)
+    const auto no_move = std::make_tuple(MoveX(MoveX::None), MoveY(MoveY::None));
+    if (!this->_pipeline || !frame.buffer || frame.length == 0)
     {
-        // Update motion data with frame dimensions, even if no motion detected
-        // This ensures the client always knows the frame resolution
-        this->_last_motion_data = MotionData(0, 0, frame.width, frame.height, 0);
+        return no_move;
     }
 
-    // TODO: Implement actual motion detection
-    // For now, return no motion
-    return std::make_tuple<MoveX, MoveY>(MoveX::None, MoveY::None);
+    const int64_t t0 = esp_timer_get_time();
+    const bool decoded =
+        jpeg_gray::decode(static_cast<const uint8_t*>(frame.buffer), frame.length, this->_pipeline->gray);
+    const int64_t t1 = esp_timer_get_time();
+    if (!decoded)
+    {
+        portENTER_CRITICAL(&this->_lock);
+        ++this->_stats.decode_failures;
+        portEXIT_CRITICAL(&this->_lock);
+        ESP_LOGD(TAG, "JPEG decode failed (%u bytes)", (unsigned)frame.length);
+        return no_move;
+    }
+
+    const tracking::DetectionResult& detection = this->_pipeline->detector.process(this->_pipeline->gray);
+    const tracking::TrackState& track = this->_pipeline->tracker.update(detection);
+    const int64_t t2 = esp_timer_get_time();
+
+    const TrackSnapshot snapshot = make_snapshot(track, frame.width, frame.height);
+    portENTER_CRITICAL(&this->_lock);
+    this->_snapshot = snapshot;
+    ++this->_stats.frames;
+    if (detection.scene_change)
+    {
+        ++this->_stats.scene_changes;
+    }
+    this->_decode_us_total += static_cast<uint64_t>(t1 - t0);
+    this->_track_us_total += static_cast<uint64_t>(t2 - t1);
+    this->_stats.decode_us_avg = static_cast<uint32_t>(this->_decode_us_total / this->_stats.frames);
+    this->_stats.track_us_avg = static_cast<uint32_t>(this->_track_us_total / this->_stats.frames);
+    portEXIT_CRITICAL(&this->_lock);
+
+    return tracking::direction_for(track);
 }
 
-// std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t frame)
-// {
-//     if (!frame.buffer)
-//     {
-//         ESP_LOGW(TAG, "detect_object called with NULL frame");
-//         return std::make_tuple(MoveX::None, MoveY::None);
-//     }
-
-//     if (frame.buffer == NULL)
-//     {
-//         ESP_LOGE(TAG, "ERROR: Frame buffer pointer is NULL!");
-//         return std::make_tuple(MoveX::None, MoveY::None);
-//     }
-
-//     // Log frame details for debugging
-//     // ESP_LOGD(TAG, "detect_object: Frame received - Size:%u bytes, Width:%d, Height:%d, Format:%d", frame->len,
-//     //        frame->width, frame->height, frame->format);
-
-//     // Track metrics: record start time and frame count
-//     uint32_t frame_start_time = millis();
-//     this->_current_metrics.set_total_frames(this->_current_metrics.get_total_frames() + 1);
-//     this->_current_metrics.set_last_frame_timestamp(frame_start_time);
-
-//     // === STEP 1: Allocate buffers on first frame ===
-//     if (!this->_buffers_allocated)
-//     {
-//         size_t buffer_size = frame.width * frame.height;
-//         ESP_LOGI(TAG, "First frame detected - Allocating buffers: %u bytes each", buffer_size);
-
-//         this->_prev_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-//         this->_curr_frame = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-//         this->_diff_buffer = (uint8_t*)heap_caps_malloc(buffer_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-
-//         if (!this->_prev_frame || !this->_curr_frame || !this->_diff_buffer)
-//         {
-//             ESP_LOGE(TAG, "CRITICAL: Failed to allocate frame buffers! prev:%p curr:%p diff:%p", this->_prev_frame,
-//                      this->_curr_frame, this->_diff_buffer);
-//             Serial.println("[DETECTION] Failed to allocate frame buffers");
-//             return std::make_tuple(MoveX::None, MoveY::None);
-//         }
-
-//         this->_buffers_allocated = true;
-//         ESP_LOGI(TAG, "Buffers allocated successfully");
-//     }
-
-//     // === STEP 2: Decompress JPEG to greyscale for analysis AND RGB565 for overlay ===
-//     // ESP_LOGD(TAG, "Starting JPEG decompression...");
-//     //if (!jpeg_to_greyscale(frame.buffer, this->_curr_frame))
-//     {
-//         ESP_LOGE(TAG, "Frame decompression failed (Free INTERNAL heap: %u bytes, Free PSRAM: %u bytes)",
-//                  esp_get_free_heap_size(), ESP.getFreePsram());
-//         return std::make_tuple(MoveX::None, MoveY::None);
-//     }
-//     // ESP_LOGD(TAG, "JPEG decompression successful");
-
-//     // === STEP 3: Skip first frame (need previous frame to compare) ===
-//     if (this->_first_frame)
-//     {
-//         memcpy(this->_prev_frame, this->_curr_frame, frame.width * frame.height);
-//         this->_first_frame = false;
-//         return std::make_tuple(MoveX::None, MoveY::None);
-//     }
-
-//     // === STEP 4: Detect motion by comparing frames ===
-//     int motion_centroid_x = 0, motion_centroid_y = 0;
-//     int motion_pixel_count = 0;
-
-//     bool motion_found = find_motion(this->_prev_frame, this->_curr_frame, frame.width, frame.height,
-//     motion_centroid_x,
-//                                     motion_centroid_y, motion_pixel_count);
-
-//     // === STEP 5: Save current frame as previous for next iteration ===
-//     memcpy(this->_prev_frame, this->_curr_frame, frame.width * frame.height);
-
-//     if (motion_found)
-//     {
-//         this->_last_motion_data =
-//             MotionData(motion_centroid_x, motion_centroid_y, frame.width, frame.height, motion_pixel_count);
-
-//         // Update last known position
-//         this->_last_centroid_x = motion_centroid_x;
-//         this->_last_centroid_y = motion_centroid_y;
-
-//         // Update metrics: motion detected
-
-//         this->_current_metrics.set_total_detections(this->_current_metrics.get_total_detections() + 1);
-//         this->_current_metrics.set_consecutive_static_frames(0);
-
-//         // Calculate confidence (0.0-1.0 based on pixels changed relative to threshold)
-//         float confidence = (float)motion_pixel_count / (float)MOTION_THRESHOLD;
-//         if (confidence > 1.0f)
-//         {
-//             confidence = 1.0f;
-//         }
-//         this->_current_metrics.set_motion_confidence(confidence);
-//         this->_current_metrics.set_pixels_changed(motion_pixel_count);
-//     } else
-//     {
-//         this->_last_motion_data = MotionData(); // Empty motion data (no motion)
-//         this->_current_metrics.set_consecutive_motion_frames(0);
-//         this->_current_metrics.set_motion_confidence(0.0f);
-//         this->_current_metrics.set_pixels_changed(0);
-//     }
-
-//     // Update detection time metric
-//     uint32_t detection_time = millis() - frame_start_time;
-//     this->_current_metrics.set_detection_time_ms(detection_time);
-
-//     calculate_fps();
-
-//     if (!motion_found)
-//     {
-//         return std::make_tuple(MoveX::None, MoveY::None);
-//     }
-
-//     // === STEP 8: Convert motion centroid to movement direction ===
-//     int center_x = frame.width / 2;
-//     int center_y = frame.height / 2;
-
-//     MoveX x_dir = MoveX::None;
-//     MoveY y_dir = MoveY::None;
-
-//     // X-axis: determine if motion is left or right of center (with deadzone)
-//     if (motion_centroid_x < center_x - CENTER_DEADZONE)
-//     {
-//         x_dir = MoveX::Left;
-//     } else if (motion_centroid_x > center_x + CENTER_DEADZONE)
-//     {
-//         x_dir = MoveX::Right;
-//     }
-
-//     // Y-axis: determine if motion is up or down from center (with deadzone)
-//     if (motion_centroid_y < center_y - CENTER_DEADZONE)
-//     {
-//         y_dir = MoveY::Up;
-//     } else if (motion_centroid_y > center_y + CENTER_DEADZONE)
-//     {
-//         y_dir = MoveY::Down;
-//     }
-
-//     ESP_LOGD(TAG, "moving: x: [%s] y: [%s]", x_dir.to_string(), y_dir.to_string());
-
-//     return std::make_tuple(x_dir, y_dir);
-// }
-
-void CameraDiffDetection::calculate_fps()
+TrackSnapshot CameraDiffDetection::get_track_snapshot() const
 {
-    // Calculate average FPS every 30 frames
-    static uint32_t frame_count = 0;
-    static uint32_t fps_timer = 0;
-    frame_count++;
-    if ((millis() - fps_timer) >= 1000)
-    {
-        this->_current_metrics.set_average_fps(frame_count);
-        frame_count = 0;
-        fps_timer = millis();
-    }
+    portENTER_CRITICAL(&this->_lock);
+    const TrackSnapshot copy = this->_snapshot;
+    portEXIT_CRITICAL(&this->_lock);
+    return copy;
 }
 
-bool CameraDiffDetection::find_motion(uint8_t* prev, uint8_t* curr, int width, int height, int& center_x, int& center_y,
-                                      int& pixel_count)
+DetectionStats CameraDiffDetection::get_stats() const
 {
-    uint64_t total_diff = 0;
-    uint64_t weighted_x = 0;
-    uint64_t weighted_y = 0;
-    int motion_pixels = 0;
-
-    // PERFORMANCE GAIN: stride of 4 = 1/16th of the work.
-    const int stride = 4;
-
-    for (int y = 0; y < height; y += stride)
-    {
-        for (int x = 0; x < width; x += stride)
-        {
-            int idx = y * width + x;
-            int diff = abs((int)curr[idx] - (int)prev[idx]);
-
-            if (diff > DIFF_THRESHOLD)
-            {
-                weighted_x += (uint64_t)x * diff;
-                weighted_y += (uint64_t)y * diff;
-                total_diff += diff;
-                motion_pixels++;
-            }
-        }
-    }
-
-    // Update pixel count (scaled back up to represent the full frame size roughly)
-    pixel_count = motion_pixels * (stride * stride);
-
-    // If motion_pixels is too low, stop here.
-    if (pixel_count < MOTION_THRESHOLD)
-    {
-        return false;
-    }
-
-    if (total_diff > 0)
-    {
-        center_x = (int)(weighted_x / total_diff);
-        center_y = (int)(weighted_y / total_diff);
-    }
-
-    // === Step 4: Filter sensor noise (reject motion at image edges) ===
-    // These regions often have artifacts and false positives
-    int bottom_edge_y = height - (height / 10); // Bottom 10%
-    int top_edge_y = height / 20;               // Top 5%
-    int left_edge_x = width / 20;               // Left 5%
-    int right_edge_x = width - (width / 20);    // Right 5%
-
-    // Only reject if motion is ONLY in edge region with insufficient pixels
-    bool is_in_bottom_edge = (center_y > bottom_edge_y);
-    bool is_in_top_edge = (center_y < top_edge_y);
-    bool is_in_left_edge = (center_x < left_edge_x);
-    bool is_in_right_edge = (center_x > right_edge_x);
-
-    if ((is_in_bottom_edge || is_in_top_edge || is_in_left_edge || is_in_right_edge) &&
-        motion_pixels < (MOTION_THRESHOLD * 2))
-    {
-        pixel_count = motion_pixels;
-        return false; // Reject edge noise
-    }
-
-    // === Step 5: Motion confirmed ===
-    pixel_count = motion_pixels;
-    // Serial.printf("[CAMERA] Motion detected - Centroid: (%d, %d), Pixels: %d\n", center_x, center_y, motion_pixels);
-    return true;
+    portENTER_CRITICAL(&this->_lock);
+    const DetectionStats copy = this->_stats;
+    portEXIT_CRITICAL(&this->_lock);
+    return copy;
 }
-
-// bool CameraDiffDetection::jpeg_to_greyscale(void* frame, uint8_t* output)
-// {
-//     frame = (camera_fb_t*)frame;
-
-//     if (!frame || !output)
-//         return false;
-
-//     size_t pixel_count = frame->width * frame->height;
-//     size_t rgb_size = pixel_count * 3;
-
-//     // Allocate temp RGB buffer in PSRAM
-//     uint8_t* rgb_tmp = (uint8_t*)heap_caps_malloc(rgb_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-//     if (!rgb_tmp)
-//         return false;
-
-//     // Decompress JPEG directly to RGB888
-//     if (!fmt2rgb888(frame->buf, frame->len, PIXFORMAT_JPEG, rgb_tmp))
-//     {
-//         heap_caps_free(rgb_tmp);
-//         return false;
-//     }
-
-//     // SPEED FIX: Use the Green channel as a high-speed proxy for Grayscale
-//     // Pointer arithmetic is faster than index [i*3+1]
-//     uint8_t* src = rgb_tmp + 1; // Point to first Green byte
-//     uint8_t* dst = output;
-
-//     for (size_t i = 0; i < pixel_count; ++i)
-//     {
-//         *dst++ = *src;
-//         src += 3; // Move to next Green byte
-//     }
-
-//     heap_caps_free(rgb_tmp);
-//     return true;
-// }

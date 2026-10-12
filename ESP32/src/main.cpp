@@ -44,15 +44,20 @@ static void log_stream_stats()
     last_ms = now;
 
     const FrameStoreStats store = frame_store.stats();
+    const DetectionStats det = detection_manager.get_stats();
+    const TrackSnapshot track = detection_manager.get_track_snapshot();
     const uint32_t copies = camera_stats.copies.load();
     const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
     ESP_LOGI(TAG_MAIN,
              "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
-             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u",
+             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
+             "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u",
              (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
              (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
              (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
-             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram());
+             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(), (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg,
+             (unsigned)det.scene_changes, (unsigned)det.decode_failures, tracking::to_string(track.state),
+             (unsigned)track.id);
 }
 
 void setup()
@@ -84,6 +89,11 @@ void setup()
     } else
     {
         ESP_LOGI(TAG_MAIN, "Camera and frame pipeline running");
+    }
+
+    if (!detection_manager.begin())
+    {
+        ESP_LOGE(TAG_MAIN, "Tracking pipeline allocation failed - continuing without detection");
     }
 
     // Connect WiFi

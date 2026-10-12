@@ -43,7 +43,10 @@ void Controller::run()
     // Release the slot before moving: the stepper blocks ~15 ms and must not pin a frame slot.
     lease.reset();
 
-    this->_movement_manager.move_relative(move_directions); // Move stepper & motor
+    if (kAiAimEnabled)
+    {
+        this->_movement_manager.move_relative(move_directions); // Move stepper & motor
+    }
 }
 
 const std::tuple<MoveX, MoveY> Controller::user_mode() const

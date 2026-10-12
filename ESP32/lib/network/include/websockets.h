@@ -3,7 +3,8 @@
 // TODO: Change name to the header file and split to cpp file as well
 #include "base_detection_module.h"
 #include "camera.h"
-#include "motion_data.h"
+#include "track_snapshot.h"
+#include "tracking_types.h"
 #include <cstdio>
 #include <cstring>
 #include <esp_http_server.h>
@@ -149,18 +150,21 @@ public:
         // Serialize metrics to JSON format
         if (_detection_instance != nullptr)
         {
-            MotionData motion = _detection_instance->get_motion_data();
-
-            // Format: {"detected": bool, "x": int, "y": int, "width": int, "height": int, "pixels": int}
+            const TrackSnapshot t = _detection_instance->get_track_snapshot();
+            // Existing keys first (older HUDs keep working), then the tracker fields.
             int len = snprintf((char*)json_buf, 256,
-                               "{\"detected\":%d,\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"pixels\":%d}",
-                               motion.is_detected() ? 1 : 0, motion.get_centroid_x(), motion.get_centroid_y(),
-                               motion.get_frame_width(), motion.get_frame_height(), motion.get_pixel_count());
-
+                               "{\"detected\":%d,\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"pixels\":%d,"
+                               "\"state\":\"%s\",\"id\":%u,\"bx\":%d,\"by\":%d,\"bw\":%d,\"bh\":%d,"
+                               "\"vx\":%.1f,\"vy\":%.1f}",
+                               t.detected() ? 1 : 0, t.x, t.y, t.frame_width, t.frame_height, t.area_px,
+                               tracking::to_string(t.state), (unsigned)t.id, t.bx, t.by, t.bw, t.bh, (double)t.vx,
+                               (double)t.vy);
+            if (len < 0 || len >= 256)
+            {
+                len = snprintf((char*)json_buf, 256, "{\"detected\":0}");
+            }
             out_buf = json_buf;
             out_len = len;
-            ESP_LOGD(TAG_WEBSOCKETS, "Metrics: detected=%d, x=%d, y=%d, pixels=%d", motion.is_detected(),
-                     motion.get_centroid_x(), motion.get_centroid_y(), motion.get_pixel_count());
         } else
         {
             // Fallback if no detection module

@@ -53,6 +53,9 @@ private:
     /** @brief Minimum time between joystick-driven moves in USER_MODE (25 Hz). */
     static constexpr uint32_t kUserModePeriodMs = 40;
 
+    /// Stage 2 detects and tracks only; Stage 3 turns AI aiming on (and adds move/settle handling).
+    static constexpr bool kAiAimEnabled = false;
+
     /** @brief Timestamp (millis) of the last USER_MODE move. */
     uint32_t _last_user_move_ms = 0;
 
