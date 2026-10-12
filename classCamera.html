@@ -99,22 +99,18 @@ $(function(){initNavTree('classCamera.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classCamera-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">Camera Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Singleton-style manager for camera lifecycle and frame acquisition.  
+<p><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> setup and sensor tuning.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="camera_8h_source.html">camera.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa4d8cff366d7dca54185e45620f675ba" id="r_aa4d8cff366d7dca54185e45620f675ba"><td class="memItemLeft" align="right" valign="top"><a id="aa4d8cff366d7dca54185e45620f675ba" name="aa4d8cff366d7dca54185e45620f675ba"></a>
-const <a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get_frame_buffer</b> ()</td></tr>
-<tr class="separator:aa4d8cff366d7dca54185e45620f675ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Lifecycle Management</div></td></tr>
 <tr class="memitem:a01f94c3543f56ede7af49dc778f19331" id="r_a01f94c3543f56ede7af49dc778f19331"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01f94c3543f56ede7af49dc778f19331">Camera</a> ()</td></tr>
 <tr class="memdesc:a01f94c3543f56ede7af49dc778f19331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor: Pre-configures the sensor for optimal CV performance.  <br /></td></tr>
@@ -122,14 +118,10 @@ const <a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> &amp
 <tr class="memitem:acf5ae93972c164692f27be6dbae37ee4" id="r_acf5ae93972c164692f27be6dbae37ee4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf5ae93972c164692f27be6dbae37ee4">begin</a> ()</td></tr>
 <tr class="memdesc:acf5ae93972c164692f27be6dbae37ee4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the hardware and mounts the sensor.  <br /></td></tr>
 <tr class="separator:acf5ae93972c164692f27be6dbae37ee4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">Image Acquisition</div></td></tr>
-<tr class="memitem:a3ca730dcbd7ea6bfba12931a15066f6c" id="r_a3ca730dcbd7ea6bfba12931a15066f6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3ca730dcbd7ea6bfba12931a15066f6c">capture</a> ()</td></tr>
-<tr class="memdesc:a3ca730dcbd7ea6bfba12931a15066f6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Synchronously captures a frame from the sensor.  <br /></td></tr>
-<tr class="separator:a3ca730dcbd7ea6bfba12931a15066f6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Singleton-style manager for camera lifecycle and frame acquisition. </p>
-<p>Encapsulates the <code>esp_camera</code> driver. It is configured by default for <b>Void Sentry's</b> real-time requirements: Low latency over high resolution. </p>
+<div class="textblock"><p><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> setup and sensor tuning. </p>
+<p>Encapsulates the <code>esp_camera</code> driver initialisation and sensor settings. Frame acquisition is done by the camera task (see <a class="el" href="camera__task_8h.html" title="FreeRTOS task that owns frame capture: driver frame -&gt; checks -&gt; copy into a FrameStore slot -&gt; publi...">camera_task.h</a>), not by this class. It is configured by default for <b>Void Sentry's</b> real-time requirements: Low latency over high resolution. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a01f94c3543f56ede7af49dc778f19331" name="a01f94c3543f56ede7af49dc778f19331"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a01f94c3543f56ede7af49dc778f19331">&#9670;&#160;</a></span>Camera()</h2>
@@ -183,28 +175,6 @@ const <a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> &amp
 <dl class="section return"><dt>Returns</dt><dd>true if the sensor was identified and PSRAM was allocated. </dd>
 <dd>
 false if the SCCB bus failed or the camera is not powered. </dd></dl>
-
-</div>
-</div>
-<a id="a3ca730dcbd7ea6bfba12931a15066f6c" name="a3ca730dcbd7ea6bfba12931a15066f6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ca730dcbd7ea6bfba12931a15066f6c">&#9670;&#160;</a></span>capture()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Camera::capture </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Synchronously captures a frame from the sensor. </p>
-<dl class="section return"><dt>Returns</dt><dd>camera_fb_t* Pointer to the ESP-Camera frame buffer structure. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>This function blocks until a full frame is clocked into memory. </dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd><b>Memory Safety</b>: You MUST call release() with this pointer to return the buffer to the DMA pool. </dd></dl>
 
 </div>
 </div>

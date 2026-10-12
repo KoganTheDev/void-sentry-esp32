@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['joystick_0',['Joystick',['../classJoystick.html',1,'']]]
+  ['httpserver_0',['HttpServer',['../classHttpServer.html',1,'']]]
 ];

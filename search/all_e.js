@@ -1,10 +1,15 @@
 var searchData=
 [
-  ['h_20tt_20at_20build_20time_20model_3a_20sonnet_0',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]],
-  ['haiku_1',['Haiku',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md14',1,'Task 2: Format-on-edit hook (model: Haiku)'],['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md16',1,'Task 3: One-time reformat (model: Haiku)']]],
-  ['hardware_20and_20pin_20map_20done_2',['Hardware and pin map (done)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md25',1,'']]],
-  ['header_20to_20do_3',['Generated web UI header (to do)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md31',1,'']]],
-  ['hook_20model_3a_20haiku_4',['Task 2: Format-on-edit hook (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md14',1,'']]],
-  ['html_5fheader_5',['html_header',['../namespacehtml__header.html',1,'']]],
-  ['httpserver_6',['HttpServer',['../classHttpServer.html',1,'']]]
+  ['definition_20of_20done_0',['Definition of done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md53',1,'']]],
+  ['delegated_1',['Task 5: Push, PR, green CI (main session, not delegated)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md21',1,'']]],
+  ['design_2',['Design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md58',1,'']]],
+  ['design_3',['design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md44',1,'Stage 0 design'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html',1,'Void Sentry rebuild: roadmap and Stage 0 design']]],
+  ['detect_5fobject_4',['detect_object',['../classBaseDetectionModule.html#af7cb10ab2baa1de9c82f0ef6c2a71cdd',1,'BaseDetectionModule::detect_object()'],['../classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7',1,'CameraDiffDetection::detect_object()']]],
+  ['detectionmetrics_5',['DetectionMetrics',['../classDetectionMetrics.html',1,'DetectionMetrics'],['../classDetectionMetrics.html#a9e330101526583d66120b8e3d160e3d6',1,'DetectionMetrics::DetectionMetrics()']]],
+  ['device_20wrapper_6',['2. &lt;tt&gt;FrameStore&lt;/tt&gt;: device wrapper',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md60',1,'']]],
+  ['diagnostics_7',['8. Diagnostics',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md66',1,'']]],
+  ['do_8',['do',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md50',1,'CI (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md49',1,'Formatting (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md51',1,'Generated web UI header (to do)']]],
+  ['done_9',['done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md53',1,'Definition of done'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md45',1,'Hardware and pin map (done)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md46',1,'Language and toolchain (done)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md48',1,'Native tests (done)']]],
+  ['done_20for_20now_10',['WiFi credentials (done for now)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md47',1,'']]],
+  ['down_11',['Down',['../classMoveY.html#ab9de7c2f5b705b8ee966d3012dadec2c',1,'MoveY']]]
 ];

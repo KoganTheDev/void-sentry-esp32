@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['camera_0',['Camera',['../classCamera.html#a01f94c3543f56ede7af49dc778f19331',1,'Camera']]],
-  ['capture_1',['capture',['../classCamera.html#a3ca730dcbd7ea6bfba12931a15066f6c',1,'Camera']]],
-  ['connect_2',['connect',['../classWifiManager.html#ac6c4d034ba6892d7f1ffb2e444986a69',1,'WifiManager']]],
-  ['controller_3',['Controller',['../classController.html#a8c0a045b07fa2b34556c291a19d75ab8',1,'Controller']]]
+  ['begin_0',['begin',['../classJoystick.html#a63105c47384cf6696021985fd852992b',1,'Joystick::begin()'],['../classCamera.html#acf5ae93972c164692f27be6dbae37ee4',1,'Camera::begin()'],['../classFrameStore.html#ad8d699c70981ea1969fbac6fae40d1ad',1,'FrameStore::begin()']]],
+  ['begin_5fwrite_1',['begin_write',['../classframes_1_1FrameSlots.html#ad5927bb42fbfcfa2168de3e151dafa95',1,'frames::FrameSlots']]]
 ];

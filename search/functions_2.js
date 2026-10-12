@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['detect_5fobject_0',['detect_object',['../classBaseDetectionModule.html#af7cb10ab2baa1de9c82f0ef6c2a71cdd',1,'BaseDetectionModule::detect_object()'],['../classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7',1,'CameraDiffDetection::detect_object()']]],
-  ['detectionmetrics_1',['DetectionMetrics',['../classDetectionMetrics.html#a9e330101526583d66120b8e3d160e3d6',1,'DetectionMetrics']]]
+  ['camera_0',['Camera',['../classCamera.html#a01f94c3543f56ede7af49dc778f19331',1,'Camera']]],
+  ['connect_1',['connect',['../classWifiManager.html#ac6c4d034ba6892d7f1ffb2e444986a69',1,'WifiManager']]],
+  ['controller_2',['Controller',['../classController.html#a396db3c4c61b15a1fffe92b315c9652f',1,'Controller']]]
 ];

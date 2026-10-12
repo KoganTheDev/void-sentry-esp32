@@ -112,9 +112,9 @@ $(function(){initNavTree('classController.html',''); initResizable(true); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Lifecycle Management</div></td></tr>
-<tr class="memitem:a8c0a045b07fa2b34556c291a19d75ab8" id="r_a8c0a045b07fa2b34556c291a19d75ab8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c0a045b07fa2b34556c291a19d75ab8">Controller</a> (<a class="el" href="classBaseMovementManager.html">BaseMovementManager</a> &amp;movement_manager, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick, <a class="el" href="classCamera.html">Camera</a> &amp;camera)</td></tr>
-<tr class="memdesc:a8c0a045b07fa2b34556c291a19d75ab8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object.  <br /></td></tr>
-<tr class="separator:a8c0a045b07fa2b34556c291a19d75ab8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a396db3c4c61b15a1fffe92b315c9652f" id="r_a396db3c4c61b15a1fffe92b315c9652f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a396db3c4c61b15a1fffe92b315c9652f">Controller</a> (<a class="el" href="classBaseMovementManager.html">BaseMovementManager</a> &amp;movement_manager, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick, <a class="el" href="classFrameStore.html">FrameStore</a> &amp;frame_store)</td></tr>
+<tr class="memdesc:a396db3c4c61b15a1fffe92b315c9652f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object.  <br /></td></tr>
+<tr class="separator:a396db3c4c61b15a1fffe92b315c9652f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ab87934c4f7a266cfdb86e0f36bc1b5" id="r_a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ab87934c4f7a266cfdb86e0f36bc1b5">~Controller</a> ()</td></tr>
 <tr class="memdesc:a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> object.  <br /></td></tr>
 <tr class="separator:a0ab87934c4f7a266cfdb86e0f36bc1b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -130,12 +130,12 @@ const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="e
 <div class="textblock"><p>Handles logic for object detection and movement calculations. </p>
 <p>The <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> implements a <b>State-Driven architecture</b>. It acts as the bridge between the Computer Vision pipeline and the physical servos.</p><ul>
 <li><b>Control Arbitration Logic:</b></li>
-<li><b>AI_MODE</b>: The controller requests a frame from the <a class="el" href="classCamera.html">Camera</a>, passes it to the <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a>, and calculates the error vector to center the target.</li>
-<li><b>USER_MODE</b>: The controller bypasses the CV pipeline and maps <a class="el" href="classJoystick.html">Joystick</a> input directly to the <a class="el" href="classBaseMovementManager.html">BaseMovementManager</a>. </li>
+<li><b>AI_MODE</b>: The controller leases the latest published frame from the <a class="el" href="classFrameStore.html">FrameStore</a> (once per new frame sequence), passes it to the <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a>, and calculates the error vector to center the target.</li>
+<li><b>USER_MODE</b>: The controller bypasses the CV pipeline and frames entirely, and maps <a class="el" href="classJoystick.html">Joystick</a> input directly to the <a class="el" href="classBaseMovementManager.html">BaseMovementManager</a> at most once per kUserModePeriodMs. </li>
 </ul>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8c0a045b07fa2b34556c291a19d75ab8" name="a8c0a045b07fa2b34556c291a19d75ab8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c0a045b07fa2b34556c291a19d75ab8">&#9670;&#160;</a></span>Controller()</h2>
+<a id="a396db3c4c61b15a1fffe92b315c9652f" name="a396db3c4c61b15a1fffe92b315c9652f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a396db3c4c61b15a1fffe92b315c9652f">&#9670;&#160;</a></span>Controller()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -161,7 +161,7 @@ const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="e
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classCamera.html">Camera</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>camera</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="classFrameStore.html">FrameStore</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>frame_store</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -177,7 +177,7 @@ const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="e
     <tr><td class="paramname">movement_manager</td><td>Reference to the movement implementation. </td></tr>
     <tr><td class="paramname">detection_module</td><td>Reference to the detection implementation. </td></tr>
     <tr><td class="paramname">joystick</td><td>Reference to the <a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> input handler. </td></tr>
-    <tr><td class="paramname">camera</td><td>Reference to the <a class="el" href="classCamera.html" title="Singleton-style manager for camera lifecycle and frame acquisition.">Camera</a> object. </td></tr>
+    <tr><td class="paramname">frame_store</td><td>Reference to the <a class="el" href="classFrameStore.html">FrameStore</a> the camera task publishes into. </td></tr>
   </table>
   </dd>
 </dl>
@@ -238,20 +238,17 @@ const std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="e
 <li>If <b>USER_MODE</b>:</li>
 </ol>
 <ul>
-<li>Poll <code>_joystick</code> for X/Y offsets.</li>
-<li>Call <code>_movement_manager.move()</code>.</li>
+<li>Poll <code>_joystick</code> for X/Y offsets (no frame needed).</li>
+<li>Call <code>_movement_manager.move_relative()</code> at most once per kUserModePeriodMs.</li>
 </ul>
 <ol type="1">
 <li>If <b>AI_MODE</b>:</li>
 </ol>
 <ul>
-<li>Capture frame from <code>_camera</code>.</li>
-<li>Perform inference via <code>_detection_module</code>.</li>
-<li>Translate target coordinates to motor pulses.</li>
-<li><dl class="section warning"><dt>Warning</dt><dd>This function is blocking relative to the frame-rate of the camera. </dd></dl>
+<li>Borrow the latest frame from the <code>_frame_store</code> via a lease; return if none or already processed.</li>
+<li>Perform inference via <code>_detection_module</code>, release the lease, then move. <dl class="section warning"><dt>Warning</dt><dd>Not paced by the camera: returns immediately when there is nothing to do, so the caller's loop must yield. A move blocks for roughly 15 ms while the stepper steps. </dd></dl>
 </li>
 </ul>
-<p>THIS is my problem and I need to find a way to solve it, too tired though :X</p>
 
 </div>
 </div>

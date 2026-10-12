@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['test_5fhtml_5fheader_0',['test_html_header',['../namespacetest__html__header.html',1,'']]]
+  ['sanitize_5flink_0',['sanitize_link',['../namespacesanitize__link.html',1,'']]]
 ];

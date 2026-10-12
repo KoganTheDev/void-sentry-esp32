@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['pin_5fcheck_2ecpp_0',['pin_check.cpp',['../pin__check_8cpp.html',1,'']]],
-  ['pins_2eh_1',['pins.h',['../pins_8h.html',1,'']]]
+  ['frame_5fslots_2eh_0',['frame_slots.h',['../frame__slots_8h.html',1,'']]],
+  ['frame_5fstore_2eh_1',['frame_store.h',['../frame__store_8h.html',1,'']]]
 ];

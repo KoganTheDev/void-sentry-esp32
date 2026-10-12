@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['implementation_20plan_0',['Void Sentry Stage 0 Tooling Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html',1,'']]]
+  ['esp32_0',['Smart Camera ESP32',['../index.html',1,'']]]
 ];

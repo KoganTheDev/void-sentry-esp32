@@ -1,10 +1,6 @@
 var searchData=
 [
-  ['of_20done_0',['Definition of done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md33',1,'']]],
-  ['on_20edit_20hook_20model_3a_20haiku_1',['Task 2: Format-on-edit hook (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md14',1,'']]],
-  ['one_20time_20reformat_20model_3a_20haiku_2',['Task 3: One-time reformat (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md16',1,'']]],
-  ['operator_20uint8_5ft_3',['operator uint8_t',['../classMoveDirection.html#af0463f6a6b1897b9d2aaa5cb94af206e',1,'MoveDirection::operator uint8_t()'],['../classSystemControl.html#ab2697fe8baf9c12740cc977c7692e00e',1,'SystemControl::operator uint8_t()']]],
-  ['operator_21_4',['operator!',['../classMoveDirection.html#a8306660625ef7a0a44f2c32709bb93ac',1,'MoveDirection']]],
-  ['operator_21_3d_5',['operator!=',['../classMoveDirection.html#a85ab7cbe17b0a493c7a47bfb1ab749b2',1,'MoveDirection::operator!=()'],['../classSystemControl.html#ae052fe1b2878234b6a542fd809d5990e',1,'SystemControl::operator!=()']]],
-  ['operator_3d_3d_6',['operator==',['../classMoveDirection.html#a1d6fe45bf2a1b7e1c4f0d4d556564663',1,'MoveDirection::operator==()'],['../classSystemControl.html#ab8d1dff8e078df943d502836c2212ecf',1,'SystemControl::operator==()']]]
+  ['job_20model_3a_20haiku_0',['Task 3: &lt;tt&gt;native_sanitize&lt;/tt&gt; env + CI job (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md32',1,'']]],
+  ['joystick_1',['Joystick',['../classJoystick.html',1,'Joystick'],['../classJoystick.html#a446881cfdacc5cdbbcbbfe0183ba4949',1,'Joystick::Joystick()']]],
+  ['jpeg_5fcheck_2eh_2',['jpeg_check.h',['../jpeg__check_8h.html',1,'']]]
 ];

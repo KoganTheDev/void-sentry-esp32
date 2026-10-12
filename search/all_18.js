@@ -1,22 +1,12 @@
 var searchData=
 [
-  ['task_201_3a_20generate_20tt_20index_5fhtml_20h_20tt_20at_20build_20time_20model_3a_20sonnet_0',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]],
-  ['task_202_3a_20format_20on_20edit_20hook_20model_3a_20haiku_1',['Task 2: Format-on-edit hook (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md14',1,'']]],
-  ['task_203_3a_20one_20time_20reformat_20model_3a_20haiku_2',['Task 3: One-time reformat (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md16',1,'']]],
-  ['task_204_3a_20ci_20workflow_20model_3a_20sonnet_3',['Task 4: CI workflow (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md18',1,'']]],
-  ['task_205_3a_20push_20pr_20green_20ci_20main_20session_20not_20delegated_4',['Task 5: Push, PR, green CI (main session, not delegated)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md20',1,'']]],
-  ['technical_20specifications_5',['Technical Specifications',['../index.html#autotoc_md37',1,'']]],
-  ['test_5fhtml_5fheader_6',['test_html_header',['../namespacetest__html__header.html',1,'']]],
-  ['test_5ftypes_2ecpp_7',['test_types.cpp',['../test__types_8cpp.html',1,'']]],
-  ['testdetection_8',['TestDetection',['../classTestDetection.html',1,'']]],
-  ['tests_20done_9',['Native tests (done)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md28',1,'']]],
-  ['time_20model_3a_20sonnet_10',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]],
-  ['time_20reformat_20model_3a_20haiku_11',['Task 3: One-time reformat (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md16',1,'']]],
-  ['to_20do_12',['to do',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md30',1,'CI (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md29',1,'Formatting (to do)'],['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md31',1,'Generated web UI header (to do)']]],
-  ['to_5fstring_13',['to_string',['../classMoveX.html#af98d9dcfd882ff9959be3bdbbd22125d',1,'MoveX::to_string()'],['../classMoveY.html#a52d06fd28d24038d654b6e2d2df9d8c3',1,'MoveY::to_string()'],['../classSystemControl.html#a6cccbcfaa319cfd81708208af0ad4ce7',1,'SystemControl::to_string() const']]],
-  ['toggle_5fmode_14',['toggle_mode',['../classSystemControl.html#ae3c7a7e75fd8bf4b8d9575ed3507030a',1,'SystemControl']]],
-  ['toolchain_20done_15',['Language and toolchain (done)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md26',1,'']]],
-  ['tooling_20implementation_20plan_16',['Void Sentry Stage 0 Tooling Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html',1,'']]],
-  ['tt_20at_20build_20time_20model_3a_20sonnet_17',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]],
-  ['tt_20index_5fhtml_20h_20tt_20at_20build_20time_20model_3a_20sonnet_18',['Task 1: Generate &lt;tt&gt;index_html.h&lt;/tt&gt; at build time (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md12',1,'']]]
+  ['of_20done_0',['Definition of done',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md53',1,'']]],
+  ['on_20edit_20hook_20model_3a_20haiku_1',['Task 2: Format-on-edit hook (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md15',1,'']]],
+  ['on_5fsession_5fclosed_2',['on_session_closed',['../classStreamBroadcaster.html#a7f588b64b82dbe0a98f3a7b9cf71897f',1,'StreamBroadcaster']]],
+  ['one_20time_20reformat_20model_3a_20haiku_3',['Task 3: One-time reformat (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md17',1,'']]],
+  ['operator_20uint8_5ft_4',['operator uint8_t',['../classMoveDirection.html#af0463f6a6b1897b9d2aaa5cb94af206e',1,'MoveDirection::operator uint8_t()'],['../classSystemControl.html#ab2697fe8baf9c12740cc977c7692e00e',1,'SystemControl::operator uint8_t()']]],
+  ['operator_21_5',['operator!',['../classMoveDirection.html#a8306660625ef7a0a44f2c32709bb93ac',1,'MoveDirection']]],
+  ['operator_21_3d_6',['operator!=',['../classMoveDirection.html#a85ab7cbe17b0a493c7a47bfb1ab749b2',1,'MoveDirection::operator!=()'],['../classSystemControl.html#ae052fe1b2878234b6a542fd809d5990e',1,'SystemControl::operator!=()']]],
+  ['operator_3d_3d_7',['operator==',['../classMoveDirection.html#a1d6fe45bf2a1b7e1c4f0d4d556564663',1,'MoveDirection::operator==()'],['../classSystemControl.html#ab8d1dff8e078df943d502836c2212ecf',1,'SystemControl::operator==()']]],
+  ['ownership_20and_20push_20streaming_8',['Void Sentry Stage 1: frame ownership and push streaming',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html',1,'']]]
 ];

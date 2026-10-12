@@ -113,9 +113,17 @@ $(function(){initNavTree('classHttpServer.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac5238dfb325fa6edd997f8b872e0331c" id="r_ac5238dfb325fa6edd997f8b872e0331c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac5238dfb325fa6edd997f8b872e0331c">start</a> (<a class="el" href="classCamera.html">Camera</a> *camera, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr)</td></tr>
-<tr class="memdesc:ac5238dfb325fa6edd997f8b872e0331c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
-<tr class="separator:ac5238dfb325fa6edd997f8b872e0331c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a583fdf935dad6516750852c16555de7e" id="r_a583fdf935dad6516750852c16555de7e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a583fdf935dad6516750852c16555de7e">start</a> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr)</td></tr>
+<tr class="memdesc:a583fdf935dad6516750852c16555de7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
+<tr class="separator:a583fdf935dad6516750852c16555de7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d6b3350ea803a591b55faebef86a88f" id="r_a8d6b3350ea803a591b55faebef86a88f"><td class="memItemLeft" align="right" valign="top"><a id="a8d6b3350ea803a591b55faebef86a88f" name="a8d6b3350ea803a591b55faebef86a88f"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames_sent</b> () const</td></tr>
+<tr class="memdesc:a8d6b3350ea803a591b55faebef86a88f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frames successfully sent to /stream viewers since boot. <br /></td></tr>
+<tr class="separator:a8d6b3350ea803a591b55faebef86a88f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6798a8dd370024af8759dc0ed385fefd" id="r_a6798a8dd370024af8759dc0ed385fefd"><td class="memItemLeft" align="right" valign="top"><a id="a6798a8dd370024af8759dc0ed385fefd" name="a6798a8dd370024af8759dc0ed385fefd"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>viewer_count</b> ()</td></tr>
+<tr class="memdesc:a6798a8dd370024af8759dc0ed385fefd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of currently connected /stream viewers. <br /></td></tr>
+<tr class="separator:a6798a8dd370024af8759dc0ed385fefd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad9c63d3f8cda248e3c87067ac3ac5a5" id="r_aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="memItemLeft" align="right" valign="top"><a id="aad9c63d3f8cda248e3c87067ac3ac5a5" name="aad9c63d3f8cda248e3c87067ac3ac5a5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
 <tr class="memdesc:aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shut down the server and unregister all URI handlers. <br /></td></tr>
@@ -179,8 +187,8 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ac5238dfb325fa6edd997f8b872e0331c" name="ac5238dfb325fa6edd997f8b872e0331c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac5238dfb325fa6edd997f8b872e0331c">&#9670;&#160;</a></span>start()</h2>
+<a id="a583fdf935dad6516750852c16555de7e" name="a583fdf935dad6516750852c16555de7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a583fdf935dad6516750852c16555de7e">&#9670;&#160;</a></span>start()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,7 +196,7 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">bool HttpServer::start </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classCamera.html">Camera</a> *</td>          <td class="paramname"><span class="paramname"><em>camera</em></span>, </td>
+          <td class="paramtype"><a class="el" href="classFrameStore.html">FrameStore</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>store</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -201,7 +209,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Configures and launches the web server on port 80. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">camera</td><td>Pointer to the initialized <a class="el" href="classCamera.html" title="Singleton-style manager for camera lifecycle and frame acquisition.">Camera</a> object for streaming. </td></tr>
+    <tr><td class="paramname">store</td><td><a class="el" href="classFrameStore.html">FrameStore</a> the /stream endpoint reads frames from. Must outlive the server. </td></tr>
     <tr><td class="paramname">detection</td><td>Optional pointer to detection module for motion visualization. </td></tr>
   </table>
   </dd>
