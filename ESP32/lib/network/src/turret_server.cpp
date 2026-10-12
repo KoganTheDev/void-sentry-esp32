@@ -13,7 +13,6 @@ static const char* TAG_HTTP = "HTTP_SERVER";
 
 httpd_handle_t HttpServer::_server_handle = nullptr;
 
-Camera* HttpServer::_camera_instance = nullptr;
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
 
 HttpServer::HttpServer() : _commands_handler(NULL) {}
@@ -26,21 +25,27 @@ HttpServer::~HttpServer()
     }
 }
 
-bool HttpServer::start(Camera* camera, BaseDetectionModule* detection)
+bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
 {
-    this->_camera_instance = camera;
     this->_detection_instance = detection;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.stack_size = 8192;       // Increase stack for JSON/String handling
-    config.max_uri_handlers = 12;   // Just to be safe
-    config.lru_purge_enable = true; // Purge oldest connection if full
+    config.stack_size = 8192;                               // Increase stack for JSON/String handling
+    config.max_uri_handlers = 12;                           // Just to be safe
+    config.lru_purge_enable = true;                         // Purge oldest connection if full
+    config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
         // Define Root Route
         httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
+
+        if (!this->_broadcaster.start(this->_server_handle, store))
+        {
+            ESP_LOGE(TAG_HTTP, "Failed to start the /stream broadcaster");
+            return false;
+        }
 
         this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection);
         this->_commands_handler->register_endpoint();

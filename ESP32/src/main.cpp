@@ -31,6 +31,29 @@ CameraTaskStats camera_stats;
 
 Controller controller(movement_manager, detection_manager, joystick, frame_store);
 
+// One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
+static void log_stream_stats()
+{
+    static uint32_t last_ms = 0;
+    const uint32_t now = millis();
+    if (now - last_ms < 5000)
+    {
+        return;
+    }
+    last_ms = now;
+
+    const FrameStoreStats store = frame_store.stats();
+    const uint32_t copies = camera_stats.copies.load();
+    const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
+    ESP_LOGI(TAG_MAIN,
+             "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
+             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u",
+             (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
+             (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
+             (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
+             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram());
+}
+
 void setup()
 {
     Serial.begin(BAUDRATE);
@@ -68,7 +91,7 @@ void setup()
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(&camera, &detection_manager))
+    if (http_server.start(frame_store, &detection_manager))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else
@@ -92,4 +115,5 @@ void loop()
 {
     controller.run();        // Run main control loop
     WifiManager::maintain(); // Maintain WiFi connection
+    log_stream_stats();
 }
