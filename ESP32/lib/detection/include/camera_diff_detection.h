@@ -27,6 +27,9 @@ public:
     /** @brief Analyse one frame; returns the direction toward the tracked target (None when there is none). */
     std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) override;
 
+    /** @brief Reset detector and tracker and publish an Idle snapshot (loop task only). */
+    void reset() override;
+
     TrackSnapshot get_track_snapshot() const override;
     DetectionStats get_stats() const override;
 

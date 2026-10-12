@@ -144,6 +144,8 @@ void Tracker::miss()
     state_.state = TrackPhase::Coasting;
     state_.cx += state_.vx;
     state_.cy += state_.vy;
+    state_.cx = std::clamp(state_.cx, 0.0f, static_cast<float>(kGridW - 1)); // never coast off the grid
+    state_.cy = std::clamp(state_.cy, 0.0f, static_cast<float>(kGridH - 1));
     state_.vx *= config_.velocity_decay;
     state_.vy *= config_.velocity_decay;
     refresh_box();

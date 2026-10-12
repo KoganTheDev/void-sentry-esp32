@@ -13,6 +13,7 @@ void Controller::run()
     if (this->_joystick.is_z_pressed()) // Flip control state
     {
         this->_system_control_state.toggle_mode();
+        this->_detection_module.reset(); // no stale lock in USER_MODE, fresh start when AI_MODE resumes
         ESP_LOGI(TAG, "Control mode changed to: %s", this->_system_control_state.to_string());
     }
 

@@ -83,11 +83,15 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
     const int64_t t1 = esp_timer_get_time();
     if (!decoded)
     {
+        // A frame we cannot read counts as a miss, so the track decays instead of freezing the old snapshot.
+        const tracking::TrackState& missed = this->_pipeline->tracker.update(tracking::DetectionResult{});
+        const TrackSnapshot snapshot = make_snapshot(missed, frame.width, frame.height);
         portENTER_CRITICAL(&this->_lock);
         ++this->_stats.decode_failures;
+        this->_snapshot = snapshot;
         portEXIT_CRITICAL(&this->_lock);
         ESP_LOGD(TAG, "JPEG decode failed (%u bytes)", (unsigned)frame.length);
-        return no_move;
+        return tracking::direction_for(missed);
     }
 
     const tracking::DetectionResult& detection = this->_pipeline->detector.process(this->_pipeline->gray);
@@ -109,6 +113,22 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
     portEXIT_CRITICAL(&this->_lock);
 
     return tracking::direction_for(track);
+}
+
+void CameraDiffDetection::reset()
+{
+    if (!this->_pipeline)
+    {
+        return;
+    }
+    this->_pipeline->detector.reset();
+    this->_pipeline->tracker.reset();
+    portENTER_CRITICAL(&this->_lock);
+    TrackSnapshot idle;
+    idle.frame_width = this->_snapshot.frame_width;
+    idle.frame_height = this->_snapshot.frame_height;
+    this->_snapshot = idle;
+    portEXIT_CRITICAL(&this->_lock);
 }
 
 TrackSnapshot CameraDiffDetection::get_track_snapshot() const

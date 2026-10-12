@@ -199,6 +199,24 @@ void test_coasting_extrapolates_with_decay(void)
     TEST_ASSERT_FLOAT_WITHIN(0.001f, vx * 0.8f, s.vx);
 }
 
+void test_coasting_stays_on_the_grid(void)
+{
+    Tracker t;
+    for (int f = 0; f < 25; ++f)
+    {
+        t.update(with({rect_blob(3 * f, 20, 3 * f + 5, 25)})); // 3 cells/frame, last box ends at x = 77
+    }
+    TEST_ASSERT_TRUE(TrackPhase::Locked == t.state().state);
+    for (int i = 0; i < 10; ++i)
+    {
+        const TrackState& s = t.update(none());
+        TEST_ASSERT_TRUE(TrackPhase::Coasting == s.state);
+        TEST_ASSERT_TRUE(s.cx <= 79.0f);
+        TEST_ASSERT_TRUE(s.cx >= 0.0f);
+    }
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 79.0f, t.state().cx); // pinned at the right edge, not at 100+
+}
+
 void test_reset_goes_idle_and_keeps_id_counter(void)
 {
     Tracker t;
@@ -258,6 +276,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_scene_change_while_locked_coasts_then_reacquires);
     RUN_TEST(test_scene_change_while_tentative_goes_idle);
     RUN_TEST(test_coasting_extrapolates_with_decay);
+    RUN_TEST(test_coasting_stays_on_the_grid);
     RUN_TEST(test_reset_goes_idle_and_keeps_id_counter);
     RUN_TEST(test_direction_for);
     return UNITY_END();

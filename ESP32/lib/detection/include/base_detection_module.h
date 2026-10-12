@@ -41,6 +41,9 @@ public:
      */
     virtual TrackSnapshot get_track_snapshot() const { return TrackSnapshot{}; }
 
+    /** @brief Drop the current target and background. Called from the loop task only. */
+    virtual void reset() {}
+
     /** @brief Detection timings and counters for the stats line. */
     virtual DetectionStats get_stats() const { return DetectionStats{}; }
 };
