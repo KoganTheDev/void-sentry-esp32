@@ -43,7 +43,7 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
 - `std::optional<size_t> begin_write()` returns a slot that is not the latest, has no readers, and is not already being written.
   - It returns `std::nullopt` when none qualifies. The caller then drops the frame, and `FrameSlots` counts the drop.
 - `void publish(size_t slot, FrameMeta meta)` marks the slot published, assigns the next `sequence`, and makes it the latest.
-- `void abort_write(size_t slot)` returns a slot to free. The writer uses it when a frame is oversized or the capture failed.
+- `void abort_write(size_t slot, AbortReason reason)` returns a slot to free. `AbortReason` is `Oversize` or `CaptureFailed`, and only `Oversize` increments a counter.
 
 **Reader API:**
 - `std::optional<FrameLease> acquire_latest()` increments the latest slot's reader count and returns a lease. It returns `nullopt` before the first publish.
@@ -52,7 +52,7 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
   - Its destructor (or `release()`) decrements the reader count. A moved-from lease releases nothing.
 - **When a slot becomes reusable:** a slot that is published but no longer the latest becomes free once its reader count drops to 0.
 
-**Stats:** `frames_published()`, `frames_dropped_no_slot()`, and `frames_dropped_oversize()`. The writer reports the oversize case through `abort_write(slot, Reason::Oversize)`.
+**Stats:** `frames_published()`, `frames_dropped_no_slot()`, and `frames_dropped_oversize()`.
 
 **Threading:** `FrameSlots` is **not** thread-safe on its own. `FrameStore` serializes every call.
 
@@ -93,7 +93,7 @@ Live video in the HUD with **low latency** (the user's priority over smoothness 
 **API:**
 - `bool add(int fd)` returns `false` when the set is full; the caller then closes the new socket.
 - `void remove(int fd)`.
-- `std::vector<int> ready_for(uint32_t sequence)` returns the fds that are not busy and have `last_sequence_sent < sequence`. It uses a fixed-size array internally and returns at most `kMaxViewers` fds.
+- `ReadyList ready_for(uint32_t sequence) const` returns the fds that are not busy and have `last_sequence_sent < sequence`. `ReadyList` is a fixed-capacity value type (`std::array<int, kMaxViewers>` plus a `count`), so the stream path allocates nothing per frame.
 - `void mark_sending(int fd, uint32_t sequence)` and `void mark_done(int fd)`.
 
 ### 6. Push streaming
