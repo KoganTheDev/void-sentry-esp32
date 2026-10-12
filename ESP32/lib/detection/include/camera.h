@@ -79,5 +79,4 @@ public:
      */
     bool begin();
     /** @} */
-
 };

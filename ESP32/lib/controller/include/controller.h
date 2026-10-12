@@ -92,7 +92,7 @@ public:
      * - Poll `_joystick` for X/Y offsets.
      * - Call `_movement_manager.move()`.
      * 3. If **AI_MODE**:
-     * - Capture frame from `_camera`.
+     * - Borrow the latest frame from the `_frame_store` via a lease.
      * - Perform inference via `_detection_module`.
      * - Translate target coordinates to motor pulses.
      * * @warning This function is blocking relative to the frame-rate of the camera.

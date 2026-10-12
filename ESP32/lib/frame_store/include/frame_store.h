@@ -48,6 +48,9 @@ public:
 
     FrameStoreStats stats();
 
+    /** @brief True only after a fully successful begin(). Every other call is a safe no-op before that. */
+    bool ready() const { return ready_; }
+
     void release_slot(size_t slot) override;
 
 private:
@@ -55,4 +58,5 @@ private:
     std::array<uint8_t*, frames::kSlotCount> buffers_{};
     SemaphoreHandle_t mutex_ = nullptr;
     TaskHandle_t subscriber_ = nullptr;
+    bool ready_ = false;
 };

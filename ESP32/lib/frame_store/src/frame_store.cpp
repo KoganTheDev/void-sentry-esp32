@@ -23,6 +23,10 @@ private:
 
 bool FrameStore::begin()
 {
+    if (ready_)
+    {
+        return true;
+    }
     mutex_ = xSemaphoreCreateMutex();
     if (mutex_ == nullptr)
     {
@@ -35,21 +39,40 @@ bool FrameStore::begin()
         if (buffer == nullptr)
         {
             ESP_LOGE(TAG_STORE, "Failed to allocate %u bytes of PSRAM for a frame slot", (unsigned)kSlotBytes);
+            for (uint8_t*& allocated : buffers_)
+            {
+                if (allocated != nullptr)
+                {
+                    heap_caps_free(allocated);
+                    allocated = nullptr;
+                }
+            }
+            vSemaphoreDelete(mutex_);
+            mutex_ = nullptr;
             return false;
         }
     }
     ESP_LOGI(TAG_STORE, "%u slots x %u bytes allocated in PSRAM", (unsigned)frames::kSlotCount, (unsigned)kSlotBytes);
+    ready_ = true;
     return true;
 }
 
 std::optional<size_t> FrameStore::begin_write()
 {
+    if (!ready_)
+    {
+        return std::nullopt;
+    }
     Lock lock(mutex_);
     return slots_.begin_write();
 }
 
 void FrameStore::publish(size_t slot, const frames::FrameMeta& meta)
 {
+    if (!ready_)
+    {
+        return;
+    }
     {
         Lock lock(mutex_);
         slots_.publish(slot, meta);
@@ -62,24 +85,40 @@ void FrameStore::publish(size_t slot, const frames::FrameMeta& meta)
 
 void FrameStore::abort_write(size_t slot, frames::AbortReason reason)
 {
+    if (!ready_)
+    {
+        return;
+    }
     Lock lock(mutex_);
     slots_.abort_write(slot, reason);
 }
 
 std::optional<frames::FrameLease> FrameStore::acquire_latest()
 {
+    if (!ready_)
+    {
+        return std::nullopt;
+    }
     Lock lock(mutex_);
     return slots_.acquire_latest(*this);
 }
 
 void FrameStore::release_slot(size_t slot)
 {
+    if (!ready_)
+    {
+        return;
+    }
     Lock lock(mutex_);
     slots_.release_slot(slot);
 }
 
 FrameStoreStats FrameStore::stats()
 {
+    if (!ready_)
+    {
+        return FrameStoreStats{};
+    }
     Lock lock(mutex_);
     FrameStoreStats s;
     s.published = slots_.frames_published();

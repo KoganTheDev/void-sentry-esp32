@@ -22,8 +22,8 @@ void Controller::run()
         ESP_LOGV(TAG, "No frame published yet");
         return;
     }
-    camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length,
-                       lease->meta().width, lease->meta().height};
+    camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length, lease->meta().width,
+                       lease->meta().height};
     // ESP_LOGD(TAG, "AI_MODE: Frame captured successfully (%u bytes)", fb->len);
 
     std::tuple<MoveX, MoveY> move_directions;
