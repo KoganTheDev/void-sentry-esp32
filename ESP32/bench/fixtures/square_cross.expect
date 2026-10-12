@@ -1,0 +1,5 @@
+# Square enters at frame 10 (detector warm-up ends at frame 9); Locked on its 3rd frame.
+lock_by_frame=14
+max_ids=1
+min_locked_frames=50
+max_scene_changes=0

@@ -21,7 +21,7 @@ jobs:
             - name: Check formatting
               run: |
                   clang-format --version
-                  find ESP32/src ESP32/include ESP32/lib ESP32/test -type f \
+                  find ESP32/src ESP32/include ESP32/lib ESP32/test ESP32/bench -type f \
                       \( -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) \
                       ! -name index_html.h -print0 \
                       | xargs -0 clang-format --dry-run --Werror --style=file
@@ -91,3 +91,45 @@ jobs:
             - name: Run host unit tests under ASan + UBSan
               working-directory: ESP32
               run: pio test -e native_sanitize
+
+    tracking-bench:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - name: Tool tests
+              run: |
+                  pip install pillow
+                  python -m unittest discover -s tools/tracking -p "test_*.py"
+            - name: Fixtures are up to date
+              run: |
+                  python tools/tracking/make_synthetic_clips.py /tmp/fixtures
+                  cmp /tmp/fixtures/square_cross.gray ESP32/bench/fixtures/square_cross.gray
+                  cmp /tmp/fixtures/light_switch.gray ESP32/bench/fixtures/light_switch.gray
+            - name: Build bench (release and ASan+UBSan)
+              run: |
+                  SRC="ESP32/lib/tracking/src/*.cpp ESP32/bench/track_bench.cpp"
+                  INC="-I ESP32/include -I ESP32/lib/tracking/include"
+                  g++ -std=c++17 -O2 -g -fno-omit-frame-pointer -Wall -Wextra $INC $SRC -o track_bench
+                  g++ -std=c++17 -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined                       -fno-sanitize-recover=all $INC $SRC -o track_bench_asan
+            - name: Clip regression under ASan+UBSan
+              run: ./track_bench_asan ESP32/bench/fixtures/*.gray
+            - name: Clip regression and timing (release)
+              run: ./track_bench --repeat 20 ESP32/bench/fixtures/*.gray
+            - name: Instruction counts per frame (cachegrind, deterministic)
+              run: |
+                  sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
+                  for clip in ESP32/bench/fixtures/*.gray; do
+                      frames=$(( $(stat -c %s "$clip") / 4800 ))
+                      valgrind --tool=cachegrind --cache-sim=no --cachegrind-out-file=/dev/null                           ./track_bench --repeat 10 "$clip" 2> cg.txt > /dev/null
+                      ir=$(grep -oP 'I\s+refs:\s+\K[0-9,]+' cg.txt | tr -d ,)
+                      echo "$(basename "$clip"): $(( ir / (frames * 10) )) instructions/frame (incl. clip load)"
+                  done
+            - name: perf stat (best effort; hardware counters may be unavailable on hosted runners)
+              continue-on-error: true
+              run: |
+                  sudo apt-get install -y -qq linux-tools-common linux-tools-$(uname -r) || exit 1
+                  sudo sysctl -w kernel.perf_event_paranoid=-1
+                  perf stat -e instructions,task-clock ./track_bench --repeat 50 ESP32/bench/fixtures/*.gray
