@@ -24,11 +24,12 @@ pio check --severity=high --severity=medium   # cppcheck
 - `native` uses the first `g++` on PATH and needs GCC >= 8. This machine has WinLibs GCC 14.2 + LLVM 19 (clang-format, clangd) from winget, but an old MinGW 6.3 at `C:\MinGW\bin` may still shadow it. Check `g++ --version` if native builds fail on C++17. Code under test there must not include Arduino/ESP-IDF headers.
 - On-device suites under `ESP32/test/` are Unity sketches (`setup()` calls `UNITY_BEGIN()`), flashed and read over serial. Several are placeholders or stale: `test_motion/test_servo.cpp` (targets a `Turret::Servo` class that no longer exists) and `test_joystick/test_joystick.cpp` (passes 150 as the button pin and includes `"Joystick.h"` with the wrong case for Linux).
 - Never pipe `pio` into something that exits early (`grep -m1`, `head`): on Windows pio blocks forever writing to the closed pipe and the build looks hung. Redirect to a log file and grep the file. A clean firmware build takes about 1 minute.
-- Serial port is COM3 (CH340). To read the board without resetting it, open the port with DTR/RTS held low.
+- Serial port is the CH340 (COM3 or COM4 - the number changes when the board is re-plugged; check `pio device list`). To read the board without resetting it, open the port with DTR/RTS held low.
 - Formatting: `.clang-format` (LLVM base, Allman braces for functions/classes/control statements, 4-space indent, 120 columns, `int* p`), clang-format **19** locally (WinLibs LLVM) and in CI (`pip install "clang-format==19.1.*"`). A Claude Code `PostToolUse` hook (`.claude/hooks/format_cpp.py`) formats firmware C/C++ files on edit. CI (`ci.yml`) only checks with `--dry-run --Werror` and never commits to the branch.
 - CI (`ci.yml`): `format`, `web-ui-generator`, `build` (both firmware envs, with `secrets.h` copied from the example), `native-tests` and `native-sanitize`. `ci.yml` also has `workflow_dispatch` for manual runs. cppcheck stays in `static_analysis.yml`.
 - CI static analysis (`static_analysis.yml`) runs cppcheck with `--error-exitcode=1 --std=c++17` and blocks on warning/performance/portability findings. Use `// cppcheck-suppress <id>` inline when a finding is intentional.
 - Doxygen (`ESP32/Doxyfile`) publishes to `gh-pages` on push to `main`. Public headers use Doxygen `@brief`/`@details` blocks; keep that style for new APIs.
+- Board logs: Arduino's logger only shows ESP_LOGx from files that include `esp32-hal-log.h` (or Arduino.h); pure ESP-IDF files must include it or their logs are silently dropped.
 
 ## Sanitizers and profiling
 
@@ -65,6 +66,7 @@ Frames are produced by a camera FreeRTOS task and pushed to viewers by a stream 
 - With the camera attached exactly 8 GPIOs are free (0, 2, 12, 13, 14, 15, 32, 33) and the turret uses all 8. The stepper sits on strapping pins 12/15/2, which is safe only because ULN2003 inputs pull low.
 - **GPIO12 high at reset selects 1.8V flash** -> boot loop with `invalid header: 0xffffffff`, and uploads fail with `Wrong boot mode detected (0x2b)`. Seen on this build when the ULN2003's `+`/`-` were reversed (it then leaks current out of its IN pins and energizes every coil, so the motor gets hot). In the ROM's `boot:0x..` value, bit 5 is GPIO12, bit 4 is GPIO0.
 - Wiring is on a breadboard via the Freenove GPIO Extension Board, which feeds USB 5V/GND to the left rails and 3.3V/GND to the right rails. Motors run from the left 5V rail.
+- **Camera XCLK is 12 MHz, not the usual 20 MHz.** Measured on this board 2 m from the router (ping avg / 14 KB page fetch / capture fps): 20 MHz = 265 ms / 1.1-5.0 s / 27.8 fps (WiFi crippled); 16 MHz = 27 ms / 0.1-2.4 s erratic / 17.8 fps; 12 MHz = 19 ms / 0.07-0.13 s / 16.6 fps; 10 MHz = 17 ms / 0.14-0.19 s / 13.8 fps; camera off = 10 ms / 0.07 s. Higher XCLK means more camera clock/DMA activity that degrades WiFi; 12 MHz is the best fps that keeps WiFi healthy. Also: DHCP may give the board a new IP after reflashing - read the IP from the boot log, never assume it.
 
 ## Web UI pipeline
 

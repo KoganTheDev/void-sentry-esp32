@@ -1,5 +1,6 @@
 #include "frame_store.h"
 
+#include <esp32-hal-log.h>
 #include <esp_heap_caps.h>
 #include <esp_log.h>
 

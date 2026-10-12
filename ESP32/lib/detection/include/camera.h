@@ -64,7 +64,7 @@ public:
         this->_config.pin_pwdn = pins::CAM_PWDN;
         this->_config.pin_reset = pins::CAM_RESET;
 
-        this->_config.xclk_freq_hz = 20000000;       // 20MHz: Balance between speed and signal noise
+        this->_config.xclk_freq_hz = 12000000;       // 12 MHz: >=15 fps QVGA without wrecking WiFi (see CLAUDE.md)
         this->_config.pixel_format = PIXFORMAT_JPEG; // Required for MJPEG streaming
         this->_config.frame_size = FRAMESIZE_QVGA;   // 320x240
         this->_config.jpeg_quality = 12;             // 0-63 (lower is higher quality, 12 is optimal for Sentry)

@@ -1,5 +1,6 @@
 #include "stream_broadcaster.h"
 
+#include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
 #include <unistd.h>
 

@@ -87,7 +87,7 @@ void setup()
     }
 
     // Connect WiFi
-    ESP_LOGI(TAG_MAIN, "Connecting to WiFi: %s", WIFI_SSID);
+    ESP_LOGI(TAG_MAIN, "Connecting to WiFi...");
     WifiManager::connect(WIFI_SSID, WIFI_PASSWORD);
     ESP_LOGI(TAG_MAIN, "WiFi connection sequence initiated");
 

@@ -1,6 +1,7 @@
 #include "camera_task.h"
 
 #include <cstring>
+#include <esp32-hal-log.h>
 #include <esp_camera.h>
 #include <esp_log.h>
 #include <esp_timer.h>
