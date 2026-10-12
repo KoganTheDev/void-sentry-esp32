@@ -123,7 +123,7 @@ jobs:
               run: |
                   sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
                   for clip in ESP32/bench/fixtures/*.gray; do
-                      frames=$(( $(stat -c %s "$clip") / 4800 ))
+                      frames=$(( $(stat -c %s "$clip") / 1200 ))
                       valgrind --tool=cachegrind --cache-sim=no --cachegrind-out-file=/dev/null                           ./track_bench --repeat 10 "$clip" 2> cg.txt > /dev/null
                       ir=$(grep -oP 'I\s+refs:\s+\K[0-9,]+' cg.txt | tr -d ,)
                       echo "$(basename "$clip"): $(( ir / (frames * 10) )) instructions/frame (incl. clip load)"

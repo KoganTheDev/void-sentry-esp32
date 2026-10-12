@@ -1,6 +1,6 @@
 /**
  * @file track_bench.cpp
- * @brief Runs recorded 80x60 gray clips through MotionDetector + Tracker: regression checks and a host benchmark.
+ * @brief Runs recorded 40x30 gray clips through MotionDetector + Tracker: regression checks and a host benchmark.
  * @details Usage: track_bench [--repeat N] <clip.gray>... For each clip, reads <clip>.expect (if present) and
  * checks it (a malformed .expect line fails the clip); exits 1 if any expectation fails or a clip is malformed. Built
  * with plain g++ (see ci.yml).

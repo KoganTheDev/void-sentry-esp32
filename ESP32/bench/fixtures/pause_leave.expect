@@ -1,6 +1,6 @@
 # The square enters at frame 10, pauses for 2 s (frames 30-63) and is gone from frame 64. Idle again by frame 101
 # (observed last non-Idle frame is 96; limit was 64 + 60 = 124).
-lock_by_frame=16
+lock_by_frame=14
 max_ids=1
 min_locked_frames=60
 max_scene_changes=0

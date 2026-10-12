@@ -1,4 +1,5 @@
-# Square enters at frame 10 (detector warm-up ends at frame 9); Locked on its 3rd frame.
+# A 4x4 square enters at frame 10 (detector warm-up ends at frame 9), bounces off the 40-cell grid edges at
+# 1 cell/frame and is gone from frame 70. Locked on its 3rd frame (observed first lock 12, locked 58 of 60 visible).
 lock_by_frame=14
 max_ids=1
 min_locked_frames=50

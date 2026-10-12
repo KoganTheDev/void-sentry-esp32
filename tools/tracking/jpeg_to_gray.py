@@ -1,6 +1,6 @@
-"""Convert a folder of QVGA JPEG frames (sorted by name) into one 80x60 gray clip (<name>.gray).
+"""Convert a folder of QVGA JPEG frames (sorted by name) into one 40x30 gray clip (<name>.gray).
 
-Pillow's draft() uses libjpeg DCT scaling, close to the ESP32's TJpgDec 1/4-scale decode.
+Pillow's draft() uses libjpeg DCT scaling, close to the ESP32's TJpgDec 1/8-scale decode.
 Usage: python tools/tracking/jpeg_to_gray.py <jpeg_dir> <out.gray>
 """
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image
 
-W, H = 80, 60
+W, H = 40, 30
 
 
 def jpeg_to_gray_bytes(path):
