@@ -1,0 +1,60 @@
+/**
+ * @file motion_detector.h
+ * @brief Finds moving regions in 80x60 gray frames with a background model (pure C++17, natively tested).
+ * @details Per frame: foreground mask against an exponential-moving-average background, a scene-change guard,
+ * a 3x3 binary opening to remove isolated cells, and 8-connected blobs via two-pass union-find labelling.
+ * Background cells learn fast (1/16) and foreground cells slowly (1/128), so moving objects leave no trail while a
+ * stopped object is still absorbed eventually. All state is fixed-size (~38 KB): no heap. NOT thread-safe.
+ */
+
+#pragma once
+
+#include "tracking_types.h"
+
+namespace tracking
+{
+class MotionDetector
+{
+public:
+    explicit MotionDetector(const DetectorConfig& config = DetectorConfig{});
+
+    /** @brief Analyse one frame. The returned reference stays valid until the next call. */
+    const DetectionResult& process(const GrayFrame& frame);
+
+    /** @brief Forget the background; the next frame re-seeds it and starts the warm-up. */
+    void reset();
+
+    const DetectionResult& last() const { return result_; }
+
+private:
+    static constexpr int kMaxLabels = kCells / 2;
+    static constexpr int kMaxComponents = 64;
+
+    struct Accum {
+        int area = 0;
+        int sum_x = 0;
+        int sum_y = 0;
+        Box box;
+    };
+
+    void seed_background(const GrayFrame& frame);
+    void update_background(const GrayFrame& frame, bool selective);
+    int build_mask(const GrayFrame& frame);
+    void open_mask();
+    void label_blobs();
+    uint16_t find(uint16_t label);
+    void unite(uint16_t a, uint16_t b);
+
+    DetectorConfig config_;
+    bool seeded_ = false;
+    int warmup_left_ = 0;
+    DetectionResult result_;
+    std::array<uint16_t, kCells> background_{}; ///< Q8 fixed point (gray << 8)
+    std::array<uint8_t, kCells> mask_{};
+    std::array<uint8_t, kCells> scratch_{};
+    std::array<uint16_t, kCells> labels_{};
+    std::array<uint16_t, kMaxLabels + 1> parent_{};
+    std::array<uint8_t, kMaxLabels + 1> component_of_{};
+    std::array<Accum, kMaxComponents> accum_{};
+};
+} // namespace tracking
