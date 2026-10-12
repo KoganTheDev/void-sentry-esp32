@@ -6,8 +6,8 @@
 #pragma once
 
 #include "camera.h"
-#include "track_snapshot.h"
 #include "move_types.h"
+#include "track_snapshot.h"
 #include <esp_camera.h>
 #include <tuple>
 

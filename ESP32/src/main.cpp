@@ -55,9 +55,9 @@ static void log_stream_stats()
              (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
              (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
              (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
-             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(), (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg,
-             (unsigned)det.scene_changes, (unsigned)det.decode_failures, tracking::to_string(track.state),
-             (unsigned)track.id);
+             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
+             (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
+             (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id);
 }
 
 void setup()

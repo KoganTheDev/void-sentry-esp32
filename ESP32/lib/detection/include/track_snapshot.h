@@ -26,10 +26,7 @@ struct TrackSnapshot {
     int frame_width = 320;
     int frame_height = 240;
 
-    bool detected() const
-    {
-        return state == tracking::TrackPhase::Locked || state == tracking::TrackPhase::Coasting;
-    }
+    bool detected() const { return state == tracking::TrackPhase::Locked || state == tracking::TrackPhase::Coasting; }
 };
 
 struct DetectionStats {
