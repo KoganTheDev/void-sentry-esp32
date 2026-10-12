@@ -1,4 +1,4 @@
-#include "Joystick.h"
+#include "joystick.h"
 
 void Joystick::begin()
 {

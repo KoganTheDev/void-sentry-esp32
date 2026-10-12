@@ -3,10 +3,11 @@
 #include "controller.h"
 #include "joystick.h"
 #include "movement_manager.h"
+#include "pins.h"
 #include <Arduino.h>
 #include <esp_log.h>
 
-#include "secrets.h"
+#include "secrets.h" // Not committed: copy include/secrets.h.example to include/secrets.h and set your WiFi
 #include "wifi_manager.h"
 
 #include "camera.h"
@@ -15,11 +16,12 @@
 static const char* TAG_MAIN = "MAIN";
 
 Servo servo;
-Stepper stepper(STEPPER_NUMBER_OF_STEPS, STEPPER_PIN1, STEPPER_PIN3, STEPPER_PIN2, STEPPER_PIN4);
+// The 28BYJ-48 coil order needs IN1, IN3, IN2, IN4 for the Arduino Stepper library's sequence
+Stepper stepper(STEPPER_NUMBER_OF_STEPS, pins::STEPPER_IN1, pins::STEPPER_IN3, pins::STEPPER_IN2, pins::STEPPER_IN4);
 
 MovementManager movement_manager(stepper, servo);
 CameraDiffDetection detection_manager;
-Joystick joystick(JOYSTICK_PIN_X, JOYSTICK_PIN_Y, JOYSTICK_PIN_Z);
+Joystick joystick(pins::JOYSTICK_X, pins::JOYSTICK_Y, pins::JOYSTICK_SW);
 HttpServer http_server;
 Camera camera;
 
@@ -70,8 +72,8 @@ void setup()
     }
 
     // Attach Servo
-    ESP_LOGD(TAG_MAIN, "Attaching Servo on pin %d", SERVO_PIN);
-    servo.attach(SERVO_PIN);
+    ESP_LOGD(TAG_MAIN, "Attaching Servo on pin %d", pins::SERVO);
+    servo.attach(pins::SERVO);
     ESP_LOGI(TAG_MAIN, "Servo attached successfully");
 
     ESP_LOGI(TAG_MAIN, "====================================");

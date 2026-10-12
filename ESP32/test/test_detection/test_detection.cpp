@@ -1,17 +1,14 @@
+#include "base_detection_module.h"
 #include <Arduino.h>
 #include <unity.h>
-#include "base_detection_module.h"
 
 // TODO: Add tests
 
 // This runs BEFORE every test case
-void setUp(void)
-{
-}
+void setUp(void) {}
 
 // This runs AFTER every test case
-void tearDown(void) {
-}
+void tearDown(void) {}
 
 // Entry point for the test
 void setup()
