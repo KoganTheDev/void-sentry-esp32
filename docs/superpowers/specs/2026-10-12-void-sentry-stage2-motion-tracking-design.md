@@ -13,7 +13,7 @@ Scene: indoor desk/room demo, targets 1-3 m away (a hand, a person crossing the 
 | Decision | Choice | Why | Rejected |
 |---|---|---|---|
 | Pixel source | Decode the camera JPEG at 1/4 scale with `esp_jpg_decode(..., JPG_SCALE_4X, ...)` (ROM TJpgDec) straight into an 80x60 gray grid | No big RGB buffer, no per-frame malloc, averaging is a free noise filter, streaming keeps the camera's JPEG | Camera in gray/YUV + software JPEG for the stream (encode cost, undoes Stage 1); full-size RGB888 decode (230 KB, 16x the pixels needed) |
-| Background | Exponential moving average, `bg += (frame - bg) / 16`, `uint16_t` Q8 fixed point | Shows the whole object, not just its edges; sees slow motion | Previous-frame diff (edges only, misses slow motion); selective update under the target (ghosts, YAGNI) |
+| Background | Exponential moving average in `uint16_t` Q8 fixed point with a *conditional* rate: background cells learn 1/16 per frame, foreground cells 1/128 (all cells 1/16 during warm-up) | Shows the whole object, not just its edges; sees slow motion; a moving object leaves no trail (a single 1/16 rate leaves a ~15-cell ghost trail behind an 8-cell object moving 1 cell/frame, found while planning). Cost: a stopped object takes ~15 s to be absorbed instead of 1-2 s | Previous-frame diff (edges only, misses slow motion); single-rate EMA (trails); freezing the background under the tracked target (ghosts, YAGNI) |
 | Target | Single persistent track: largest blob confirmed over 3 frames, then sticky | Ignores flicker; does not jump to a bigger distraction | Centroid of all motion (aims between two movers); largest blob per frame (jumps) |
 | Prediction | Alpha-beta filter (constant velocity, fixed gains) | Steady-state Kalman with fixed gains; one target, position-only measurement | Full Kalman (covariance math buys nothing here) |
 | Where it runs | In `loop()` via `Controller`, once per new frame (as today) | No new task or sync; dual-core split is Stage 4 | New detection task now |
@@ -36,16 +36,16 @@ Constants: `kGridW = 80`, `kGridH = 60`, `kCells = 4800`. All state is fixed-siz
 
 `GrayFrame`: `std::array<uint8_t, kCells>`, row-major.
 
-`DetectorConfig` (defaults): `diff_threshold = 20`, `bg_shift = 4` (alpha 1/16), `scene_change_fraction = 0.35f`, `warmup_frames = 8`, `min_blob_cells = 6`, `max_blobs = 16`.
+`DetectorConfig` (defaults): `diff_threshold = 20`, `bg_shift = 4` (1/16), `fg_shift = 7` (1/128), `scene_change_fraction = 0.35f`, `warmup_frames = 8`, `min_blob_cells = 9` (the 3x3 opening already removes anything smaller than 3x3), `max_blobs = 16`.
 
 `MotionDetector::process(const GrayFrame&) -> const DetectionResult&`:
 1. First frame or after reset: `bg = frame` (Q8), start warm-up, return no blobs.
 2. Foreground mask: `|gray - bg| > diff_threshold`.
 3. 3x3 binary opening (erode then dilate) to remove isolated cells. Grid border cells treat outside as background.
 4. Scene-change guard: if foreground cells (before opening) exceed `scene_change_fraction * kCells`, set `scene_change = true`, reset `bg = frame`, restart warm-up, return no blobs.
-5. During warm-up: update bg, return no blobs.
+5. During warm-up: update every cell at 1/16, return no blobs.
 6. Blobs: two-pass connected components, 8-connectivity, union-find on fixed arrays (`uint16_t` labels, `kCells` capacity). Per blob: bounding box (x0, y0, x1, y1 inclusive, cells), area (cells), centroid (float, cells). Drop blobs under `min_blob_cells`; keep the `max_blobs` largest, sorted by area descending.
-7. Update bg with the EMA for every cell (after detection, so a new object is detected before it starts to blend in).
+7. Update bg using the raw mask from step 2 (computed against the old background, so this frame is unaffected): 1/16 for background cells, 1/128 for foreground cells.
 
 `DetectionResult`: `scene_change`, `warming_up`, `foreground_cells`, `blob_count`, `std::array<Blob, 16> blobs`.
 
@@ -67,7 +67,7 @@ Constants: `kGridW = 80`, `kGridH = 60`, `kCells = 4800`. All state is fixed-siz
 ### Device side
 
 - **`JpegGray`** (`lib/tracking_device` or inside `lib/detection`): `bool decode(const uint8_t* jpeg, size_t len, tracking::GrayFrame& out)` using `esp_jpg_decode(len, JPG_SCALE_4X, reader, writer, ctx)`. The writer converts each RGB888 pixel to luma `(77R + 150G + 29B) >> 8` into `out`. Rejects frames whose scaled size is not 80x60. **Verify early** whether `esp_jpg_decode` allocates per call; if it does, measure heap behaviour and document (or switch to the ROM `jd_prepare`/`jd_decomp` with a static work buffer).
-- **`CameraDiffDetection`** rebuilt: owns `JpegGray`, `MotionDetector`, `Tracker`; `detect_object()` decodes, processes, updates, records timings, publishes a snapshot, and returns `direction_for(track)`. The dead commented-out code and the unused members (`_prev_frame`, `_curr_frame`, `_diff_buffer`, `find_motion`, `jpeg_to_greyscale`, static-local `calculate_fps`) are removed.
+- **`CameraDiffDetection`** rebuilt: owns `JpegGray`, `MotionDetector`, `Tracker` (detector + tracker state, ~45 KB, allocated once in PSRAM by `begin()` so it does not cost internal RAM); `detect_object()` decodes, processes, updates, records timings, publishes a snapshot, and returns `direction_for(track)`. The dead commented-out code and the unused members (`_prev_frame`, `_curr_frame`, `_diff_buffer`, `find_motion`, `jpeg_to_greyscale`, static-local `calculate_fps`) are removed.
 - **Cross-task snapshot:** today the `/commands` handler (httpd task) calls `get_motion_data()` while `loop()` writes it (a data race). The detection module publishes a small POD snapshot (track state, box and centroid in QVGA pixels, velocity, timings, counters) under a `portMUX`/mutex; the handler copies it out. `MotionData` is extended or replaced accordingly.
 - **Controller:** in AI mode, detection runs per new frame as now, but `move_relative()` is not called (a single `constexpr bool kAiAimEnabled = false` in the controller; Stage 3 flips it).
 - **`/commands` JSON** (keep existing keys for compatibility, add new ones): `{"detected":0|1,"x","y","width","height","pixels","state":"idle|tentative|locked|coasting","id","bx","by","bw","bh","vx","vy"}` (QVGA pixels; `detected` = Locked or Coasting).
@@ -85,9 +85,10 @@ Constants: `kGridW = 80`, `kGridH = 60`, `kCells = 4800`. All state is fixed-siz
 **Recorded fixtures:**
 - `tools/record_stream.py`: connects to `ws://<ip>/stream`, saves N seconds of JPEG frames.
 - `tools/jpeg_to_gray.py`: Pillow `draft("L", (80, 60))` (libjpeg DCT scaling, close to TJpgDec's) -> one `<clip>.gray` file of concatenated 4800-byte frames, plus `<clip>.json` (frame count, source, expectations).
-- 3 clips of about 6 s each (~0.5 MB each), committed under `ESP32/test/fixtures/tracking/`: hand waving and stopping, person crossing the room, light switched on/off.
+- 3 clips of about 6 s each (~0.5 MB each), committed under `ESP32/bench/fixtures/`: hand waving and stopping, person crossing the room, light switched on/off. Two deterministic synthetic clips (`tools/tracking/make_synthetic_clips.py`) are committed too, so CI has fixtures before the real ones exist.
+- Clip regression runs in the bench program (`ESP32/bench/track_bench.cpp`, plain g++, also built with ASan + UBSan in CI), with per-clip expectations in `<clip>.expect`.
 
-**Host benchmark (CI job `tracking-bench`):** a small `-O2 -g -fno-omit-frame-pointer` program runs each clip and prints instructions per frame with `perf stat -e instructions`. If `perf` is not usable on GitHub's runners, fall back to `valgrind --tool=cachegrind` instruction counts (deterministic). Numbers go in the PR description.
+**Host benchmark (CI job `tracking-bench`):** the bench built `-O2 -g -fno-omit-frame-pointer` reports instructions per frame with `valgrind --tool=cachegrind` (deterministic, works on hosted runners); `perf stat` runs best-effort since hosted runners often lack hardware counters. Numbers go in the PR description.
 
 ## Success criteria (on hardware)
 
