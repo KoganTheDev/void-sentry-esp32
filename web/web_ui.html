@@ -491,6 +491,7 @@
             <details class="advanced-stats">
                 <summary>ADVANCED</summary>
                 <div class="stat-line">FPS <span class="stat-val" id="metric-fps">0</span></div>
+                <div class="stat-line">DECODE ERR <span class="stat-val" id="metric-decode-errors">0</span></div>
                 <div class="stat-line">CONF <span class="stat-val" id="metric-conf">0%</span></div>
                 <div class="stat-line">RAM <span class="stat-val" id="metric-mem">0 KB</span></div>
             </details>
@@ -756,49 +757,40 @@
                 }
             };
 
-            /**
-             * Converts a Blob object to a Base64 data URL string.
-             * @param {Blob} blob The Blob to convert.
-             * @returns {Promise<string>} A promise that resolves with the Base64 string (data URL).
-             */
-            function blobToBase64(blob) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-
-                    // Event handler when the reading is complete
-                    reader.onloadend = () => {
-                        resolve(btoa(reader.result)); // reader.result is the data URL (e.g., "data:image/png;base64,...")
-                    };
-
-                    // Event handler for errors
-                    reader.onerror = () => {
-                        reject(new Error("Error reading blob"));
-                    };
-
-                    // Start reading the blob as a data URL
-                    reader.readAsBinaryString(blob);
-                });
-            }
-
             const imgElement = document.getElementById('streamImg');
+            const StreamStats = { frames: 0, windowStart: performance.now(), decodeErrors: 0 };
+            let currentFrameUrl = null;
 
-            // Connect to the WebSocket server running on localhost
-            const ws_stream = new WebSocket(`ws:/${window.location.host}/stream`);
+            imgElement.addEventListener('error', () => {
+                StreamStats.decodeErrors += 1;
+                document.getElementById('metric-decode-errors').textContent = StreamStats.decodeErrors;
+            });
 
-            // Register WS to the App instance
+            // The board pushes one JPEG per message; nothing is requested from here.
+            const ws_stream = new WebSocket(`ws://${window.location.host}/stream`);
+            ws_stream.binaryType = 'blob';
             App.state.stream_socket = ws_stream;
 
             ws_stream.onopen = () => {
                 App.updateStatus("ONLINE", "#00ff41");
-                ws_stream.send(" ")
             };
 
-            ws_stream.onmessage = async (event) => {
-                // Reconstruct the image using the Base64 data URI format
-                let image = await blobToBase64(event.data)
-                console.log("data", image)
-                imgElement.src = 'data:image/jpeg;base64,' + image;
-                setTimeout(() => ws_stream.send(" "), 40); // When sending a message, a frame is sent back
+            ws_stream.onmessage = (event) => {
+                const previousUrl = currentFrameUrl;
+                currentFrameUrl = URL.createObjectURL(event.data);
+                imgElement.src = currentFrameUrl;
+                if (previousUrl) {
+                    URL.revokeObjectURL(previousUrl);
+                }
+
+                StreamStats.frames += 1;
+                const now = performance.now();
+                if (now - StreamStats.windowStart >= 1000) {
+                    const fps = Math.round((StreamStats.frames * 1000) / (now - StreamStats.windowStart));
+                    document.getElementById('metric-fps').textContent = fps;
+                    StreamStats.frames = 0;
+                    StreamStats.windowStart = now;
+                }
             };
 
             ws_stream.onclose = () => {
@@ -808,8 +800,6 @@
             ws_stream.onerror = (error) => {
                 console.error('WebSocket Error: ', error);
                 App.updateStatus("RETRYING", "orange");
-                // TODO: implement reconnection logic
-                // setTimeout(() => App.connect(), 2000);
             };
 
             //* NOTE: DUPLICATE CODE - refactor
