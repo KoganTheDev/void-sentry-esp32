@@ -9,7 +9,7 @@
 /**
  * @class CameraDiffDetection
  * @brief Motion detection and persistent single-target tracking on camera frames.
- * @details Each frame: JPEG -> 80x60 gray (jpeg_gray), MotionDetector, Tracker. The pipeline state (~50 KB) is
+ * @details Each frame: JPEG -> 40x30 gray (jpeg_gray), MotionDetector, Tracker. The pipeline state (~15 KB) is
  * allocated once in PSRAM by begin(); nothing is allocated per frame. detect_object() runs in loop(); the snapshot
  * and stats getters may be called from other tasks.
  */

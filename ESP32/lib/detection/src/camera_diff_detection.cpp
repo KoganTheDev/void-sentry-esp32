@@ -24,8 +24,12 @@ TrackSnapshot make_snapshot(const tracking::TrackState& track, size_t frame_widt
     {
         return s;
     }
-    const int sx = s.frame_width / tracking::kGridW; // 4 for QVGA
-    const int sy = s.frame_height / tracking::kGridH;
+    const int sx = s.frame_width / tracking::kGridW;  // 8 for QVGA (320 / 40)
+    const int sy = s.frame_height / tracking::kGridH; // 8 for QVGA (240 / 30)
+    if (sx == 0 || sy == 0)
+    {
+        return s; // frame smaller than the grid: report the Idle coordinates instead of a zero-sized scale
+    }
     s.x = std::clamp(static_cast<int>(track.cx * sx + sx / 2), 0, s.frame_width - 1);
     s.y = std::clamp(static_cast<int>(track.cy * sy + sy / 2), 0, s.frame_height - 1);
     const int x0 = std::clamp(track.box.x0 * sx, 0, s.frame_width);

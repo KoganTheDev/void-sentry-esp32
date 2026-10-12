@@ -1,8 +1,8 @@
 /**
  * @file tracking_types.h
  * @brief Value types shared by the motion detector and the tracker (pure C++17, natively tested).
- * @details Everything works on an 80x60 gray grid: the camera's QVGA JPEG decoded at 1/4 scale. Coordinates are in
- * grid cells; multiply by 4 for QVGA pixels.
+ * @details Everything works on a 40x30 gray grid: the camera's QVGA JPEG decoded at 1/8 scale (one DC value per 8x8
+ * block). Coordinates are in grid cells; multiply by 8 for QVGA pixels.
  */
 
 #pragma once
@@ -12,12 +12,12 @@
 
 namespace tracking
 {
-constexpr int kGridW = 80;
-constexpr int kGridH = 60;
+constexpr int kGridW = 40;
+constexpr int kGridH = 30;
 constexpr int kCells = kGridW * kGridH;
 constexpr int kMaxBlobs = 16;
 
-/** @brief One 80x60 luma frame, row-major (index = y * kGridW + x). */
+/** @brief One 40x30 luma frame, row-major (index = y * kGridW + x). */
 using GrayFrame = std::array<uint8_t, kCells>;
 
 /** @brief Inclusive cell rectangle. A default-constructed box is empty. */
@@ -72,7 +72,7 @@ struct DetectorConfig {
                                          ///< bg_shift again, so ghosts of a wrong background clear quickly
     float scene_change_fraction = 0.35f; ///< raw foreground above this fraction of the grid = scene change
     int warmup_frames = 8;               ///< frames with no blobs after the background is (re)seeded
-    int min_blob_cells = 9;              ///< smaller blobs are dropped (the 3x3 opening already removes most)
+    int min_blob_cells = 2;              ///< smaller blobs are dropped (rejects isolated noise cells)
     int max_blobs = kMaxBlobs;           ///< keep at most this many, largest first (clamped to kMaxBlobs)
 };
 
@@ -81,7 +81,7 @@ struct DetectionResult {
     bool scene_change = false;   ///< too much of the frame changed; background was reset
     bool warming_up = false;     ///< background just (re)seeded; no blobs reported
     bool label_overflow = false; ///< ran out of provisional labels; no blobs reported
-    int foreground_cells = 0;    ///< raw foreground count, before the opening
+    int foreground_cells = 0;    ///< raw foreground cell count (before blob filtering)
     int dropped_components = 0;  ///< components beyond the internal cap (not reported)
     int blob_count = 0;
     std::array<Blob, kMaxBlobs> blobs{};
@@ -110,7 +110,7 @@ struct TrackerConfig {
     int coast_frames = 17;         ///< misses tolerated before a lost target is dropped (~1 s)
     float alpha = 0.5f;            ///< position gain of the alpha-beta filter
     float beta = 0.2f;             ///< velocity gain
-    int gate_margin_min = 4;       ///< cells added around the predicted box
+    int gate_margin_min = 2;       ///< cells added around the predicted box
     float gate_margin_frac = 0.5f; ///< or this fraction of the target size, whichever is larger
     float velocity_decay = 0.8f;   ///< velocity multiplier per coasted frame
     int coast_gate_growth = 1;     ///< extra gate cells per coasted frame

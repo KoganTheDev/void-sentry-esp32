@@ -56,7 +56,6 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
 
     // The mask was computed against the old background, so updating now does not affect this frame.
     update_background(frame, true);
-    open_mask();
     label_blobs();
     return result_;
 }
@@ -114,53 +113,6 @@ int MotionDetector::build_mask(const GrayFrame& frame)
         count += fg;
     }
     return count;
-}
-
-void MotionDetector::open_mask()
-{
-    // Erode into scratch_: a cell survives only if its whole 3x3 neighbourhood is foreground.
-    // Cells outside the grid count as background.
-    for (int y = 0; y < kGridH; ++y)
-    {
-        for (int x = 0; x < kGridW; ++x)
-        {
-            uint8_t keep = mask_[y * kGridW + x];
-            for (int dy = -1; dy <= 1 && keep; ++dy)
-            {
-                for (int dx = -1; dx <= 1 && keep; ++dx)
-                {
-                    const int nx = x + dx;
-                    const int ny = y + dy;
-                    if (nx < 0 || ny < 0 || nx >= kGridW || ny >= kGridH || !mask_[ny * kGridW + nx])
-                    {
-                        keep = 0;
-                    }
-                }
-            }
-            scratch_[y * kGridW + x] = keep;
-        }
-    }
-    // Dilate back into mask_: foreground if any in-grid neighbour survived the erosion.
-    for (int y = 0; y < kGridH; ++y)
-    {
-        for (int x = 0; x < kGridW; ++x)
-        {
-            uint8_t any = 0;
-            for (int dy = -1; dy <= 1 && !any; ++dy)
-            {
-                for (int dx = -1; dx <= 1 && !any; ++dx)
-                {
-                    const int nx = x + dx;
-                    const int ny = y + dy;
-                    if (nx >= 0 && ny >= 0 && nx < kGridW && ny < kGridH && scratch_[ny * kGridW + nx])
-                    {
-                        any = 1;
-                    }
-                }
-            }
-            mask_[y * kGridW + x] = any;
-        }
-    }
 }
 
 uint16_t MotionDetector::find(uint16_t label)

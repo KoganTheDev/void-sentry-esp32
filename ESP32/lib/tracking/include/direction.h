@@ -13,7 +13,7 @@
 
 namespace tracking
 {
-inline std::tuple<MoveX, MoveY> direction_for(const TrackState& track, float deadzone_cells = 5.0f)
+inline std::tuple<MoveX, MoveY> direction_for(const TrackState& track, float deadzone_cells = 2.5f)
 {
     if (track.state != TrackPhase::Locked && track.state != TrackPhase::Coasting)
     {
