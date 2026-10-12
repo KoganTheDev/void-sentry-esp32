@@ -3,3 +3,4 @@
 *.hpp linguist-language=C++
 *.h linguist-language=C++
 web/* linguist-language=C++
+*.gray binary
