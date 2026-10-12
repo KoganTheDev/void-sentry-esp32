@@ -48,6 +48,7 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
     {
         // Let auto-exposure settle: learn every cell at the fast rate, report nothing.
         --warmup_left_;
+        fg_age_.fill(0);
         update_background(frame, false);
         result_.warming_up = true;
         return result_;
@@ -66,6 +67,7 @@ void MotionDetector::seed_background(const GrayFrame& frame)
     {
         background_[i] = static_cast<uint16_t>(frame[i] << 8);
     }
+    fg_age_.fill(0);
     seeded_ = true;
     warmup_left_ = config_.warmup_frames;
 }
@@ -78,7 +80,24 @@ void MotionDetector::update_background(const GrayFrame& frame, bool selective)
     {
         const int target = frame[i] << 8;
         const int bg = background_[i];
-        const int div = (selective && mask_[i]) ? fg_div : bg_div;
+        int div = bg_div;
+        if (selective)
+        {
+            if (mask_[i])
+            {
+                if (fg_age_[i] < 255)
+                {
+                    ++fg_age_[i];
+                }
+                if (fg_age_[i] <= config_.fg_age_limit)
+                {
+                    div = fg_div;
+                }
+            } else
+            {
+                fg_age_[i] = 0;
+            }
+        }
         background_[i] = static_cast<uint16_t>(bg + (target - bg) / div); // stays within [0, 255 << 8]
     }
 }

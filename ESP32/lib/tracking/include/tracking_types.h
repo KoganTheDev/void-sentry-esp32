@@ -68,6 +68,8 @@ struct DetectorConfig {
     int diff_threshold = 20;             ///< |gray - background| above this is foreground
     int bg_shift = 4;                    ///< background cells learn 1/2^bg_shift of the difference per frame (1/16)
     int fg_shift = 7;                    ///< foreground cells learn 1/2^fg_shift (1/128): no trails, slow absorption
+    int fg_age_limit = 34;               ///< after this many consecutive foreground frames (~2 s) a cell learns at
+                                         ///< bg_shift again, so ghosts of a wrong background clear quickly
     float scene_change_fraction = 0.35f; ///< raw foreground above this fraction of the grid = scene change
     int warmup_frames = 8;               ///< frames with no blobs after the background is (re)seeded
     int min_blob_cells = 9;              ///< smaller blobs are dropped (the 3x3 opening already removes most)

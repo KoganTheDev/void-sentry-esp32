@@ -4,7 +4,9 @@
  * @details Per frame: foreground mask against an exponential-moving-average background, a scene-change guard,
  * a 3x3 binary opening to remove isolated cells, and 8-connected blobs via two-pass union-find labelling.
  * Background cells learn fast (1/16) and foreground cells slowly (1/128), so moving objects leave no trail while a
- * stopped object is still absorbed eventually. All state is fixed-size (~38 KB): no heap. NOT thread-safe.
+ * stopped object is still absorbed eventually. A cell that stays foreground for more than fg_age_limit frames goes
+ * back to the fast rate, so ghosts (cells that differ because the background itself was wrong) clear in a few
+ * seconds instead of ~14 s. All state is fixed-size (~43 KB): no heap. NOT thread-safe.
  */
 
 #pragma once
@@ -51,6 +53,7 @@ private:
     DetectionResult result_;
     std::array<uint16_t, kCells> background_{}; ///< Q8 fixed point (gray << 8)
     std::array<uint8_t, kCells> mask_{};
+    std::array<uint8_t, kCells> fg_age_{}; ///< consecutive raw-foreground frames per cell (saturates at 255)
     std::array<uint8_t, kCells> scratch_{};
     std::array<uint16_t, kCells> labels_{};
     std::array<uint16_t, kMaxLabels + 1> parent_{};

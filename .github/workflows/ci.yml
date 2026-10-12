@@ -106,8 +106,9 @@ jobs:
             - name: Fixtures are up to date
               run: |
                   python tools/tracking/make_synthetic_clips.py /tmp/fixtures
-                  cmp /tmp/fixtures/square_cross.gray ESP32/bench/fixtures/square_cross.gray
-                  cmp /tmp/fixtures/light_switch.gray ESP32/bench/fixtures/light_switch.gray
+                  for f in /tmp/fixtures/*.gray; do
+                      cmp "$f" "ESP32/bench/fixtures/$(basename "$f")"
+                  done
             - name: Build bench (release and ASan+UBSan)
               run: |
                   SRC="ESP32/lib/tracking/src/*.cpp ESP32/bench/track_bench.cpp"

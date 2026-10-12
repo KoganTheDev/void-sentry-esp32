@@ -172,13 +172,73 @@ void test_static_white_object_is_absorbed_without_wrap(void)
     {
         d.process(f);
     }
-    TEST_ASSERT_EQUAL_INT(1, d.process(f).blob_count); // foreground learns slowly (1/128): still there
+    TEST_ASSERT_EQUAL_INT(1, d.process(f).blob_count); // foreground learns slowly (1/128) at first: still there
     for (int i = 0; i < 400; ++i)
     {
         d.process(f);
     }
-    TEST_ASSERT_EQUAL_INT(0, d.process(f).blob_count); // absorbed, and the Q8 background did not wrap
+    TEST_ASSERT_EQUAL_INT(0, d.process(f).blob_count); // absorbed (the age limit switched it to the fast rate), and the
+                                                       // Q8 background did not wrap
     TEST_ASSERT_EQUAL_INT(0, d.process(f).foreground_cells);
+}
+
+/**
+ * Ghost bound. A cell whose background is wrong by 130 (190 vs 60) is foreground from the first frame after the
+ * object leaves. For fg_age_limit = 34 frames it learns at 1/128: 130 * (127/128)^34 = ~100. Then it learns at
+ * 1/16: a blob needs the rounded background within 20 of 60, so 100 * (15/16)^n <= 20.5 gives n = 25. Total
+ * ~59 frames; the bound used is 34 + 40 = 74 (margin for integer truncation and the 3x3 opening).
+ */
+static constexpr int kGhostBound = 34 + 40;
+
+static int frames_until_no_blobs(MotionDetector& d, const GrayFrame& f, int limit)
+{
+    for (int n = 1; n <= limit; ++n)
+    {
+        if (d.process(f).blob_count == 0)
+        {
+            return n;
+        }
+    }
+    return -1;
+}
+
+void test_object_in_seed_frame_ghost_clears(void)
+{
+    MotionDetector d;
+    const GrayFrame bg = flat(60);
+    GrayFrame with_square = bg;
+    fill_rect(with_square, 10, 26, 17, 33, 190);
+    warm_up(d, with_square); // the square is part of the seed background
+    TEST_ASSERT_EQUAL_INT(0, d.process(with_square).blob_count);
+
+    // It leaves: the background still remembers it, so the empty spot is a ghost blob at first.
+    const DetectionResult& first = d.process(bg);
+    TEST_ASSERT_EQUAL_INT(1, first.blob_count);
+    TEST_ASSERT_TRUE(first.blobs[0].box.x0 >= 10 && first.blobs[0].box.x1 <= 17);
+    TEST_ASSERT_TRUE(first.blobs[0].box.y0 >= 26 && first.blobs[0].box.y1 <= 33);
+
+    const int n = frames_until_no_blobs(d, bg, kGhostBound);
+    TEST_ASSERT_TRUE_MESSAGE(n > 0, "ghost still present after the bound");
+    TEST_ASSERT_EQUAL_INT(0, d.process(bg).blob_count);
+}
+
+void test_paused_object_ghost_clears_after_leaving(void)
+{
+    MotionDetector d;
+    const GrayFrame bg = flat(60);
+    warm_up(d, bg);
+    GrayFrame with_square = bg;
+    fill_rect(with_square, 10, 26, 17, 33, 190);
+    for (int i = 0; i < 40; ++i)
+    {
+        d.process(with_square); // static for 40 frames: past the age limit, background partly absorbed it
+    }
+    TEST_ASSERT_EQUAL_INT(1, d.process(with_square).blob_count);
+
+    // Left behind: the cell age is already past the limit, so it clears faster than the seed-frame case.
+    const int n = frames_until_no_blobs(d, bg, kGhostBound);
+    TEST_ASSERT_TRUE_MESSAGE(n > 0, "ghost still present after the bound");
+    TEST_ASSERT_EQUAL_INT(0, d.process(bg).blob_count);
 }
 
 void test_moving_square_leaves_no_trail(void)
@@ -289,6 +349,8 @@ int main(int argc, char** argv)
     RUN_TEST(test_brightness_step_is_scene_change);
     RUN_TEST(test_static_white_object_is_absorbed_without_wrap);
     RUN_TEST(test_moving_square_leaves_no_trail);
+    RUN_TEST(test_object_in_seed_frame_ghost_clears);
+    RUN_TEST(test_paused_object_ghost_clears_after_leaving);
     RUN_TEST(test_blob_touching_border);
     RUN_TEST(test_max_blobs_keeps_largest);
     RUN_TEST(test_min_blob_cells_drops_small_blobs);
