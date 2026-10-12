@@ -738,14 +738,24 @@
                 draw(data) {
                     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     if (!data.lock) return;
-                    const x = data.x * (this.canvas.width / 320);
-                    const y = data.y * (this.canvas.height / 240);
-                    this.ctx.strokeStyle = '#ff0000';
+                    const sx = this.canvas.width / data.width;
+                    const sy = this.canvas.height / data.height;
+                    const coasting = data.state === 'coasting';
+                    this.ctx.strokeStyle = coasting ? '#ffaa00' : '#ff0000';
                     this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash(coasting ? [6, 4] : []);
+                    if (data.bw > 0 && data.bh > 0) {
+                        this.ctx.strokeRect(data.bx * sx, data.by * sy, data.bw * sx, data.bh * sy);
+                        this.ctx.font = '12px monospace';
+                        this.ctx.fillStyle = this.ctx.strokeStyle;
+                        this.ctx.fillText(`#${data.id}`, data.bx * sx + 2, Math.max(12, data.by * sy - 4));
+                    }
+                    const x = data.x * sx;
+                    const y = data.y * sy;
+                    this.ctx.setLineDash([]);
                     this.ctx.beginPath();
-                    this.ctx.arc(x, y, 15, 0, Math.PI * 2);
-                    this.ctx.moveTo(x - 25, y); this.ctx.lineTo(x + 25, y);
-                    this.ctx.moveTo(x, y - 25); this.ctx.lineTo(x, y + 25);
+                    this.ctx.moveTo(x - 8, y); this.ctx.lineTo(x + 8, y);
+                    this.ctx.moveTo(x, y - 8); this.ctx.lineTo(x, y + 8);
                     this.ctx.stroke();
                 },
 
@@ -844,10 +854,16 @@
                     // Update App state with received metrics
                     App.state.latestData = {
                         lock: metrics.detected === 1,
+                        state: metrics.state || (metrics.detected ? 'locked' : 'idle'),
+                        id: metrics.id || 0,
                         x: metrics.x,
                         y: metrics.y,
-                        width: metrics.width,
-                        height: metrics.height,
+                        bx: metrics.bx || 0,
+                        by: metrics.by || 0,
+                        bw: metrics.bw || 0,
+                        bh: metrics.bh || 0,
+                        width: metrics.width || 320,
+                        height: metrics.height || 240,
                         pixels: metrics.pixels
                     };
 
@@ -856,12 +872,20 @@
 
                     // Update lock status
                     const lockEl = document.getElementById('metric-lock');
+                    const trackState = App.state.latestData.state;
+                    if (trackState === 'locked') {
+                        lockEl.textContent = `LOCKED #${App.state.latestData.id}`;
+                    } else if (trackState === 'coasting') {
+                        lockEl.textContent = `COASTING #${App.state.latestData.id}`;
+                    } else if (trackState === 'tentative') {
+                        lockEl.textContent = "ACQUIRING...";
+                    } else {
+                        lockEl.textContent = "SCANNING...";
+                    }
                     if (metrics.detected) {
-                        lockEl.textContent = "TARGET_ACQUIRED";
                         lockEl.classList.add('status-locked');
                         App.elements.fireBtn.disabled = false;
                     } else {
-                        lockEl.textContent = "SCANNING...";
                         lockEl.classList.remove('status-locked');
                         App.elements.fireBtn.disabled = true;
                         App.fire(false);  // Safety: disable fire if lock is lost
