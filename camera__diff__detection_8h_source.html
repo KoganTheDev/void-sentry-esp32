@@ -104,60 +104,59 @@ $(function(){initNavTree('camera__diff__detection_8h_source.html',''); initResiz
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;base_detection_module.h&quot;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="motion__data_8h.html">motion_data.h</a>&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="foldopen" id="foldopen00013" data-start="{" data-end="};">
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="classCameraDiffDetection.html">   13</a></span><span class="keyword">class </span><a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a> : <span class="keyword">public</span> <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>{</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="comment">// Sensitivity parameters (tune these for your environment)</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <span class="comment">// Resolution: QVGA is 320x240 = 76,800 pixels (optimized for fast overlay encoding)</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> FRAME_WIDTH = 320;   </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> FRAME_HEIGHT = 240;  </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> DIFF_THRESHOLD = 20; </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> MOTION_THRESHOLD =</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>        150; </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> CENTER_DEADZONE = 20; </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    uint8_t* _prev_frame;    </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    uint8_t* _curr_frame;    </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    uint8_t* _diff_buffer;   </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordtype">bool</span> _buffers_allocated; </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keywordtype">bool</span> _first_frame;       </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="comment">// Motion tracking data</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <a class="code hl_class" href="classMotionData.html">MotionData</a> _last_motion_data;      </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordtype">int</span> _last_centroid_x;              </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordtype">int</span> _last_centroid_y;              </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <a class="code hl_class" href="classDetectionMetrics.html">DetectionMetrics</a> _current_metrics; </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>();</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <a class="code hl_class" href="classCameraDiffDetection.html">~CameraDiffDetection</a>();</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    std::tuple&lt;MoveX, MoveY&gt; <a class="code hl_function" href="classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7">detect_object</a>(<a class="code hl_struct" href="structcamera__buffer__t.html">camera_buffer_t</a> frame) <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0">   48</a></span>    <a class="code hl_class" href="classMotionData.html">MotionData</a> <a class="code hl_function" href="classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0">get_motion_data</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> this-&gt;_last_motion_data; }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <a class="code hl_class" href="classDetectionMetrics.html">DetectionMetrics</a> get_detection_metrics()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> this-&gt;_current_metrics; }</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordtype">bool</span> jpeg_to_greyscale(<span class="keywordtype">void</span>* frame, uint8_t* output);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordtype">bool</span> find_motion(uint8_t* prev, uint8_t* curr, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height, <span class="keywordtype">int</span>&amp; center_x, <span class="keywordtype">int</span>&amp; center_y,</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                     <span class="keywordtype">int</span>&amp; pixel_count);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordtype">void</span> calculate_fps();</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>};</div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="motion__detector_8h.html">motion_detector.h</a>&quot;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="tracker_8h.html">tracker.h</a>&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;freertos/FreeRTOS.h&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="};">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classCameraDiffDetection.html">   16</a></span><span class="keyword">class </span><a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a> : <span class="keyword">public</span> <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>{</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <a class="code hl_class" href="classCameraDiffDetection.html">~CameraDiffDetection</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>(<span class="keyword">const</span> <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>&amp; operator=(<span class="keyword">const</span> <a class="code hl_class" href="classCameraDiffDetection.html">CameraDiffDetection</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classCameraDiffDetection.html#aaddb8a0ff01ce96f1f2c106a2634427b">begin</a>();</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    std::tuple&lt;MoveX, MoveY&gt; <a class="code hl_function" href="classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7">detect_object</a>(<a class="code hl_struct" href="structcamera__buffer__t.html">camera_buffer_t</a> frame) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7">reset</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <a class="code hl_struct" href="structTrackSnapshot.html">TrackSnapshot</a> <a class="code hl_function" href="classCameraDiffDetection.html#afd8c88d08af3c4594505709408be48e2">get_track_snapshot</a>() <span class="keyword">const override</span>;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <a class="code hl_struct" href="structDetectionStats.html">DetectionStats</a> <a class="code hl_function" href="classCameraDiffDetection.html#a92d4077ded3803096addf4143a006fc9">get_stats</a>() <span class="keyword">const override</span>;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">struct </span>Pipeline {</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a> gray;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        <a class="code hl_class" href="classtracking_1_1MotionDetector.html">tracking::MotionDetector</a> detector;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <a class="code hl_class" href="classtracking_1_1Tracker.html">tracking::Tracker</a> tracker;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    };</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    Pipeline* _pipeline = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">mutable</span> portMUX_TYPE _lock = portMUX_INITIALIZER_UNLOCKED;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <a class="code hl_struct" href="structTrackSnapshot.html">TrackSnapshot</a> _snapshot;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <a class="code hl_struct" href="structDetectionStats.html">DetectionStats</a> _stats;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    uint64_t _decode_us_total = 0;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    uint64_t _track_us_total = 0;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>};</div>
 </div>
 <div class="ttc" id="aclassBaseDetectionModule_html"><div class="ttname"><a href="classBaseDetectionModule.html">BaseDetectionModule</a></div><div class="ttdoc">An abstract base class (Interface) that defines the contract for detection algorithms....</div><div class="ttdef"><b>Definition</b> base_detection_module.h:22</div></div>
-<div class="ttc" id="aclassCameraDiffDetection_html"><div class="ttname"><a href="classCameraDiffDetection.html">CameraDiffDetection</a></div><div class="ttdoc">Motion detection using frame differencing.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.h:14</div></div>
-<div class="ttc" id="aclassCameraDiffDetection_html_a21a87b7c8aa71a3c52820fc1b4a297f0"><div class="ttname"><a href="classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0">CameraDiffDetection::get_motion_data</a></div><div class="ttdeci">MotionData get_motion_data() const</div><div class="ttdoc">Get the latest motion data from the detection module.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.h:48</div></div>
-<div class="ttc" id="aclassCameraDiffDetection_html_abfa554ef925108a82853b59b79dee9e7"><div class="ttname"><a href="classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7">CameraDiffDetection::detect_object</a></div><div class="ttdeci">std::tuple&lt; MoveX, MoveY &gt; detect_object(camera_buffer_t frame) override</div><div class="ttdoc">Detects motion by comparing frames and returns direction to track.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:31</div></div>
-<div class="ttc" id="aclassDetectionMetrics_html"><div class="ttname"><a href="classDetectionMetrics.html">DetectionMetrics</a></div><div class="ttdoc">Performance and health metrics for the Motion Detection engine.</div><div class="ttdef"><b>Definition</b> motion_data.h:109</div></div>
-<div class="ttc" id="aclassMotionData_html"><div class="ttname"><a href="classMotionData.html">MotionData</a></div><div class="ttdoc">Clean abstraction for motion detection results.</div><div class="ttdef"><b>Definition</b> motion_data.h:20</div></div>
-<div class="ttc" id="amotion__data_8h_html"><div class="ttname"><a href="motion__data_8h.html">motion_data.h</a></div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html"><div class="ttname"><a href="classCameraDiffDetection.html">CameraDiffDetection</a></div><div class="ttdoc">Motion detection and persistent single-target tracking on camera frames.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.h:17</div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html_a3b87f5e909c18aa6f40e63bd3182ffe7"><div class="ttname"><a href="classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7">CameraDiffDetection::reset</a></div><div class="ttdeci">void reset() override</div><div class="ttdoc">Reset detector and tracker and publish an Idle snapshot (loop task only).</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:122</div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html_a92d4077ded3803096addf4143a006fc9"><div class="ttname"><a href="classCameraDiffDetection.html#a92d4077ded3803096addf4143a006fc9">CameraDiffDetection::get_stats</a></div><div class="ttdeci">DetectionStats get_stats() const override</div><div class="ttdoc">Detection timings and counters for the stats line.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:146</div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html_aaddb8a0ff01ce96f1f2c106a2634427b"><div class="ttname"><a href="classCameraDiffDetection.html#aaddb8a0ff01ce96f1f2c106a2634427b">CameraDiffDetection::begin</a></div><div class="ttdeci">bool begin()</div><div class="ttdoc">Allocate the pipeline in PSRAM. Without it detect_object() reports no motion.</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:59</div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html_abfa554ef925108a82853b59b79dee9e7"><div class="ttname"><a href="classCameraDiffDetection.html#abfa554ef925108a82853b59b79dee9e7">CameraDiffDetection::detect_object</a></div><div class="ttdeci">std::tuple&lt; MoveX, MoveY &gt; detect_object(camera_buffer_t frame) override</div><div class="ttdoc">Analyse one frame; returns the direction toward the tracked target (None when there is none).</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:76</div></div>
+<div class="ttc" id="aclassCameraDiffDetection_html_afd8c88d08af3c4594505709408be48e2"><div class="ttname"><a href="classCameraDiffDetection.html#afd8c88d08af3c4594505709408be48e2">CameraDiffDetection::get_track_snapshot</a></div><div class="ttdeci">TrackSnapshot get_track_snapshot() const override</div><div class="ttdoc">Latest tracker output, safe to call from another task (implementations copy under a lock).</div><div class="ttdef"><b>Definition</b> camera_diff_detection.cpp:138</div></div>
+<div class="ttc" id="aclasstracking_1_1MotionDetector_html"><div class="ttname"><a href="classtracking_1_1MotionDetector.html">tracking::MotionDetector</a></div><div class="ttdef"><b>Definition</b> motion_detector.h:21</div></div>
+<div class="ttc" id="aclasstracking_1_1Tracker_html"><div class="ttname"><a href="classtracking_1_1Tracker.html">tracking::Tracker</a></div><div class="ttdef"><b>Definition</b> tracker.h:18</div></div>
+<div class="ttc" id="amotion__detector_8h_html"><div class="ttname"><a href="motion__detector_8h.html">motion_detector.h</a></div><div class="ttdoc">Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).</div></div>
+<div class="ttc" id="astructDetectionStats_html"><div class="ttname"><a href="structDetectionStats.html">DetectionStats</a></div><div class="ttdef"><b>Definition</b> track_snapshot.h:32</div></div>
+<div class="ttc" id="astructTrackSnapshot_html"><div class="ttname"><a href="structTrackSnapshot.html">TrackSnapshot</a></div><div class="ttdef"><b>Definition</b> track_snapshot.h:14</div></div>
 <div class="ttc" id="astructcamera__buffer__t_html"><div class="ttname"><a href="structcamera__buffer__t.html">camera_buffer_t</a></div><div class="ttdef"><b>Definition</b> camera.h:14</div></div>
+<div class="ttc" id="atracker_8h_html"><div class="ttname"><a href="tracker_8h.html">tracker.h</a></div><div class="ttdoc">Single-target persistent tracker over detector blobs (pure C++17, natively tested).</div></div>
+<div class="ttc" id="atracking__types_8h_html_a211b8754850e23b96a6293769fffc32f"><div class="ttname"><a href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a></div><div class="ttdeci">std::array&lt; uint8_t, kCells &gt; GrayFrame</div><div class="ttdoc">One 40x30 luma frame, row-major (index = y * kGridW + x).</div><div class="ttdef"><b>Definition</b> tracking_types.h:21</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

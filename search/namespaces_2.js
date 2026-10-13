@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['test_5fhtml_5fheader_0',['test_html_header',['../namespacetest__html__header.html',1,'']]]
+  ['make_5fsynthetic_5fclips_0',['make_synthetic_clips',['../namespacemake__synthetic__clips.html',1,'']]]
 ];

@@ -1,7 +1,7 @@
 var searchData=
 [
   ['maintain_0',['maintain',['../classWifiManager.html#a176f051b2bcf1f14c355f0150b85e68a',1,'WifiManager']]],
-  ['motiondata_1',['MotionData',['../classMotionData.html#a1620c7705a035a3aa5aa6d34dfd55dc8',1,'MotionData::MotionData()'],['../classMotionData.html#aaab03b73185ba329f632274480bd0633',1,'MotionData::MotionData(int centroid_x, int centroid_y, int frame_width, int frame_height, int pixel_count)']]],
+  ['merge_1',['merge',['../structtracking_1_1Box.html#a0d6a919eb9a69a8e005981a53abc0e6c',1,'tracking::Box']]],
   ['move_5frelative_2',['move_relative',['../classBaseMovementManager.html#a48b9896193262eb5e2d6ccd63d1a8386',1,'BaseMovementManager::move_relative()'],['../classMovementManager.html#a224d1d199527ba2392486cc3fa63ef5a',1,'MovementManager::move_relative(const std::tuple&lt; MoveX, MoveY &gt; move_directions)']]],
   ['move_5fservo_3',['move_servo',['../classMovementManager.html#a4dd595f6e9188381e5a8b4954c909e76',1,'MovementManager']]],
   ['move_5fstepper_4',['move_stepper',['../classMovementManager.html#a2202337221ffde0e9a9ae73485b4748f',1,'MovementManager']]],

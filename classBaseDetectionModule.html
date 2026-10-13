@@ -115,7 +115,7 @@ Inheritance diagram for BaseDetectionModule:</div>
  <div class="center">
   <img src="classBaseDetectionModule.png" usemap="#BaseDetectionModule_map" alt=""/>
   <map id="BaseDetectionModule_map" name="BaseDetectionModule_map">
-<area href="classCameraDiffDetection.html" title="Motion detection using frame differencing." alt="CameraDiffDetection" shape="rect" coords="0,56,135,80"/>
+<area href="classCameraDiffDetection.html" title="Motion detection and persistent single-target tracking on camera frames." alt="CameraDiffDetection" shape="rect" coords="0,56,135,80"/>
 <area href="classTestDetection.html" alt="TestDetection" shape="rect" coords="145,56,280,80"/>
   </map>
 </div></div>
@@ -129,9 +129,15 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
 <tr class="memitem:af7cb10ab2baa1de9c82f0ef6c2a71cdd" id="r_af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="memItemLeft" align="right" valign="top">virtual std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" href="classMoveY.html">MoveY</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7cb10ab2baa1de9c82f0ef6c2a71cdd">detect_object</a> (<a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a> frame)=0</td></tr>
 <tr class="memdesc:af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analyzes a camera frame to locate a specific object.  <br /></td></tr>
 <tr class="separator:af7cb10ab2baa1de9c82f0ef6c2a71cdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7135fc24d3eb3fa3ce64d054a4c943bc" id="r_a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classMotionData.html">MotionData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7135fc24d3eb3fa3ce64d054a4c943bc">get_motion_data</a> () const</td></tr>
-<tr class="memdesc:a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the latest motion data from the detection module.  <br /></td></tr>
-<tr class="separator:a7135fc24d3eb3fa3ce64d054a4c943bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41b108f22763c96aabb047a911f59e82" id="r_a41b108f22763c96aabb047a911f59e82"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structTrackSnapshot.html">TrackSnapshot</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a41b108f22763c96aabb047a911f59e82">get_track_snapshot</a> () const</td></tr>
+<tr class="memdesc:a41b108f22763c96aabb047a911f59e82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Latest tracker output, safe to call from another task (implementations copy under a lock).  <br /></td></tr>
+<tr class="separator:a41b108f22763c96aabb047a911f59e82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af20105ae3e768c91230ceca43e4d5413" id="r_af20105ae3e768c91230ceca43e4d5413"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af20105ae3e768c91230ceca43e4d5413">reset</a> ()</td></tr>
+<tr class="memdesc:af20105ae3e768c91230ceca43e4d5413"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drop the current target and background. Called from the loop task only.  <br /></td></tr>
+<tr class="separator:af20105ae3e768c91230ceca43e4d5413"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5db4871c4907e31a9e86fdee1608b32e" id="r_a5db4871c4907e31a9e86fdee1608b32e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structDetectionStats.html">DetectionStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5db4871c4907e31a9e86fdee1608b32e">get_stats</a> () const</td></tr>
+<tr class="memdesc:a5db4871c4907e31a9e86fdee1608b32e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detection timings and counters for the stats line.  <br /></td></tr>
+<tr class="separator:a5db4871c4907e31a9e86fdee1608b32e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An abstract base class (Interface) that defines the contract for detection algorithms. This class allows the <a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a> to remain agnostic of the specific detection method (e.g., Color, AI, or Motion) by providing a consistent interface. </p>
@@ -176,8 +182,8 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
 
 </div>
 </div>
-<a id="a7135fc24d3eb3fa3ce64d054a4c943bc" name="a7135fc24d3eb3fa3ce64d054a4c943bc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7135fc24d3eb3fa3ce64d054a4c943bc">&#9670;&#160;</a></span>get_motion_data()</h2>
+<a id="a5db4871c4907e31a9e86fdee1608b32e" name="a5db4871c4907e31a9e86fdee1608b32e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5db4871c4907e31a9e86fdee1608b32e">&#9670;&#160;</a></span>get_stats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -186,7 +192,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="classMotionData.html">MotionData</a> BaseDetectionModule::get_motion_data </td>
+          <td class="memname">virtual <a class="el" href="structDetectionStats.html">DetectionStats</a> BaseDetectionModule::get_stats </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -199,10 +205,68 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
 </table>
 </div><div class="memdoc">
 
-<p>Get the latest motion data from the detection module. </p>
-<p>This method provides access to the motion metrics detected. Derived classes should override this to return their current metrics. </p><dl class="section return"><dt>Returns</dt><dd><a class="el" href="classMotionData.html" title="Clean abstraction for motion detection results.">MotionData</a> containing the latest detection results. </dd></dl>
+<p>Detection timings and counters for the stats line. </p>
 
-<p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#a21a87b7c8aa71a3c52820fc1b4a297f0">CameraDiffDetection</a>.</p>
+<p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#a92d4077ded3803096addf4143a006fc9">CameraDiffDetection</a>.</p>
+
+</div>
+</div>
+<a id="a41b108f22763c96aabb047a911f59e82" name="a41b108f22763c96aabb047a911f59e82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41b108f22763c96aabb047a911f59e82">&#9670;&#160;</a></span>get_track_snapshot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="structTrackSnapshot.html">TrackSnapshot</a> BaseDetectionModule::get_track_snapshot </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Latest tracker output, safe to call from another task (implementations copy under a lock). </p>
+<dl class="section return"><dt>Returns</dt><dd>Default (Idle) snapshot when the module does not track. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#afd8c88d08af3c4594505709408be48e2">CameraDiffDetection</a>.</p>
+
+</div>
+</div>
+<a id="af20105ae3e768c91230ceca43e4d5413" name="af20105ae3e768c91230ceca43e4d5413"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af20105ae3e768c91230ceca43e4d5413">&#9670;&#160;</a></span>reset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void BaseDetectionModule::reset </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Drop the current target and background. Called from the loop task only. </p>
+
+<p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7">CameraDiffDetection</a>.</p>
 
 </div>
 </div>

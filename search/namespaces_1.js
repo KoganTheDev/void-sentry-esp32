@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['sanitize_5flink_0',['sanitize_link',['../namespacesanitize__link.html',1,'']]]
+  ['jpeg_5fto_5fgray_0',['jpeg_to_gray',['../namespacejpeg__to__gray.html',1,'']]]
 ];

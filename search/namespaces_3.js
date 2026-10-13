@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['update_5findex_5fhtml_0',['update_index_html',['../namespaceupdate__index__html.html',1,'']]]
+  ['record_5fstream_0',['record_stream',['../namespacerecord__stream.html',1,'']]]
 ];

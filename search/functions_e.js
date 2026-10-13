@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['viewer_5fcount_0',['viewer_count',['../classHttpServer.html#a6798a8dd370024af8759dc0ed385fefd',1,'HttpServer']]]
+  ['update_0',['update',['../classtracking_1_1Tracker.html#aac5391ba890304084d9b7f4251de6bb4',1,'tracking::Tracker']]]
 ];

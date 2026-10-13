@@ -104,7 +104,7 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 <div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a></p>
 <div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>The Autonomous Computer Vision &amp; Kinetic Tracking System for ESP32-CAM</b></div><div align="center"> <img src="https://img.shields.io/badge/Status-Active_Development-ff6b00" alt="Status" class="inline"/> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen - Documentation Generator" style="pointer-events: none;" class="inline"/></a> </div><p><b>Void Sentry</b> is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized <b>Frame Differencing</b> algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md71"></a>
+<h2><a class="anchor" id="autotoc_md97"></a>
 System Architecture</h2>
 <p>The system operates on a dual-core cycle to ensure low-latency video delivery while maintaining a high-frequency tracking loop.</p>
 <ul>
@@ -112,7 +112,7 @@ System Architecture</h2>
 <li><b>Kinetic Engine</b>: Translates motion "blob" centroids into PWM signals for high-torque servo response.</li>
 <li><b>Visual Feedback</b>: A real-time Augmented Reality (AR) overlay is injected directly into the MJPEG stream, providing zero-latency target telemetry.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md72"></a>
+<h2><a class="anchor" id="autotoc_md98"></a>
 Technical Specifications</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -128,7 +128,7 @@ Technical Specifications</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyLeft"><b>Resolution</b>   </td><td class="markdownTableBodyLeft">320x240 (Optimized for Edge Inference)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md73"></a>
+<h2><a class="anchor" id="autotoc_md99"></a>
 Core Capabilities</h2>
 <ul>
 <li><b>Intelligent Thresholding</b>: Dynamically filters out sensor noise and environment fluctuations (e.g., lighting changes) to prevent false positives.</li>
@@ -136,7 +136,7 @@ Core Capabilities</h2>
 <li><b>Low-Latency Dashboard</b>: A web-based HUD designed for mobile and desktop, featuring real-time telemetry stats and manual override controls.</li>
 <li><b>Modular Servo Control</b>: Easily adaptable for various Pan/Tilt hardware configurations.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md74"></a>
+<h3><a class="anchor" id="autotoc_md100"></a>
 Software Setup</h3>
 <ol type="1">
 <li>Clone the repository: <div class="fragment"><div class="line">git clone [https://github.com/KoganTheDev/void-sentry-esp32.git](https://github.com/KoganTheDev/void-sentry-esp32.git)</div>

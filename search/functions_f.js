@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['write_5fif_5fchanged_0',['write_if_changed',['../namespacehtml__header.html#a787e935b4c6016ff60543d3d6152ae58',1,'html_header']]]
+  ['viewer_5fcount_0',['viewer_count',['../classHttpServer.html#a6798a8dd370024af8759dc0ed385fefd',1,'HttpServer']]]
 ];
