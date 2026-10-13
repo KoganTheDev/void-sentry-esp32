@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mode_0',['Mode',['../classSystemControl.html#a13a7bb84c5d3ab26831718e0a5caffe6',1,'SystemControl']]]
+  ['controlmode_0',['ControlMode',['../system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a',1,'system_control_types.h']]]
 ];

@@ -148,15 +148,17 @@ $(function(){initNavTree('camera_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        this-&gt;_config.xclk_freq_hz = 12000000;       <span class="comment">// 12 MHz: &gt;=15 fps QVGA without wrecking WiFi (see CLAUDE.md)</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        this-&gt;_config.pixel_format = PIXFORMAT_JPEG; <span class="comment">// Required for MJPEG streaming</span></div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        this-&gt;_config.frame_size = FRAMESIZE_QVGA;   <span class="comment">// 320x240</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        this-&gt;_config.jpeg_quality = 12;             <span class="comment">// 0-63 (lower is higher quality, 12 is optimal for Sentry)</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        this-&gt;_config.fb_count = 2;                  <span class="comment">// Double buffering in PSRAM</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        this-&gt;_config.fb_location = CAMERA_FB_IN_PSRAM;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        this-&gt;_config.grab_mode = CAMERA_GRAB_LATEST;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    }</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="comment">// 0-63, lower = bigger files. 18 keeps heavy-scene frames small enough for the detection decode budget and</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="comment">// WiFi; 12 made close-up scenes 2.5-4x bigger (measured 2026-10-13).</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        this-&gt;_config.jpeg_quality = 18;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        this-&gt;_config.fb_count = 2; <span class="comment">// Double buffering in PSRAM</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        this-&gt;_config.fb_location = CAMERA_FB_IN_PSRAM;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        this-&gt;_config.grab_mode = CAMERA_GRAB_LATEST;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    }</div>
 </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classCamera.html#acf5ae93972c164692f27be6dbae37ee4">begin</a>();</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>};</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classCamera.html#acf5ae93972c164692f27be6dbae37ee4">begin</a>();</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>};</div>
 </div>
 <div class="ttc" id="aclassCamera_html"><div class="ttname"><a href="classCamera.html">Camera</a></div><div class="ttdoc">Camera setup and sensor tuning.</div><div class="ttdef"><b>Definition</b> camera.h:29</div></div>
 <div class="ttc" id="aclassCamera_html_a01f94c3543f56ede7af49dc778f19331"><div class="ttname"><a href="classCamera.html#a01f94c3543f56ede7af49dc778f19331">Camera::Camera</a></div><div class="ttdeci">Camera()</div><div class="ttdoc">Constructor: Pre-configures the sensor for optimal CV performance.</div><div class="ttdef"><b>Definition</b> camera.h:46</div></div>

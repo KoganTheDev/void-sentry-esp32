@@ -1,9 +1,10 @@
 var searchData=
 [
-  ['camera_0',['Camera',['../classCamera.html',1,'']]],
-  ['camera_5fbuffer_5ft_1',['camera_buffer_t',['../structcamera__buffer__t.html',1,'']]],
-  ['cameradiffdetection_2',['CameraDiffDetection',['../classCameraDiffDetection.html',1,'']]],
-  ['camerataskstats_3',['CameraTaskStats',['../structCameraTaskStats.html',1,'']]],
-  ['commandswebsockethandler_4',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html',1,'']]],
-  ['controller_5',['Controller',['../classController.html',1,'']]]
+  ['basedetectionmodule_0',['BaseDetectionModule',['../classBaseDetectionModule.html',1,'']]],
+  ['basestatusprovider_1',['BaseStatusProvider',['../classBaseStatusProvider.html',1,'']]],
+  ['baseturret_2',['BaseTurret',['../classBaseTurret.html',1,'']]],
+  ['blob_3',['Blob',['../structtracking_1_1Blob.html',1,'tracking']]],
+  ['box_4',['Box',['../structtracking_1_1Box.html',1,'tracking']]],
+  ['buttonclassifier_5',['ButtonClassifier',['../classaiming_1_1ButtonClassifier.html',1,'aiming']]],
+  ['buttonconfig_6',['ButtonConfig',['../structaiming_1_1ButtonConfig.html',1,'aiming']]]
 ];

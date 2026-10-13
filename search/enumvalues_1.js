@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['user_5fmode_0',['USER_MODE',['../classSystemControl.html#a13a7bb84c5d3ab26831718e0a5caffe6a28d500d3b3ee8a6ec6f7450e2fa3efe0',1,'SystemControl']]]
+  ['calibrate_0',['Calibrate',['../system__control__types_8h.html#a3237b52509a609333eb71e747428eb1aa9085d91abc5facbfc7acba881354cdb0',1,'system_control_types.h']]]
 ];

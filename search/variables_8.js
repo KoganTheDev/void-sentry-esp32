@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['max_5fblobs_0',['max_blobs',['../structtracking_1_1DetectorConfig.html#aeda119d11175f392403d85c490211f31',1,'tracking::DetectorConfig']]],
-  ['min_5fblob_5fcells_1',['min_blob_cells',['../structtracking_1_1DetectorConfig.html#a8545dbcc9d7974f9987e8102bc3eef6e',1,'tracking::DetectorConfig']]]
+  ['label_5foverflow_0',['label_overflow',['../structtracking_1_1DetectionResult.html#aa156942a4fb60c246aae1e6ce661b44e',1,'tracking::DetectionResult']]],
+  ['left_1',['Left',['../classMoveX.html#ade0a4fa37396171213158e852cbaf964',1,'MoveX']]]
 ];

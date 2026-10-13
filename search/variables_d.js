@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['up_0',['Up',['../classMoveY.html#a26d835e9a6584a1d472e388fc671ceac',1,'MoveY']]]
+  ['track_5fus_5favg_0',['track_us_avg',['../structDetectionStats.html#acbcdb780dda55a9640c3554c0a050b33',1,'DetectionStats']]]
 ];

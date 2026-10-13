@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['4_20controller_20integration_0',['4. Controller integration',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md79',1,'']]],
+  ['4_20controller_20integration_0',['4. Controller integration',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md96',1,'']]],
   ['4_3a_20ci_20workflow_20model_3a_20sonnet_1',['Task 4: CI workflow (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html#autotoc_md19',1,'']]],
   ['4_3a_20hud_20target_20overlay_2',['Task 4: HUD target overlay',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md53',1,'']]],
-  ['4_3a_20tt_20framestore_20tt_20camera_20task_20tt_20camera_20tt_20and_20tt_20controller_20tt_20rework_20model_3a_20sonnet_3',['Task 4: &lt;tt&gt;FrameStore&lt;/tt&gt;, camera task, &lt;tt&gt;Camera&lt;/tt&gt; and &lt;tt&gt;Controller&lt;/tt&gt; rework (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md34',1,'']]]
+  ['4_3a_20tt_20framestore_20tt_20camera_20task_20tt_20camera_20tt_20and_20tt_20controller_20tt_20rework_20model_3a_20sonnet_3',['Task 4: &lt;tt&gt;FrameStore&lt;/tt&gt;, camera task, &lt;tt&gt;Camera&lt;/tt&gt; and &lt;tt&gt;Controller&lt;/tt&gt; rework (model: Sonnet)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md34',1,'']]],
+  ['4_3a_20turret_20motor_20task_4',['Task 4: Turret motor task',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage3-motion-control.html#autotoc_md70',1,'']]]
 ];

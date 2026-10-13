@@ -101,13 +101,13 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 2: Motion Detection and Persistent Tracking</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md87"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md104"></a></p>
 <p>Date: 2026-10-12. Status: approved in chat (approach A, sections 1-2, summary of 3-4).</p>
-<h1><a class="anchor" id="autotoc_md88"></a>
+<h1><a class="anchor" id="autotoc_md105"></a>
 Goal</h1>
 <p>Find moving objects in the camera frames and keep a persistent lock on one target (stable id, short memory), shown on the web HUD. The turret does <b>not</b> move in AI mode in this stage; aiming (and the move/settle/re-acquire logic) is Stage 3.</p>
 <p>Scene: indoor desk/room demo, targets 1-3 m away (a hand, a person crossing the room, a toy), indoor lighting.</p>
-<h1><a class="anchor" id="autotoc_md89"></a>
+<h1><a class="anchor" id="autotoc_md106"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -121,9 +121,9 @@ Decisions</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Prediction   </td><td class="markdownTableBodyNone">Alpha-beta filter (constant velocity, fixed gains)   </td><td class="markdownTableBodyNone">Steady-state Kalman with fixed gains; one target, position-only measurement   </td><td class="markdownTableBodyNone">Full Kalman (covariance math buys nothing here)    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Where it runs   </td><td class="markdownTableBodyNone">In <code>loop()</code> via <code><a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a></code>, once per new frame (as today)   </td><td class="markdownTableBodyNone">No new task or sync; dual-core split is Stage 4   </td><td class="markdownTableBodyNone">New detection task now   </td></tr>
+<td class="markdownTableBodyNone">Where it runs   </td><td class="markdownTableBodyNone">In <code>loop()</code> via <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a></code>, once per new frame (as today)   </td><td class="markdownTableBodyNone">No new task or sync; dual-core split is Stage 4   </td><td class="markdownTableBodyNone">New detection task now   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md90"></a>
+<h1><a class="anchor" id="autotoc_md107"></a>
 Architecture</h1>
 <div class="fragment"><div class="line">flowchart LR</div>
 <div class="line">    FS[FrameStore lease&lt;br/&gt;QVGA JPEG] --&gt; JG[JpegGray&lt;br/&gt;device adapter]</div>
@@ -132,7 +132,7 @@ Architecture</h1>
 <div class="line">    TR --&gt;|TrackState| CDD[CameraDiffDetection]</div>
 <div class="line">    CDD --&gt;|snapshot| CMD[/commands JSON/]</div>
 <div class="line">    CMD --&gt; HUD[HUD overlay]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md91"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md108"></a>
 Pure library <code>lib/tracking</code> (namespace <code>tracking</code>, no Arduino/ESP-IDF headers, native + sanitizer tested)</h2>
 <p>Constants: <code>kGridW = 40</code>, <code>kGridH = 30</code>, <code>kCells = 1200</code> (one cell = 8x8 QVGA pixels). All state is fixed-size members; no heap anywhere.</p>
 <p><code>GrayFrame</code>: <code>std::array&lt;uint8_t, kCells&gt;</code>, row-major.</p>
@@ -161,18 +161,18 @@ Pure library <code>lib/tracking</code> (namespace <code>tracking</code>, no Ardu
 </ul>
 <p><code>TrackState</code>: <code>state</code>, <code>id</code> (0 when none), box (cells), <code>cx</code>, <code>cy</code>, <code>vx</code>, <code>vy</code> (cells, cells/frame), <code>frames_since_seen</code>, <code>area</code>. Helper to scale to the frame size (x8 for QVGA).</p>
 <p><code>direction_for(const TrackState&amp;, deadzone_cells = 2.5) -&gt; (<a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a>, <a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a>)</code>: Left/Right/Up/Down of the grid centre when <code>Locked</code> (or Coasting), None otherwise. Kept for Stage 3; uses <code><a class="el" href="move__types_8h_source.html">move_types.h</a></code> (header-only, native-safe).</p>
-<h2><a class="anchor" id="autotoc_md92"></a>
+<h2><a class="anchor" id="autotoc_md109"></a>
 Device side</h2>
 <ul>
 <li><b><code>JpegGray</code></b> (<code>lib/tracking_device</code> or inside <code>lib/detection</code>): <code>bool decode(const uint8_t* jpeg, size_t len, <a class="el" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f" title="One 40x30 luma frame, row-major (index = y * kGridW + x).">tracking::GrayFrame</a>&amp; out)</code> using <code>esp_jpg_decode(len, JPG_SCALE_8X, reader, writer, ctx)</code>. The writer converts each RGB888 pixel to luma <code>(77R + 150G + 29B) &gt;&gt; 8</code> into <code>out</code>. Rejects frames whose scaled size is not 40x30. <b>Verify early</b> whether <code>esp_jpg_decode</code> allocates per call; if it does, measure heap behaviour and document (or switch to the ROM <code>jd_prepare</code>/<code>jd_decomp</code> with a static work buffer).</li>
 <li><b><code><a class="el" href="classCameraDiffDetection.html" title="Motion detection and persistent single-target tracking on camera frames.">CameraDiffDetection</a></code></b> rebuilt: owns <code>JpegGray</code>, <code>MotionDetector</code>, <code>Tracker</code> (detector + tracker state, ~15 KB, allocated once in PSRAM by <code>begin()</code> so it does not cost internal RAM); <code>detect_object()</code> decodes, processes, updates, records timings, publishes a snapshot, and returns <code>direction_for(track)</code>. The dead commented-out code and the unused members (<code>_prev_frame</code>, <code>_curr_frame</code>, <code>_diff_buffer</code>, <code>find_motion</code>, <code>jpeg_to_greyscale</code>, static-local <code>calculate_fps</code>) are removed.</li>
 <li><b>Cross-task snapshot:</b> today the <code>/commands</code> handler (httpd task) calls <code>get_motion_data()</code> while <code>loop()</code> writes it (a data race). The detection module publishes a small POD snapshot (track state, box and centroid in QVGA pixels, velocity, timings, counters) under a <code>portMUX</code>/mutex; the handler copies it out. <code>MotionData</code> is extended or replaced accordingly.</li>
-<li><b><a class="el" href="classController.html" title="Handles logic for object detection and movement calculations.">Controller</a>:</b> in AI mode, detection runs per new frame as now, but <code>move_relative()</code> is not called (a single <code>constexpr bool kAiAimEnabled = false</code> in the controller; Stage 3 flips it).</li>
+<li><b><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>:</b> in AI mode, detection runs per new frame as now, but <code>move_relative()</code> is not called (a single <code>constexpr bool kAiAimEnabled = false</code> in the controller; Stage 3 flips it).</li>
 <li><b><code>/commands</code> JSON</b> (keep existing keys for compatibility, add new ones): <code>{"detected":0|1,"x","y","width","height","pixels","state":"idle|tentative|locked|coasting","id","bx","by","bw","bh","vx","vy"}</code> (QVGA pixels; <code>detected</code> = Locked or Coasting).</li>
 <li><b>HUD</b> (<code>web/web_ui.html</code>): draw the target box and <code>#id</code> on the overlay canvas (solid when Locked, dashed when Coasting, nothing otherwise), show the state text in the lock indicator.</li>
 <li><b>Stats line</b> adds <code>decode_us_avg</code>, <code>track_us_avg</code> (detector + tracker), <code>scene_changes</code>, <code>track_state</code>, <code>track_id</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md93"></a>
+<h1><a class="anchor" id="autotoc_md110"></a>
 Testing</h1>
 <p><b>Native + <code>native_sanitize</code> (Unity, <code>test/native/test_tracking*</code>), synthetic frames, exact assertions:</b></p><ul>
 <li>Detector: static scene -&gt; no blobs after warm-up; a bright rectangle appearing -&gt; one blob with the exact box/area; single-cell noise dropped by <code>min_blob_cells</code> while a 2-cell blob is reported; two separated rectangles -&gt; two blobs sorted by area; a U-shape -&gt; one blob (8-connectivity and union-find merge); full-frame brightness step -&gt; <code>scene_change</code>, bg reset, warm-up; a static object blends into bg over time; a blob touching the grid border. Two scene-change/warm-up tests: a large local object (40x15, 50% of the grid, mean shift 20) is one blob and not a scene change; warm-up absorbs settling exposure (a ramp 120 -&gt; 170 over 10 frames reports no blobs and no scene change, then the frame is clean). Ghost tests: a ghost from an object in the seed frame clears within <code>kGhostBound</code> frames, and a paused-then-left object clears within 24 frames (expected 20).</li>
@@ -194,7 +194,7 @@ Testing</h1>
 <li>Ghost clips (synthetic, generated by <code>tools/tracking/make_synthetic_clips.py</code>): <code>seed_object</code> (4x4 square present in the seed frame, moves away from frame 20, gone from frame 70; must be Idle by frame 105, observed last non-Idle frame 100) and <code>pause_leave</code> (square enters at frame 20, pauses 2 s at frames 40-73, gone from frame 74; must be Idle by frame 109, observed 104). Both fail without the foreground-age rule. Moving squares enter at frame 20, after the 17-frame warm-up (first detection at frame 18), because anything present during warm-up is absorbed into the background. The synthetic square is 4x4 and moves 1 cell/frame; the grid is only 40 cells wide, so in <code>square_cross</code> and <code>seed_object</code> it bounces off the grid edges (which also exercises a velocity reversal).</li>
 </ul>
 <p><b>Host benchmark (CI job <code>tracking-bench</code>):</b> the bench built <code>-O2 -g -fno-omit-frame-pointer</code> reports instructions per frame with <code>valgrind --tool=cachegrind</code> (deterministic, works on hosted runners); <code>perf stat</code> runs best-effort since hosted runners often lack hardware counters. Numbers go in the PR description.</p>
-<h1><a class="anchor" id="autotoc_md94"></a>
+<h1><a class="anchor" id="autotoc_md111"></a>
 Success criteria (on hardware)</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -214,7 +214,7 @@ Success criteria (on hardware)</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Logic   </td><td class="markdownTableBodyNone">all native tests pass, also under ASan + UBSan in CI   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md95"></a>
+<h1><a class="anchor" id="autotoc_md112"></a>
 Out of scope</h1>
 <p>Moving the turret in AI mode, ego-motion handling, multiple simultaneous tracks, the HUD's manual-control commands (<code>move:</code>, <code>fire:</code>, <code>mode:</code>), detection on core 0, the <code>/commands</code> per-message 256-byte malloc (noted, unchanged), WiFi provisioning. </p>
 </div></div><!-- contents -->

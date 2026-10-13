@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['write_5fif_5fchanged_0',['write_if_changed',['../namespacehtml__header.html#a787e935b4c6016ff60543d3d6152ae58',1,'html_header']]]
+  ['update_0',['update',['../classtracking_1_1Tracker.html#aac5391ba890304084d9b7f4251de6bb4',1,'tracking::Tracker']]]
 ];

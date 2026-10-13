@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['basedetectionmodule_0',['BaseDetectionModule',['../classBaseDetectionModule.html',1,'']]],
-  ['basemovementmanager_1',['BaseMovementManager',['../classBaseMovementManager.html',1,'']]],
-  ['blob_2',['Blob',['../structtracking_1_1Blob.html',1,'tracking']]],
-  ['box_3',['Box',['../structtracking_1_1Box.html',1,'tracking']]]
+  ['aimcommand_0',['AimCommand',['../structaiming_1_1AimCommand.html',1,'aiming']]],
+  ['aimmap_1',['AimMap',['../structaiming_1_1AimMap.html',1,'aiming']]],
+  ['aimpolicy_2',['AimPolicy',['../classaiming_1_1AimPolicy.html',1,'aiming']]],
+  ['angles_3',['Angles',['../structaiming_1_1Angles.html',1,'aiming']]]
 ];

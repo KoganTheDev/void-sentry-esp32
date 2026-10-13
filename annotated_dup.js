@@ -1,5 +1,19 @@
 var annotated_dup =
 [
+    [ "aiming", null, [
+      [ "AimCommand", "structaiming_1_1AimCommand.html", null ],
+      [ "AimMap", "structaiming_1_1AimMap.html", "structaiming_1_1AimMap" ],
+      [ "AimPolicy", "classaiming_1_1AimPolicy.html", "classaiming_1_1AimPolicy" ],
+      [ "Angles", "structaiming_1_1Angles.html", null ],
+      [ "ButtonClassifier", "classaiming_1_1ButtonClassifier.html", null ],
+      [ "ButtonConfig", "structaiming_1_1ButtonConfig.html", null ],
+      [ "CalibrationSession", "classaiming_1_1CalibrationSession.html", "classaiming_1_1CalibrationSession" ],
+      [ "CalPoint", "structaiming_1_1CalPoint.html", null ],
+      [ "PlannerConfig", "structaiming_1_1PlannerConfig.html", "structaiming_1_1PlannerConfig" ],
+      [ "PolicyConfig", "structaiming_1_1PolicyConfig.html", null ],
+      [ "StepPlanner", "classaiming_1_1StepPlanner.html", "classaiming_1_1StepPlanner" ],
+      [ "TrackView", "structaiming_1_1TrackView.html", "structaiming_1_1TrackView" ]
+    ] ],
     [ "frames", null, [
       [ "FrameLease", "classframes_1_1FrameLease.html", null ],
       [ "FrameMeta", "structframes_1_1FrameMeta.html", null ],
@@ -28,26 +42,27 @@ var annotated_dup =
       [ "TrackState", "structtracking_1_1TrackState.html", null ]
     ] ],
     [ "BaseDetectionModule", "classBaseDetectionModule.html", "classBaseDetectionModule" ],
-    [ "BaseMovementManager", "classBaseMovementManager.html", "classBaseMovementManager" ],
+    [ "BaseStatusProvider", "classBaseStatusProvider.html", "classBaseStatusProvider" ],
+    [ "BaseTurret", "classBaseTurret.html", "classBaseTurret" ],
     [ "Camera", "classCamera.html", "classCamera" ],
     [ "camera_buffer_t", "structcamera__buffer__t.html", null ],
     [ "CameraDiffDetection", "classCameraDiffDetection.html", "classCameraDiffDetection" ],
     [ "CameraTaskStats", "structCameraTaskStats.html", null ],
     [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
     [ "Controller", "classController.html", "classController" ],
+    [ "ControlStatus", "structControlStatus.html", "structControlStatus" ],
     [ "DetectionStats", "structDetectionStats.html", "structDetectionStats" ],
     [ "FrameStore", "classFrameStore.html", "classFrameStore" ],
     [ "FrameStoreStats", "structFrameStoreStats.html", null ],
     [ "HttpServer", "classHttpServer.html", "classHttpServer" ],
     [ "Joystick", "classJoystick.html", "classJoystick" ],
     [ "MoveDirection", "classMoveDirection.html", "classMoveDirection" ],
-    [ "MovementManager", "classMovementManager.html", "classMovementManager" ],
     [ "MoveX", "classMoveX.html", "classMoveX" ],
     [ "MoveY", "classMoveY.html", "classMoveY" ],
     [ "StreamBroadcaster", "classStreamBroadcaster.html", "classStreamBroadcaster" ],
-    [ "SystemControl", "classSystemControl.html", "classSystemControl" ],
     [ "TestDetection", "classTestDetection.html", null ],
     [ "TrackSnapshot", "structTrackSnapshot.html", "structTrackSnapshot" ],
+    [ "Turret", "classTurret.html", "classTurret" ],
     [ "WebsocketHandler", "classWebsocketHandler.html", "classWebsocketHandler" ],
     [ "WifiManager", "classWifiManager.html", null ]
 ];
