@@ -10,6 +10,7 @@
 
 #include "aim_map.h"
 
+#include <cstdint>
 #include <optional>
 
 namespace aiming
@@ -19,8 +20,17 @@ enum class CalState : uint8_t { Idle, WaitPoint1, WaitPoint2, Done, Failed };
 class CalibrationSession
 {
 public:
+    /** @brief Begins a calibration: state WaitPoint1, 0 points, previous result and failure cleared. */
     void start();
+    /** @brief Returns to Idle from any state and discards points, result and failure. */
     void cancel();
+    /**
+     * @brief Records a calibration point.
+     * @param x,y Target pixel position.
+     * @param at Turret angles pointing at that target.
+     * @param target_visible false ignores the press (no state change).
+     * @return The state after the call.
+     */
     CalState record(float x, float y, Angles at, bool target_visible);
 
     CalState state() const { return state_; }

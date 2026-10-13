@@ -25,6 +25,7 @@ constexpr int kFrameH = 240;
 constexpr float kMinCalDx = 80.0f; ///< closer calibration points amplify aiming error
 constexpr float kMinCalDy = 60.0f;
 
+/** @brief Turret pose: pan degrees from home (positive = right), tilt servo degrees (larger = up). */
 struct Angles {
     float pan = 0.0f;
     float tilt = kTiltHomeDeg;
@@ -65,5 +66,6 @@ Angles clamp_angles(Angles a);
  * to [kPanMinDeg, kPanMaxDeg] before rounding, so the result is always in [-512, 512].
  */
 int32_t pan_deg_to_steps(float deg);
+/** @brief Converts a pan step count (28BYJ-48 full steps from home) to degrees; the inverse of pan_deg_to_steps. */
 float pan_steps_to_deg(int32_t steps);
 } // namespace aiming

@@ -119,6 +119,16 @@ void test_reset_forgets_setpoint(void)
     TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 5020).kind == AimKind::Hold);
 }
 
+void test_tilt_deadband(void)
+{
+    AimPolicy p(default_map()); // tilt: 50 deg over 240 px = 0.208 deg/px
+    p.update({TrackPhase::Locked, 160.0f, 120.0f}, 0);
+    // 3 px = 0.625 deg tilt: inside the 1 deg deadband
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Locked, 160.0f, 123.0f}, 60).kind == AimKind::Hold);
+    // 6 px = 1.25 deg: outside
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Locked, 160.0f, 126.0f}, 120).kind == AimKind::Aim);
+}
+
 // ---- ButtonClassifier ----
 
 /** Feed a constant raw level for [from, to) in 1 ms ticks; returns the last non-None event. */
@@ -213,6 +223,30 @@ void test_cancel_from_any_state(void)
     TEST_ASSERT_TRUE(s.record(40, 50, Angles{-30, 110}, true) == CalState::Idle); // ignored when Idle
 }
 
+void test_cancel_from_idle_done_and_failed(void)
+{
+    CalibrationSession s;
+    s.cancel(); // from Idle
+    TEST_ASSERT_TRUE(s.state() == CalState::Idle);
+    TEST_ASSERT_EQUAL_INT(0, s.points());
+
+    s.start();
+    s.record(40, 50, Angles{-30, 110}, true);
+    TEST_ASSERT_TRUE(s.record(280, 200, Angles{25, 70}, true) == CalState::Done);
+    s.cancel(); // from Done
+    TEST_ASSERT_TRUE(s.state() == CalState::Idle);
+    TEST_ASSERT_EQUAL_INT(0, s.points());
+    TEST_ASSERT_FALSE(s.result().has_value());
+
+    s.start();
+    s.record(100, 100, Angles{0, 90}, true);
+    TEST_ASSERT_TRUE(s.record(120, 110, Angles{5, 85}, true) == CalState::Failed);
+    s.cancel(); // from Failed
+    TEST_ASSERT_TRUE(s.state() == CalState::Idle);
+    TEST_ASSERT_EQUAL_INT(0, s.points());
+    TEST_ASSERT_NULL(s.failure());
+}
+
 // ---- Pipeline: policy -> planner ----
 
 void test_policy_to_planner_reaches_aim(void)
@@ -232,6 +266,58 @@ void test_policy_to_planner_reaches_aim(void)
     TEST_ASSERT_TRUE(ticks < 1100);                   // triangular move of 141 steps: ~0.84 s plus creep
 }
 
+void test_scripted_track_through_policy_and_planner(void)
+{
+    AimPolicy policy(default_map());
+    StepPlanner planner;
+    const PlannerConfig& c = planner.config();
+    const float dv = c.accel * c.tick_s;
+    float prev = 0.0f;
+    int32_t last_aim_steps = 0;
+    int home_ms = -1;
+    // Track: x 40 -> 280 over 6000 ms (Locked), then Idle. The planner is driven at 1 kHz, the policy every 59 ms.
+    // The last Locked update is at 5959 ms (59 * 101). Aims are about 1 deg (5.7 steps) apart and the planner follows
+    // at ~47 steps/s, so at 6000 ms it is within ~10 steps of the last target: the worst case is a creep finish at
+    // 20 steps/s (10 / 20 = 0.5 s) plus a few ms of ramp, so 700 ms after the track stops it must sit on the target.
+    // Home fires at the first update >= 5959 + 2000, i.e. 7965 ms. The pose is then at most 141 steps (24.75 deg):
+    // triangular profile (141 < 400^2 / 800 = 200), 2 * sqrt(141 / 800) = 0.84 s plus the creep tail, so 1200 ms.
+    for (int t = 0; t <= 10000; ++t)
+    {
+        planner.tick();
+        const float v = planner.speed();
+        TEST_ASSERT_TRUE(std::fabs(v) <= c.max_speed + 1e-3f);
+        const bool creep = std::fabs(prev) <= c.min_speed + 1e-3f && std::fabs(v) <= c.min_speed + 1e-3f;
+        TEST_ASSERT_TRUE(std::fabs(v - prev) <= dv + 1e-3f || creep);
+        prev = v;
+        if (t % 59 == 0)
+        {
+            const bool moving = t < 6000;
+            const TrackView view{moving ? TrackPhase::Locked : TrackPhase::Idle, 40.0f + 240.0f * t / 6000.0f, 120.0f};
+            const AimCommand cmd = policy.update(view, static_cast<uint32_t>(t));
+            if (cmd.kind == AimKind::Aim)
+            {
+                last_aim_steps = pan_deg_to_steps(cmd.angles.pan);
+                planner.set_target(last_aim_steps);
+            } else if (cmd.kind == AimKind::Home)
+            {
+                home_ms = t;
+                planner.set_target(0);
+            }
+        }
+        if (t == 6700)
+        {
+            TEST_ASSERT_EQUAL_INT32(last_aim_steps, planner.position());
+            TEST_ASSERT_TRUE(last_aim_steps > 100);
+        }
+        if (home_ms >= 0 && t == home_ms + 1200)
+        {
+            TEST_ASSERT_EQUAL_INT32(0, planner.position());
+        }
+    }
+    TEST_ASSERT_TRUE(home_ms >= 7959 && home_ms < 7959 + 59);
+    TEST_ASSERT_EQUAL_INT32(0, planner.position());
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
@@ -244,6 +330,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_millis_wraparound);
     RUN_TEST(test_hold_carries_commanded_pose);
     RUN_TEST(test_reset_forgets_setpoint);
+    RUN_TEST(test_tilt_deadband);
     RUN_TEST(test_short_press);
     RUN_TEST(test_long_press_fires_once_at_threshold);
     RUN_TEST(test_bounce_is_ignored);
@@ -251,6 +338,8 @@ int main(int argc, char** argv)
     RUN_TEST(test_record_without_target_is_ignored);
     RUN_TEST(test_bad_fit_fails_and_next_press_restarts);
     RUN_TEST(test_cancel_from_any_state);
+    RUN_TEST(test_cancel_from_idle_done_and_failed);
     RUN_TEST(test_policy_to_planner_reaches_aim);
+    RUN_TEST(test_scripted_track_through_policy_and_planner);
     return UNITY_END();
 }

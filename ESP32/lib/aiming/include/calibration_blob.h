@@ -21,7 +21,12 @@ namespace aiming
 constexpr size_t kBlobSize = 28;
 using Blob = std::array<uint8_t, kBlobSize>;
 
+/** @brief Standard CRC-32 (IEEE 802.3, reflected, polynomial 0xEDB88320) of len bytes at data. */
 uint32_t crc32(const uint8_t* data, size_t len);
+/** @brief Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes. */
 Blob serialize(const AimMap& map);
+/**
+ * @brief Parses a blob; empty if the length, magic, version, CRC or float values are invalid.
+ */
 std::optional<AimMap> deserialize(const uint8_t* data, size_t len);
 } // namespace aiming
