@@ -1,0 +1,6 @@
+# Real clip from the board: lights off (mean ~33), on at frame ~78 (mean ~211), off at ~215; the ceiling lamp keeps an
+# afterglow that fades over ~1 s after switch-off. Each switch is a two-frame brightness ramp, so each one resets the
+# background twice (observed 4 scene changes). The afterglow must not become a ghost the tracker locks onto.
+min_scene_changes=2
+max_scene_changes=4
+max_ids=0

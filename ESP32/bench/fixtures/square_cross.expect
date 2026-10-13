@@ -1,0 +1,7 @@
+# A 4x4 square enters at frame 20 (detector warm-up ends at frame 17, first detection at frame 18), bounces off the
+# 40-cell grid edges at 1 cell/frame and is gone from frame 80. Observed first lock 22 (<= ready frame 18 + 5), locked
+# 58 of 60 visible frames.
+lock_by_frame=23
+max_ids=1
+min_locked_frames=50
+max_scene_changes=0

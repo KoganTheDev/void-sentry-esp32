@@ -1,0 +1,4 @@
+# The whole scene brightens at frame 30: one scene change, never a lock.
+max_ids=0
+min_scene_changes=1
+max_scene_changes=1

@@ -1,0 +1,7 @@
+# Real clip from the board: the user moves across very close to the camera; head and torso cover 35-45% of the frame
+# but the auto-exposed frame mean barely moves, so this must NOT be a scene change. Observed first lock 22, locked
+# 152 of 176 frames, 1 id, 0 scene changes (the previous detector reported 5 false ones).
+lock_by_frame=26
+max_ids=1
+min_locked_frames=137
+max_scene_changes=0

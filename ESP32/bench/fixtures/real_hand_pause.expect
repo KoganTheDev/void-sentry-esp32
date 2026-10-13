@@ -1,0 +1,6 @@
+# Real clip from the board: the user's face in the first frame, then a hand and arm waving close to the camera until
+# the end. Observed first lock 20, locked 165 of 185 frames, 1 id, no scene change.
+lock_by_frame=24
+max_ids=1
+min_locked_frames=148
+max_scene_changes=0

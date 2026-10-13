@@ -1,0 +1,7 @@
+# The square is in the seed frame, moves away from frame 20 and is gone from frame 70. Its ghost must not hold the
+# turret: Idle again by frame 105 (observed last non-Idle frame is 100; limit was 70 + 60 = 130).
+lock_by_frame=24
+max_ids=1
+min_locked_frames=55
+max_scene_changes=0
+no_track_after_frame=105

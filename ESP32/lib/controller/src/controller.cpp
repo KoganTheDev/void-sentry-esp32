@@ -13,6 +13,7 @@ void Controller::run()
     if (this->_joystick.is_z_pressed()) // Flip control state
     {
         this->_system_control_state.toggle_mode();
+        this->_detection_module.reset(); // no stale lock in USER_MODE, fresh start when AI_MODE resumes
         ESP_LOGI(TAG, "Control mode changed to: %s", this->_system_control_state.to_string());
     }
 
@@ -43,7 +44,10 @@ void Controller::run()
     // Release the slot before moving: the stepper blocks ~15 ms and must not pin a frame slot.
     lease.reset();
 
-    this->_movement_manager.move_relative(move_directions); // Move stepper & motor
+    if (kAiAimEnabled)
+    {
+        this->_movement_manager.move_relative(move_directions); // Move stepper & motor
+    }
 }
 
 const std::tuple<MoveX, MoveY> Controller::user_mode() const

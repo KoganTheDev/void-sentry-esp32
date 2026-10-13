@@ -6,8 +6,8 @@
 #pragma once
 
 #include "camera.h"
-#include "motion_data.h"
 #include "move_types.h"
+#include "track_snapshot.h"
 #include <esp_camera.h>
 #include <tuple>
 
@@ -36,14 +36,14 @@ public:
     virtual std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) = 0;
 
     /**
-     * @brief Get the latest motion data from the detection module.
-     * @details This method provides access to the motion metrics detected.
-     * Derived classes should override this to return their current metrics.
-     * @return MotionData containing the latest detection results.
+     * @brief Latest tracker output, safe to call from another task (implementations copy under a lock).
+     * @return Default (Idle) snapshot when the module does not track.
      */
-    virtual MotionData get_motion_data() const
-    {
-        // Default implementation returns empty motion data
-        return MotionData();
-    }
+    virtual TrackSnapshot get_track_snapshot() const { return TrackSnapshot{}; }
+
+    /** @brief Drop the current target and background. Called from the loop task only. */
+    virtual void reset() {}
+
+    /** @brief Detection timings and counters for the stats line. */
+    virtual DetectionStats get_stats() const { return DetectionStats{}; }
 };
