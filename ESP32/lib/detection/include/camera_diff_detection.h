@@ -9,9 +9,10 @@
 /**
  * @class CameraDiffDetection
  * @brief Motion detection and persistent single-target tracking on camera frames.
- * @details Each frame: JPEG -> 40x30 gray (jpeg_gray), MotionDetector, Tracker. The pipeline state (~15 KB) is
- * allocated once in PSRAM by begin(); nothing is allocated per frame. detect_object() runs in loop(); the snapshot
- * and stats getters may be called from other tasks.
+ * @details Each frame: JPEG -> 40x30 gray (jpeg_gray), MotionDetector, Tracker. The pipeline state is
+ * allocated once in internal RAM by begin() (~12.6 KB at 40x30; tracking measured 0.6 ms there versus 1.1 ms in PSRAM);
+ * nothing is allocated per frame. detect_object() runs in loop(); the snapshot and stats getters may be called from
+ * other tasks.
  */
 class CameraDiffDetection : public BaseDetectionModule
 {
@@ -21,7 +22,7 @@ public:
     CameraDiffDetection(const CameraDiffDetection&) = delete;
     CameraDiffDetection& operator=(const CameraDiffDetection&) = delete;
 
-    /** @brief Allocate the pipeline in PSRAM. Without it detect_object() reports no motion. */
+    /** @brief Allocate the pipeline in internal RAM. Without it detect_object() reports no motion. */
     bool begin();
 
     /** @brief Analyse one frame; returns the direction toward the tracked target (None when there is none). */

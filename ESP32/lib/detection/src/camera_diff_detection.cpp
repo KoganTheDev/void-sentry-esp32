@@ -62,14 +62,14 @@ bool CameraDiffDetection::begin()
     {
         return true;
     }
-    void* mem = heap_caps_malloc(sizeof(Pipeline), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    void* mem = heap_caps_malloc(sizeof(Pipeline), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     if (!mem)
     {
-        ESP_LOGE(TAG, "Failed to allocate the %u-byte tracking pipeline in PSRAM", (unsigned)sizeof(Pipeline));
+        ESP_LOGE(TAG, "Failed to allocate the %u-byte tracking pipeline in internal RAM", (unsigned)sizeof(Pipeline));
         return false;
     }
     this->_pipeline = new (mem) Pipeline{};
-    ESP_LOGI(TAG, "Tracking pipeline ready (%u bytes in PSRAM)", (unsigned)sizeof(Pipeline));
+    ESP_LOGI(TAG, "Tracking pipeline ready (%u bytes in internal RAM)", (unsigned)sizeof(Pipeline));
     return true;
 }
 
