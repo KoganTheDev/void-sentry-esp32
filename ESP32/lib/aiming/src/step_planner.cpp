@@ -108,8 +108,7 @@ int StepPlanner::tick()
         {
             speed_ = dir * config_.min_speed;
         }
-    } else if (mode_ == Mode::Jog && goal != 0.0f && std::fabs(speed_) < config_.min_speed &&
-               speed_ * goal >= 0.0f)
+    } else if (mode_ == Mode::Jog && goal != 0.0f && std::fabs(speed_) < config_.min_speed && speed_ * goal >= 0.0f)
     {
         speed_ = static_cast<float>(sign(goal)) * config_.min_speed;
     }

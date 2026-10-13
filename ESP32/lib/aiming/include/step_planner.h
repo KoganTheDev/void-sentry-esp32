@@ -28,7 +28,7 @@ class StepPlanner
 public:
     explicit StepPlanner(const PlannerConfig& config = PlannerConfig{});
 
-    void set_target(int32_t steps); ///< absolute, clamped to the soft limits; switches to target mode
+    void set_target(int32_t steps);       ///< absolute, clamped to the soft limits; switches to target mode
     void set_velocity(float steps_per_s); ///< jog; clamped to +-max_speed; switches to jog mode
     int tick();
 
@@ -40,10 +40,7 @@ public:
     const PlannerConfig& config() const { return config_; }
 
 private:
-    enum class Mode : uint8_t {
-        Target,
-        Jog
-    };
+    enum class Mode : uint8_t { Target, Jog };
 
     float goal_speed();
 
