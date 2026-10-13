@@ -3,8 +3,12 @@
 #include <Arduino.h>
 #include <cmath>
 #include <esp_log.h>
+#include <esp_timer.h>
+#include <freertos/FreeRTOSConfig.h>
 
 static const char* TAG = "TURRET";
+
+static_assert(configTICK_RATE_HZ == 1000, "motor task assumes a 1 ms tick");
 
 namespace
 {
@@ -13,6 +17,7 @@ constexpr float kTiltMaxSlewDegS = 120.0f; ///< servo slew limit
 constexpr float kServoPeriodS = 0.02f;     ///< 50 Hz
 constexpr uint32_t kServoEveryTicks = 20;  ///< 1 ms ticks per servo update
 constexpr uint32_t kCoilReleaseMs = 500;
+constexpr int64_t kMinStepSpacingUs = 1500; ///< 28BYJ-48 cannot follow coil steps closer than this
 constexpr uint8_t kPattern[4][4] = {{1, 1, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {1, 0, 0, 1}};
 constexpr uint8_t kCoilPins[4] = {pins::STEPPER_IN1, pins::STEPPER_IN2, pins::STEPPER_IN3, pins::STEPPER_IN4};
 
@@ -100,6 +105,14 @@ aiming::Angles Turret::position_deg() const
     return a;
 }
 
+uint32_t Turret::late_ticks() const
+{
+    portENTER_CRITICAL(&this->_lock);
+    const uint32_t n = this->_late_ticks;
+    portEXIT_CRITICAL(&this->_lock);
+    return n;
+}
+
 float Turret::pan_speed() const
 {
     portENTER_CRITICAL(&this->_lock);
@@ -133,10 +146,23 @@ void Turret::run()
     uint32_t handled_seq = 0;
     uint32_t tick_count = 0;
     TickType_t last_wake = xTaskGetTickCount();
+    int pending = 0;          // planner steps counted but not yet emitted to the coils
+    int64_t last_step_us = 0; // esp_timer time of the last emitted coil step
+    uint32_t late = 0;
 
     for (;;)
     {
         vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(1));
+
+        // If the task was starved (WiFi/lwIP on core 0, flash cache-disable windows), FreeRTOS 10.x advances
+        // last_wake one tick per call and returns immediately, so missed ticks would run back-to-back within
+        // microseconds. Drop them instead: resync to now. The planner just runs slower in wall time.
+        const TickType_t now_tick = xTaskGetTickCount();
+        if (static_cast<int32_t>(now_tick - last_wake) > 0)
+        {
+            last_wake = now_tick;
+            ++late;
+        }
 
         // Commands: copy under the lock, apply outside it.
         Command cmd;
@@ -169,9 +195,16 @@ void Turret::run()
 
         // Stepping.
         const uint32_t now_ms = millis();
-        const int step = this->_planner.tick();
-        if (step != 0)
+        // The planner's position already counts every step it returns. Steps are queued in `pending` and emitted at
+        // most one per kMinStepSpacingUs, so two coil steps are never closer than the motor can follow (a p -> p+2
+        // jump would stall it and corrupt the open-loop step count). Held steps are never dropped: the coil phase
+        // catches up exactly once per planner step.
+        pending += this->_planner.tick();
+        const int64_t now_us = esp_timer_get_time();
+        if (pending != 0 && (now_us - last_step_us) >= kMinStepSpacingUs)
         {
+            const int step = pending > 0 ? 1 : -1;
+            pending -= step;
             if (!this->_coils_on)
             {
                 this->write_coils(this->_phase); // energize on the current phase before moving
@@ -179,7 +212,9 @@ void Turret::run()
             this->_phase = (this->_phase + step) & 3;
             this->write_coils(this->_phase);
             this->_last_step_ms = now_ms;
-        } else if (this->_coils_on && this->_planner.is_idle() && (now_ms - this->_last_step_ms) > kCoilReleaseMs)
+            last_step_us = now_us;
+        } else if (pending == 0 && this->_coils_on && this->_planner.is_idle() &&
+                   (now_ms - this->_last_step_ms) > kCoilReleaseMs)
         {
             this->release_coils();
         }
@@ -210,6 +245,7 @@ void Turret::run()
         this->_published.pan = pan;
         this->_published.tilt = tilt;
         this->_published_speed = speed;
+        this->_late_ticks = late;
         portEXIT_CRITICAL(&this->_lock);
     }
 }

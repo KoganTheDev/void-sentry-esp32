@@ -41,6 +41,9 @@ public:
     aiming::Angles position_deg() const override;
     float pan_speed() const override;
 
+    /** @brief Count of late wake-ups where missed 1 ms ticks were dropped (task was starved). */
+    uint32_t late_ticks() const;
+
 private:
     enum class CommandKind : uint8_t { None, Target, Jog, Home };
 
@@ -62,6 +65,7 @@ private:
     mutable portMUX_TYPE _lock = portMUX_INITIALIZER_UNLOCKED;
     Command _command;                       ///< guarded by _lock
     aiming::Angles _published{0.0f, 90.0f}; ///< guarded by _lock
+    uint32_t _late_ticks = 0;               ///< guarded by _lock
     float _published_speed = 0.0f;          ///< guarded by _lock
 
     // Owned by the motor task only.
