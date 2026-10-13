@@ -84,13 +84,39 @@ void test_millis_wraparound(void)
     TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 0x000007D0u).kind == AimKind::Home); // 2256 ms later
 }
 
+void test_hold_carries_commanded_pose(void)
+{
+    AimPolicy p(default_map());
+    // Before any lock, Hold reports the Home pose.
+    const AimCommand idle = p.update({TrackPhase::Idle, 0, 0}, 0);
+    TEST_ASSERT_TRUE(idle.kind == AimKind::Hold);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, idle.angles.pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltHomeDeg, idle.angles.tilt);
+    // After an Aim to X, a Tentative Hold carries X.
+    const AimCommand aim = p.update({TrackPhase::Locked, 280.0f, 120.0f}, 10); // pan 24.75, tilt 90
+    TEST_ASSERT_TRUE(aim.kind == AimKind::Aim);
+    const AimCommand hold = p.update({TrackPhase::Tentative, 280.0f, 120.0f}, 20);
+    TEST_ASSERT_TRUE(hold.kind == AimKind::Hold);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, aim.angles.pan, hold.angles.pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, aim.angles.tilt, hold.angles.tilt);
+    // After Home, Hold carries the Home pose (not the stale pre-home aim).
+    const AimCommand home = p.update({TrackPhase::Idle, 0, 0}, 2100);
+    TEST_ASSERT_TRUE(home.kind == AimKind::Home);
+    const AimCommand after = p.update({TrackPhase::Idle, 0, 0}, 2200);
+    TEST_ASSERT_TRUE(after.kind == AimKind::Hold);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, after.angles.pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltHomeDeg, after.angles.tilt);
+}
+
 void test_reset_forgets_setpoint(void)
 {
     AimPolicy p(default_map());
     p.update({TrackPhase::Locked, 300.0f, 60.0f}, 0);
     p.reset();
-    TEST_ASSERT_TRUE(p.update({TrackPhase::Locked, 300.0f, 60.0f}, 10).kind == AimKind::Aim);
-    TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 20).kind == AimKind::Hold);
+    // reset() cleared the lost-target timer: 5 s of Idle after the reset must not Home.
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 5000).kind == AimKind::Hold);
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Locked, 300.0f, 60.0f}, 5010).kind == AimKind::Aim);
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 5020).kind == AimKind::Hold);
 }
 
 // ---- ButtonClassifier ----
@@ -124,9 +150,11 @@ void test_long_press_fires_once_at_threshold(void)
     ButtonClassifier b;
     // The press is confirmed at t = 50 (debounce); long fires 1500 ms after that.
     TEST_ASSERT_TRUE(feed(b, true, 0, 1549) == ButtonEvent::None);
+    TEST_ASSERT_TRUE(b.update(true, 1549) == ButtonEvent::None);
+    TEST_ASSERT_TRUE(b.update(true, 1550) == ButtonEvent::Long); // exactly 1500 ms after confirmation at 50
     int count = 0;
-    TEST_ASSERT_TRUE(feed(b, true, 1549, 3000, &count) == ButtonEvent::Long);
-    TEST_ASSERT_EQUAL_INT(1, count);
+    TEST_ASSERT_TRUE(feed(b, true, 1551, 3000, &count) == ButtonEvent::None);
+    TEST_ASSERT_EQUAL_INT(0, count);                                   // no repeat while held
     TEST_ASSERT_TRUE(feed(b, false, 3000, 3100) == ButtonEvent::None); // release after long: no short
 }
 
@@ -214,6 +242,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_idle_holds_then_homes_once);
     RUN_TEST(test_relock_after_home_aims);
     RUN_TEST(test_millis_wraparound);
+    RUN_TEST(test_hold_carries_commanded_pose);
     RUN_TEST(test_reset_forgets_setpoint);
     RUN_TEST(test_short_press);
     RUN_TEST(test_long_press_fires_once_at_threshold);

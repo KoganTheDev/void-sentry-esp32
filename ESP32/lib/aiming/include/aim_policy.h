@@ -23,6 +23,10 @@ struct TrackView {
 
 enum class AimKind : uint8_t { Hold, Aim, Home };
 
+/**
+ * @brief Result of one policy update. For Aim and Home, angles is the new target pose. For Hold, angles is the
+ * current commanded pose (the last Aim or Home, or the Home pose before any lock); consumers act only on Aim and Home.
+ */
 struct AimCommand {
     AimKind kind = AimKind::Hold;
     Angles angles;
@@ -45,8 +49,8 @@ public:
 private:
     AimMap map_;
     PolicyConfig config_;
-    bool have_setpoint_ = false;
-    Angles setpoint_;
+    bool have_setpoint_ = false; ///< false = the next lock aims even if it equals setpoint_ (after Home or reset)
+    Angles setpoint_{0.0f, kTiltHomeDeg}; ///< current commanded pose; starts at Home, follows Aim and Home
     bool seen_ = false;
     bool homed_ = false;
     uint32_t last_seen_ms_ = 0;

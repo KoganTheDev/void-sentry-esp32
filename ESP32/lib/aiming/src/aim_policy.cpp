@@ -36,7 +36,8 @@ AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
     {
         homed_ = true;
         have_setpoint_ = false;
-        return AimCommand{AimKind::Home, Angles{0.0f, kTiltHomeDeg}};
+        setpoint_ = Angles{0.0f, kTiltHomeDeg};
+        return AimCommand{AimKind::Home, setpoint_};
     }
     return AimCommand{AimKind::Hold, setpoint_};
 }
