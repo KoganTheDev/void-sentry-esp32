@@ -47,17 +47,19 @@ void test_seed_and_warmup_report_no_blobs(void)
     fill_rect(with_rect, 5, 5, 10, 10, 200);
 
     TEST_ASSERT_TRUE(d.process(bg).warming_up); // seed
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < DetectorConfig{}.warmup_frames; ++i)
     {
         const DetectionResult& r = d.process(with_rect);
         TEST_ASSERT_TRUE(r.warming_up);
         TEST_ASSERT_EQUAL_INT(0, r.blob_count);
     }
-    // Warm-up learned every cell at the fast rate (1/16) for 8 frames: the rectangle is only partly absorbed
-    // (diff 150 -> ~89), so the first real frame reports it.
+    // Warm-up copies every frame into the background (it does not learn at 1/16), so a rectangle that is present
+    // during warm-up is fully absorbed and the first real frame reports nothing. (It used to be only partly
+    // absorbed, diff 150 -> ~89, and showed up as a blob.)
     const DetectionResult& r = d.process(with_rect);
     TEST_ASSERT_FALSE(r.warming_up);
-    TEST_ASSERT_EQUAL_INT(1, r.blob_count);
+    TEST_ASSERT_EQUAL_INT(0, r.blob_count);
+    TEST_ASSERT_EQUAL_INT(0, r.foreground_cells);
 }
 
 void test_rectangle_becomes_one_blob(void)
@@ -169,7 +171,7 @@ void test_brightness_step_is_scene_change(void)
     const DetectionResult& step = d.process(flat(120));
     TEST_ASSERT_TRUE(step.scene_change);
     TEST_ASSERT_EQUAL_INT(0, step.blob_count);
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < DetectorConfig{}.warmup_frames; ++i)
     {
         const DetectionResult& r = d.process(flat(120));
         TEST_ASSERT_TRUE(r.warming_up);
@@ -178,6 +180,47 @@ void test_brightness_step_is_scene_change(void)
     const DetectionResult& r = d.process(flat(120));
     TEST_ASSERT_FALSE(r.warming_up);
     TEST_ASSERT_FALSE(r.scene_change);
+    TEST_ASSERT_EQUAL_INT(0, r.blob_count);
+}
+
+void test_large_local_object_is_not_a_scene_change(void)
+{
+    MotionDetector d;
+    GrayFrame bg = flat(100);
+    warm_up(d, bg);
+    GrayFrame f = bg;
+    fill_rect(f, 0, 0, kGridW - 1, 14, 140); // 40x15 = 600 cells = 50% of the grid (> 35%), mean shift = 20 (< 25)
+
+    const DetectionResult& r = d.process(f);
+    TEST_ASSERT_FALSE(r.scene_change);
+    TEST_ASSERT_FALSE(r.warming_up);
+    TEST_ASSERT_EQUAL_INT(600, r.foreground_cells);
+    TEST_ASSERT_EQUAL_INT(1, r.blob_count);
+    TEST_ASSERT_EQUAL_INT(600, r.blobs[0].area);
+}
+
+void test_warmup_absorbs_settling_exposure(void)
+{
+    MotionDetector d;
+    warm_up(d, flat(50));
+    TEST_ASSERT_TRUE(d.process(flat(120)).scene_change); // lights on: reseed + warm-up
+
+    // Auto-exposure keeps drifting for 10 frames (5 gray levels each, 120 -> 170), then holds at 170.
+    int value = 120;
+    for (int i = 0; i < 10; ++i)
+    {
+        value += 5;
+        const DetectionResult& r = d.process(flat(static_cast<uint8_t>(value)));
+        TEST_ASSERT_TRUE(r.warming_up);
+        TEST_ASSERT_FALSE(r.scene_change);
+    }
+    for (int i = 0; i < DetectorConfig{}.warmup_frames - 10; ++i)
+    {
+        TEST_ASSERT_TRUE(d.process(flat(170)).warming_up);
+    }
+    const DetectionResult& r = d.process(flat(170));
+    TEST_ASSERT_FALSE(r.warming_up);
+    TEST_ASSERT_EQUAL_INT(0, r.foreground_cells);
     TEST_ASSERT_EQUAL_INT(0, r.blob_count);
 }
 
@@ -382,6 +425,8 @@ int main(int argc, char** argv)
     RUN_TEST(test_u_shape_is_one_blob);
     RUN_TEST(test_diagonal_neighbours_connect);
     RUN_TEST(test_brightness_step_is_scene_change);
+    RUN_TEST(test_large_local_object_is_not_a_scene_change);
+    RUN_TEST(test_warmup_absorbs_settling_exposure);
     RUN_TEST(test_static_white_object_is_absorbed_without_wrap);
     RUN_TEST(test_moving_square_leaves_no_trail);
     RUN_TEST(test_object_in_seed_frame_ghost_clears);

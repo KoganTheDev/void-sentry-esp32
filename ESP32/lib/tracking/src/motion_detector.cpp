@@ -35,7 +35,10 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
 
     const int raw = build_mask(frame);
     result_.foreground_cells = raw;
-    if (raw > static_cast<int>(config_.scene_change_fraction * kCells))
+    // A scene change needs BOTH a large foreground area AND a shifted frame mean. A big object close to the camera
+    // covers a lot of the grid, but auto-exposure holds the mean; a light switch or camera move shifts the mean.
+    if (raw > static_cast<int>(config_.scene_change_fraction * kCells) &&
+        std::abs(frame_mean_ - background_mean_) > config_.scene_change_mean_shift)
     {
         // A light switched or the camera moved: nothing here is a target. Start over from this frame.
         seed_background(frame);
@@ -46,10 +49,11 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
 
     if (warmup_left_ > 0)
     {
-        // Let auto-exposure settle: learn every cell at the fast rate, report nothing.
+        // Let auto-exposure settle and lamp afterglow fade: follow the frame exactly (copy), report nothing, so
+        // whatever the scene looks like at the end of warm-up is the background.
         --warmup_left_;
         fg_age_.fill(0);
-        update_background(frame, false);
+        copy_background(frame);
         result_.warming_up = true;
         return result_;
     }
@@ -60,12 +64,17 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
     return result_;
 }
 
-void MotionDetector::seed_background(const GrayFrame& frame)
+void MotionDetector::copy_background(const GrayFrame& frame)
 {
     for (int i = 0; i < kCells; ++i)
     {
         background_[i] = static_cast<uint16_t>(frame[i] << 8);
     }
+}
+
+void MotionDetector::seed_background(const GrayFrame& frame)
+{
+    copy_background(frame);
     fg_age_.fill(0);
     seeded_ = true;
     warmup_left_ = config_.warmup_frames;
@@ -104,14 +113,20 @@ void MotionDetector::update_background(const GrayFrame& frame, bool selective)
 int MotionDetector::build_mask(const GrayFrame& frame)
 {
     int count = 0;
+    int frame_sum = 0;
+    int bg_sum = 0;
     for (int i = 0; i < kCells; ++i)
     {
         const int bg = (background_[i] + 128) >> 8;
+        frame_sum += frame[i];
+        bg_sum += bg;
         const int diff = std::abs(static_cast<int>(frame[i]) - bg);
         const uint8_t fg = diff > config_.diff_threshold ? 1 : 0;
         mask_[i] = fg;
         count += fg;
     }
+    frame_mean_ = frame_sum / kCells;
+    background_mean_ = bg_sum / kCells;
     return count;
 }
 

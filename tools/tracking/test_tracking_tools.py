@@ -24,7 +24,7 @@ class SyntheticClipTests(unittest.TestCase):
         self.assertEqual(a, b)
 
     def test_square_position(self):
-        frame = make_synthetic_clips.square_cross(random.Random(1))[10]
+        frame = make_synthetic_clips.square_cross(random.Random(1))[20]
         self.assertEqual(190, frame[13 * W + 2])  # top-left of the 4x4 square at x0=2, y0=13
         self.assertEqual(190, frame[16 * W + 5])  # bottom-right
         self.assertNotEqual(190, frame[13 * W + 6])
@@ -32,12 +32,12 @@ class SyntheticClipTests(unittest.TestCase):
 
     def test_square_bounces_inside_the_grid(self):
         frames = make_synthetic_clips.square_cross(random.Random(1))
-        for f in range(10, 70):
+        for f in range(20, 80):
             row = frames[f][13 * W:14 * W]
             xs = [x for x in range(W) if row[x] == 190]
             self.assertEqual(4, len(xs), f)  # always fully inside the grid
             self.assertEqual(xs[0] + 3, xs[-1], f)
-        self.assertEqual(36, max(x for x in range(W) if frames[44][13 * W + x] == 190) - 3)  # right wall at frame 44
+        self.assertEqual(36, max(x for x in range(W) if frames[54][13 * W + x] == 190) - 3)  # right wall at frame 54
 
 
 class GhostClipTests(unittest.TestCase):
@@ -59,10 +59,10 @@ class GhostClipTests(unittest.TestCase):
 
     def test_pause_leave_is_static_then_gone(self):
         frames = make_synthetic_clips.pause_leave(random.Random(1))
-        self.assertLess(max(frames[9]), 100)
-        self.assertEqual(190, frames[30][13 * W + 22])
-        self.assertEqual(190, frames[63][13 * W + 22])
-        self.assertLess(max(frames[64]), 100)
+        self.assertLess(max(frames[19]), 100)
+        self.assertEqual(190, frames[40][13 * W + 22])
+        self.assertEqual(190, frames[73][13 * W + 22])
+        self.assertLess(max(frames[74]), 100)
 
 
 class JpegToGrayTests(unittest.TestCase):

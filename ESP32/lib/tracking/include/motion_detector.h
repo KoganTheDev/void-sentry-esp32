@@ -41,6 +41,7 @@ private:
         Box box;
     };
 
+    void copy_background(const GrayFrame& frame);
     void seed_background(const GrayFrame& frame);
     void update_background(const GrayFrame& frame, bool selective);
     int build_mask(const GrayFrame& frame);
@@ -51,6 +52,8 @@ private:
     DetectorConfig config_;
     bool seeded_ = false;
     int warmup_left_ = 0;
+    int frame_mean_ = 0;      ///< mean gray of the last frame passed to build_mask()
+    int background_mean_ = 0; ///< mean of the rounded background at that time
     DetectionResult result_;
     std::array<uint16_t, kCells> background_{}; ///< Q8 fixed point (gray << 8)
     std::array<uint8_t, kCells> mask_{};
