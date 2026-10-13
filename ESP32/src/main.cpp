@@ -27,7 +27,7 @@ Camera camera;
 FrameStore frame_store;
 CameraTaskStats camera_stats;
 
-Controller controller(turret, detection_manager, joystick, frame_store);
+Controller controller(turret, detection_manager, joystick);
 
 // One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
 static void log_stream_stats()
@@ -53,6 +53,16 @@ static void log_stream_stats()
     const uint32_t jpeg_b_avg = d_copies ? (bytes - prev_bytes) / d_copies : 0;
     prev_copies = copies;
     prev_bytes = bytes;
+    // Per-window detection timings (since-boot averages hid the Stage 3 slowdown).
+    static uint32_t prev_det_frames = 0;
+    static uint64_t prev_decode_total = 0;
+    static uint64_t prev_track_total = 0;
+    const uint32_t det_frames = det.frames - prev_det_frames;
+    const uint32_t dec_win_us = det_frames ? (uint32_t)((det.decode_us_total - prev_decode_total) / det_frames) : 0;
+    const uint32_t trk_win_us = det_frames ? (uint32_t)((det.track_us_total - prev_track_total) / det_frames) : 0;
+    prev_det_frames = det.frames;
+    prev_decode_total = det.decode_us_total;
+    prev_track_total = det.track_us_total;
     const aiming::Angles pose = turret.position_deg();
     const ControlStatus ctl = controller.control_status();
     ESP_LOGI(
@@ -60,7 +70,8 @@ static void log_stream_stats()
         "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
         "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
         "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
-        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u",
+        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u det_frames=%u dec_win_us=%u "
+        "trk_win_us=%u",
         (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
         (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
         (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
@@ -68,7 +79,8 @@ static void log_stream_stats()
         (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
         (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
         (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
-        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
+        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg, (unsigned)det_frames,
+        (unsigned)dec_win_us, (unsigned)trk_win_us);
 }
 
 void setup()
@@ -114,6 +126,9 @@ void setup()
     if (!detection_manager.begin())
     {
         ESP_LOGE(TAG_MAIN, "Tracking pipeline allocation failed - continuing without detection");
+    } else if (!frame_store.ready() || !detection_manager.start_task(frame_store))
+    {
+        ESP_LOGE(TAG_MAIN, "Detection task failed to start - continuing without detection");
     }
 
     // Connect WiFi

@@ -33,6 +33,8 @@ struct DetectionStats {
     uint32_t frames = 0;          ///< frames analysed
     uint32_t decode_failures = 0; ///< corrupt JPEG or not QVGA
     uint32_t scene_changes = 0;
-    uint32_t decode_us_avg = 0; ///< average since boot
-    uint32_t track_us_avg = 0;  ///< detector + tracker, average since boot
+    uint32_t decode_us_avg = 0;   ///< average since boot
+    uint32_t track_us_avg = 0;    ///< detector + tracker, average since boot
+    uint64_t decode_us_total = 0; ///< sum over analysed frames; the stats line differences it per window
+    uint64_t track_us_total = 0;  ///< sum of detector + tracker time over analysed frames
 };

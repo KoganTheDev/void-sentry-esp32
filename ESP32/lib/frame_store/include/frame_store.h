@@ -8,6 +8,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -43,8 +44,18 @@ public:
     std::optional<frames::FrameLease> acquire_latest();
     const uint8_t* data(const frames::FrameLease& lease) const { return buffers_[lease.slot()]; }
 
-    /** @brief Task to wake (xTaskNotifyGive) on every publish. Set once, before frames flow. */
-    void set_subscriber(TaskHandle_t task) { subscriber_ = task; }
+    /** @brief Maximum number of tasks woken on each publish (stream task + detection task). */
+    static constexpr size_t kMaxSubscribers = 2;
+
+    /**
+     * @brief Register a task to wake (xTaskNotifyGive) on every publish.
+     * @return false when all kMaxSubscribers slots are taken; adding a handle already registered is a no-op
+     * that returns true. Safe from any task; no heap.
+     */
+    bool add_subscriber(TaskHandle_t task);
+
+    /** @brief Unregister a task. Unknown or null handles are ignored. Remove before deleting the task. */
+    void remove_subscriber(TaskHandle_t task);
 
     FrameStoreStats stats();
 
@@ -57,6 +68,6 @@ private:
     frames::FrameSlots slots_;
     std::array<uint8_t*, frames::kSlotCount> buffers_{};
     SemaphoreHandle_t mutex_ = nullptr;
-    TaskHandle_t subscriber_ = nullptr;
+    std::array<std::atomic<TaskHandle_t>, kMaxSubscribers> subscribers_{};
     bool ready_ = false;
 };

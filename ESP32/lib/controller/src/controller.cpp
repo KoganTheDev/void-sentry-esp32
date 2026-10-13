@@ -1,7 +1,6 @@
 #include "controller.h"
 #include "cal_store.h"
 #include "camera.h"
-#include "frame_store.h"
 #include <Arduino.h>
 #include <esp_log.h>
 
@@ -20,22 +19,6 @@ void Controller::begin()
         ESP_LOGW(TAG, "No valid saved calibration, using the default map (hold the button 1.5 s to calibrate)");
     }
     this->publish_status();
-}
-
-void Controller::process_new_frame()
-{
-    std::optional<frames::FrameLease> lease = this->_frame_store.acquire_latest();
-    if (!lease || lease->meta().sequence == this->_last_sequence)
-    {
-        return;
-    }
-    this->_last_sequence = lease->meta().sequence;
-
-    camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length, lease->meta().width,
-                       lease->meta().height};
-    this->_detection_module.detect_object(fb); // the result is read back as a track snapshot
-
-    lease.reset();
 }
 
 void Controller::jog_from_joystick(uint32_t now, bool stick_neutral)
@@ -125,7 +108,8 @@ void Controller::on_short_press()
     } else
     {
         this->_mode = (this->_mode == ControlMode::Ai) ? ControlMode::User : ControlMode::Ai;
-        this->_detection_module.reset(); // no stale lock in User mode, fresh start when Ai resumes
+        this->_detection_module
+            .reset(); // a request the detection task applies: no stale lock in User mode, fresh start when Ai resumes
         this->_policy.reset();
         this->_turret.jog(0.0f, 0.0f);
         ESP_LOGI(TAG, "Control mode changed to: %s", to_string(this->_mode));
@@ -192,11 +176,10 @@ void Controller::run()
 
     case ControlMode::Calibrate:
         this->jog_from_joystick(now, held);
-        this->process_new_frame(); // so the HUD box shows; no aim policy while calibrating
+        // Detection runs in its own task, so the HUD box shows; no aim policy while calibrating.
         break;
 
     case ControlMode::Ai: {
-        this->process_new_frame();
         const TrackSnapshot s = this->_detection_module.get_track_snapshot();
         const aiming::AimCommand cmd = this->_policy.update(aiming::TrackView{s.state, (float)s.x, (float)s.y}, now);
         if (cmd.kind == aiming::AimKind::Aim)

@@ -60,20 +60,25 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
         return false;
     }
     task_ = task;
-    store_->set_subscriber(task);
+    if (!store_->add_subscriber(task))
+    {
+        ESP_LOGE(TAG_STREAM, "FrameStore subscriber slots are full");
+        stop();
+        return false;
+    }
     return true;
 }
 
 void StreamBroadcaster::stop()
 {
+    if (store_ != nullptr && task_ != nullptr)
+    {
+        store_->remove_subscriber(task_); // before deleting the task, so publish never notifies a dead handle
+    }
     if (task_ != nullptr)
     {
         vTaskDelete(task_);
         task_ = nullptr;
-    }
-    if (store_ != nullptr)
-    {
-        store_->set_subscriber(nullptr);
     }
     if (instance_ == this)
     {
