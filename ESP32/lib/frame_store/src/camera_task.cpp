@@ -46,6 +46,7 @@ void camera_task(void*)
                 std::memcpy(g_context.store->write_buffer(*slot), fb->buf, fb->len);
                 g_context.stats->copy_us_total += static_cast<uint32_t>(esp_timer_get_time() - start_us);
                 g_context.stats->copies++;
+                g_context.stats->bytes_total += static_cast<uint32_t>(fb->len);
 
                 frames::FrameMeta meta;
                 meta.length = fb->len;

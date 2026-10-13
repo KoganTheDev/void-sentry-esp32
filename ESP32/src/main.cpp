@@ -45,6 +45,14 @@ static void log_stream_stats()
     const TrackSnapshot track = detection_manager.get_track_snapshot();
     const uint32_t copies = camera_stats.copies.load();
     const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
+    // Per-window JPEG size average (unsigned deltas stay correct across a bytes_total wrap).
+    static uint32_t prev_copies = 0;
+    static uint32_t prev_bytes = 0;
+    const uint32_t bytes = camera_stats.bytes_total.load();
+    const uint32_t d_copies = copies - prev_copies;
+    const uint32_t jpeg_b_avg = d_copies ? (bytes - prev_bytes) / d_copies : 0;
+    prev_copies = copies;
+    prev_bytes = bytes;
     const aiming::Angles pose = turret.position_deg();
     const ControlStatus ctl = controller.control_status();
     ESP_LOGI(
@@ -52,7 +60,7 @@ static void log_stream_stats()
         "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
         "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
         "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
-        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u",
+        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u",
         (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
         (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
         (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
@@ -60,7 +68,7 @@ static void log_stream_stats()
         (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
         (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
         (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
-        (unsigned)turret.stack_free(), (unsigned)ctl.aims);
+        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
 }
 
 void setup()
