@@ -46,18 +46,20 @@ static void log_stream_stats()
     const uint32_t copies = camera_stats.copies.load();
     const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
     const aiming::Angles pose = turret.position_deg();
-    ESP_LOGI(TAG_MAIN,
-             "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
-             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
-             "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u pan=%.1f tilt=%.1f "
-             "steps_s=%.0f",
-             (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
-             (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
-             (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
-             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
-             (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
-             (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, (double)pose.pan,
-             (double)pose.tilt, (double)turret.pan_speed());
+    const ControlStatus ctl = controller.control_status();
+    ESP_LOGI(
+        TAG_MAIN,
+        "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
+        "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
+        "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
+        "steps_s=%.0f",
+        (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
+        (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
+        (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
+        (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
+        (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
+        (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
+        (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed());
 }
 
 void setup()
@@ -85,6 +87,8 @@ void setup()
         ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Turret motor task failed to start");
     }
 
+    controller.begin(); // load the saved calibration from NVS (the turret has started)
+
     // Initialize Camera
     ESP_LOGI(TAG_MAIN, "Initializing Camera...");
     if (!camera.begin())
@@ -110,7 +114,7 @@ void setup()
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(frame_store, &detection_manager))
+    if (http_server.start(frame_store, &detection_manager, &controller))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else
@@ -121,7 +125,7 @@ void setup()
 
     ESP_LOGI(TAG_MAIN, "====================================");
     ESP_LOGI(TAG_MAIN, "Setup Complete - System Ready!");
-    ESP_LOGI(TAG_MAIN, "AI_MODE active, waiting for frames");
+    ESP_LOGI(TAG_MAIN, "Ai mode active, waiting for frames");
     ESP_LOGI(TAG_MAIN, "====================================");
 }
 

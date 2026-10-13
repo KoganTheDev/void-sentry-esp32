@@ -6,6 +6,7 @@
 #pragma once
 
 #include "base_detection_module.h"
+#include "control_status.h"
 #include "frame_store.h"
 #include "stream_broadcaster.h"
 #include "websockets.h"
@@ -27,6 +28,9 @@ private:
      */
     static BaseDetectionModule* _detection_instance;
 
+    /** @brief Optional controller status for the /commands JSON (mode, calibration, pose). */
+    static const BaseStatusProvider* _status_instance;
+
     CommandsWebSocketHandler* _commands_handler; // Used both for commands to the motors & sending metrics
     StreamBroadcaster _broadcaster;              // Pushes frames from the FrameStore to /stream viewers
 
@@ -38,9 +42,10 @@ public:
      * @brief Configures and launches the web server on port 80.
      * @param store FrameStore the /stream endpoint reads frames from. Must outlive the server.
      * @param detection Optional pointer to detection module for motion visualization.
+     * @param status Optional status provider (the Controller); when null the mode/calibration fields are omitted.
      * @return true if the server was created and handlers were registered.
      */
-    bool start(FrameStore& store, BaseDetectionModule* detection = nullptr);
+    bool start(FrameStore& store, BaseDetectionModule* detection = nullptr, const BaseStatusProvider* status = nullptr);
 
     /** @brief Frames successfully sent to /stream viewers since boot. */
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }

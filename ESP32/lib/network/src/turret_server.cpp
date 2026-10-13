@@ -14,6 +14,8 @@ httpd_handle_t HttpServer::_server_handle = nullptr;
 
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
 
+const BaseStatusProvider* HttpServer::_status_instance = nullptr;
+
 HttpServer::HttpServer() : _commands_handler(NULL) {}
 
 HttpServer::~HttpServer()
@@ -24,9 +26,10 @@ HttpServer::~HttpServer()
     }
 }
 
-bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
+bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const BaseStatusProvider* status)
 {
     this->_detection_instance = detection;
+    this->_status_instance = status;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 8192;                               // Increase stack for JSON/String handling
@@ -49,7 +52,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection)
             return false;
         }
 
-        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection);
+        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status);
         this->_commands_handler->register_endpoint();
 
         Serial.println("[HTTP] Server started successfully");

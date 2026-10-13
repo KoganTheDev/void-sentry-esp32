@@ -3,6 +3,7 @@
 // TODO: Change name to the header file and split to cpp file as well
 #include "base_detection_module.h"
 #include "camera.h"
+#include "control_status.h"
 #include "track_snapshot.h"
 #include "tracking_types.h"
 #include <cstdio>
@@ -130,15 +131,16 @@ private:
 class CommandsWebSocketHandler : public WebsocketHandler
 {
 public:
-    CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri, BaseDetectionModule* detection = nullptr)
-        : WebsocketHandler(server_handle, uri), _detection_instance(detection)
+    CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri, BaseDetectionModule* detection = nullptr,
+                             const BaseStatusProvider* status = nullptr)
+        : WebsocketHandler(server_handle, uri), _detection_instance(detection), _status_provider(status)
     {
     }
 
     virtual void* handler(const uint8_t* recv_buf, size_t recv_len, uint8_t*& out_buf, size_t& out_len)
     {
-        // Allocate buffer for JSON response (256 bytes should be sufficient)
-        uint8_t* json_buf = (uint8_t*)malloc(256);
+        // Allocate buffer for JSON response (384 bytes should be sufficient)
+        uint8_t* json_buf = (uint8_t*)malloc(384);
         if (!json_buf)
         {
             ESP_LOGE(TAG_WEBSOCKETS, "Failed to allocate JSON buffer");
@@ -152,23 +154,42 @@ public:
         {
             const TrackSnapshot t = _detection_instance->get_track_snapshot();
             // Existing keys first (older HUDs keep working), then the tracker fields.
-            int len = snprintf((char*)json_buf, 256,
+            int len = snprintf((char*)json_buf, 384,
                                "{\"detected\":%d,\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"pixels\":%d,"
                                "\"state\":\"%s\",\"id\":%u,\"bx\":%d,\"by\":%d,\"bw\":%d,\"bh\":%d,"
-                               "\"vx\":%.1f,\"vy\":%.1f}",
+                               "\"vx\":%.1f,\"vy\":%.1f",
                                t.detected() ? 1 : 0, t.x, t.y, t.frame_width, t.frame_height, t.area_px,
                                tracking::to_string(t.state), (unsigned)t.id, t.bx, t.by, t.bw, t.bh, (double)t.vx,
                                (double)t.vy);
-            if (len < 0 || len >= 256)
+            if (len > 0 && len < 384 && _status_provider != nullptr)
             {
-                len = snprintf((char*)json_buf, 256, "{\"detected\":0}");
+                const ControlStatus c = _status_provider->control_status();
+                const int extra = snprintf((char*)json_buf + len, 384 - len,
+                                           ",\"mode\":\"%s\",\"cal\":%u,\"cal_state\":\"%s\",\"calibrated\":%d,"
+                                           "\"pan\":%.1f,\"tilt\":%.1f,\"cal_error\":\"%s\"",
+                                           to_string(c.mode), (unsigned)c.cal_points, cal_state_name(c.cal_state),
+                                           c.calibrated ? 1 : 0, (double)c.angles.pan, (double)c.angles.tilt,
+                                           c.cal_failure ? c.cal_failure : "");
+                len = (extra < 0) ? -1 : len + extra;
+            }
+            if (len > 0 && len < 383)
+            {
+                json_buf[len++] = '}';
+                json_buf[len] = '\0';
+            } else
+            {
+                len = -1;
+            }
+            if (len < 0 || len >= 384)
+            {
+                len = snprintf((char*)json_buf, 384, "{\"detected\":0}");
             }
             out_buf = json_buf;
             out_len = len;
         } else
         {
             // Fallback if no detection module
-            int len = snprintf((char*)json_buf, 256,
+            int len = snprintf((char*)json_buf, 384,
                                "{\"detected\":0,\"x\":0,\"y\":0,\"width\":320,\"height\":240,\"pixels\":0}");
             out_buf = json_buf;
             out_len = len;
@@ -187,5 +208,24 @@ public:
     }
 
 private:
+    static const char* cal_state_name(aiming::CalState st)
+    {
+        switch (st)
+        {
+        case aiming::CalState::WaitPoint1:
+            return "point1";
+        case aiming::CalState::WaitPoint2:
+            return "point2";
+        case aiming::CalState::Done:
+            return "done";
+        case aiming::CalState::Failed:
+            return "failed";
+        case aiming::CalState::Idle:
+            break;
+        }
+        return "idle";
+    }
+
     BaseDetectionModule* _detection_instance;
+    const BaseStatusProvider* _status_provider;
 };
