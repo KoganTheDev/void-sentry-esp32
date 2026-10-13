@@ -5,6 +5,8 @@
 
 #include <unity.h>
 
+#include <initializer_list>
+
 #include "direction.h"
 #include "tracker.h"
 
@@ -203,9 +205,10 @@ void test_coasting_extrapolates_with_decay(void)
 void test_coasting_stays_on_the_grid(void)
 {
     Tracker t;
-    for (int f = 0; f < 20; ++f)
+    for (int f = 0; f < 19; ++f)
     {
-        t.update(with({rect_blob(2 * f, 10, 2 * f + 3, 13)})); // 2 cells/frame, last box ends at x = 39
+        // 2 cells/frame; the last input box (f = 18) is 36..39, so every input lies on the 40-wide grid
+        t.update(with({rect_blob(2 * f, 10, 2 * f + 3, 13)}));
     }
     TEST_ASSERT_TRUE(TrackPhase::Locked == t.state().state);
     for (int i = 0; i < 10; ++i)
@@ -270,6 +273,7 @@ void test_direction_for(void)
 
     d = direction_for(at(TrackPhase::Tentative, 5.0f, 2.0f));
     TEST_ASSERT_TRUE(std::get<0>(d) == MoveX::None);
+    TEST_ASSERT_TRUE(std::get<1>(d) == MoveY::None);
 }
 
 int main(int argc, char** argv)

@@ -256,7 +256,7 @@ void test_static_white_object_is_absorbed_without_wrap(void)
  */
 static constexpr int kGhostBound = 34 + 40;
 
-static constexpr int kPausedGhostBound = 30;
+static constexpr int kPausedGhostBound = 24;
 
 static int frames_until_no_blobs(MotionDetector& d, const GrayFrame& f, int limit)
 {
@@ -303,10 +303,14 @@ void test_paused_object_ghost_clears_after_leaving(void)
     }
     TEST_ASSERT_EQUAL_INT(1, d.process(with_square).blob_count);
 
-    // Left behind: the cell age (41) is already past the limit, so it relearns at 1/16 from the first frame.
-    // After 41 frames at 1/128 the difference is 130 * (127/128)^41 = ~94; 94 * (15/16)^n <= 20.5 gives n = 24.
-    // The bound 30 is deliberately tight: if foreground cells never aged (stayed at 1/128) the ghost would last
-    // ln(94/20.5) / ln(128/127) = ~194 frames, so that old behaviour FAILS this assertion.
+    // Left behind. The square is foreground for 41 frames: the first 34 learn at 1/128, the last 7 (age 35..41) at
+    // 1/16 because they are past fg_age_limit. The background is then 190 - 63.4 = 126.6, i.e. 66.6 above the empty
+    // spot's 60. The cells are still foreground (age 42 and up, so 1/16 from the first frame), and a blob needs the
+    // rounded background more than 20 from 60 (>= 20.5 above). 66.6 * (15/16)^n >= 20.5 holds for n <= 18, so frames
+    // 1..19 still show the blob and the first empty frame is 20 (an integer simulation of the update agrees). The
+    // bound 24 leaves 4 frames of margin.
+    // If the cells had never aged (1/128 for every frame, the behaviour before the age rule) the ghost would last
+    // about 73 frames, so that old behaviour FAILS this assertion.
     const int n = frames_until_no_blobs(d, bg, kPausedGhostBound);
     TEST_ASSERT_TRUE_MESSAGE(n > 0, "ghost still present after the bound");
     TEST_ASSERT_EQUAL_INT(0, d.process(bg).blob_count);

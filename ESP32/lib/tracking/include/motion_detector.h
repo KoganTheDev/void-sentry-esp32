@@ -43,7 +43,7 @@ private:
 
     void copy_background(const GrayFrame& frame);
     void seed_background(const GrayFrame& frame);
-    void update_background(const GrayFrame& frame, bool selective);
+    void update_background(const GrayFrame& frame);
     int build_mask(const GrayFrame& frame);
     void label_blobs();
     uint16_t find(uint16_t label);

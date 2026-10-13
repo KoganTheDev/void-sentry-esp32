@@ -1,5 +1,6 @@
 # The square enters at frame 20, pauses for 2 s (frames 40-73) and is gone from frame 74. Idle again by frame 109
-# (observed last non-Idle frame is 104; limit was 74 + 60 = 134).
+# (observed last non-Idle frame is 104; limit was 74 + 60 = 134). Observed first lock 22 and locked 66 of 150 frames;
+# min_locked_frames = 59 is ~10% below that, like the real clips.
 lock_by_frame=23
 max_ids=1
 min_locked_frames=59

@@ -59,7 +59,7 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
     }
 
     // The mask was computed against the old background, so updating now does not affect this frame.
-    update_background(frame, true);
+    update_background(frame);
     label_blobs();
     return result_;
 }
@@ -80,7 +80,7 @@ void MotionDetector::seed_background(const GrayFrame& frame)
     warmup_left_ = config_.warmup_frames;
 }
 
-void MotionDetector::update_background(const GrayFrame& frame, bool selective)
+void MotionDetector::update_background(const GrayFrame& frame)
 {
     const int bg_div = 1 << config_.bg_shift;
     const int fg_div = 1 << config_.fg_shift;
@@ -89,22 +89,19 @@ void MotionDetector::update_background(const GrayFrame& frame, bool selective)
         const int target = frame[i] << 8;
         const int bg = background_[i];
         int div = bg_div;
-        if (selective)
+        if (mask_[i])
         {
-            if (mask_[i])
+            if (fg_age_[i] < 255)
             {
-                if (fg_age_[i] < 255)
-                {
-                    ++fg_age_[i];
-                }
-                if (fg_age_[i] <= config_.fg_age_limit)
-                {
-                    div = fg_div;
-                }
-            } else
-            {
-                fg_age_[i] = 0;
+                ++fg_age_[i];
             }
+            if (fg_age_[i] <= config_.fg_age_limit)
+            {
+                div = fg_div;
+            }
+        } else
+        {
+            fg_age_[i] = 0;
         }
         background_[i] = static_cast<uint16_t>(bg + (target - bg) / div); // stays within [0, 255 << 8]
     }
