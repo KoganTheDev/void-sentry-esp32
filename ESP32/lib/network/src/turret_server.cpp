@@ -32,6 +32,8 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     this->_status_instance = status;
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    // Keep network work on core 0 so it cannot preempt detection on core 1.
+    config.core_id = 0;
     config.stack_size = 8192;                               // Increase stack for JSON/String handling
     config.max_uri_handlers = 12;                           // Just to be safe
     config.send_wait_timeout = 2;                           // seconds; stalled viewers would block httpd 5 s
