@@ -55,7 +55,15 @@ AimMap default_map();
 /** @brief Per-axis line through two calibration points; empty if they are too close or not finite. */
 std::optional<AimMap> fit(const CalPoint& p1, const CalPoint& p2);
 
+/**
+ * @brief Clamps angles to the soft limits; non-finite pan becomes 0 and non-finite tilt becomes kTiltHomeDeg first.
+ */
 Angles clamp_angles(Angles a);
+
+/**
+ * @brief Converts pan degrees to 28BYJ-48 full steps (rounded). Non-finite input gives 0; the degrees are clamped
+ * to [kPanMinDeg, kPanMaxDeg] before rounding, so the result is always in [-512, 512].
+ */
 int32_t pan_deg_to_steps(float deg);
 float pan_steps_to_deg(int32_t steps);
 } // namespace aiming

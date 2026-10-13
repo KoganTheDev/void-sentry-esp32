@@ -27,10 +27,10 @@ void test_default_map_centre_is_home(void)
 void test_default_map_edges(void)
 {
     const AimMap m = default_map();
-    TEST_ASSERT_FLOAT_WITHIN(0.01f, 33.0f, m.aim(320.0f, 120.0f).pan);   // right edge: +half FOV
-    TEST_ASSERT_FLOAT_WITHIN(0.01f, -33.0f, m.aim(0.0f, 120.0f).pan);    // left edge
-    TEST_ASSERT_FLOAT_WITHIN(0.01f, 115.0f, m.aim(160.0f, 0.0f).tilt);   // top of image: tilt up
-    TEST_ASSERT_FLOAT_WITHIN(0.01f, 65.0f, m.aim(160.0f, 240.0f).tilt);  // bottom: tilt down
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 33.0f, m.aim(320.0f, 120.0f).pan);  // right edge: +half FOV
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, -33.0f, m.aim(0.0f, 120.0f).pan);   // left edge
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 115.0f, m.aim(160.0f, 0.0f).tilt);  // top of image: tilt up
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 65.0f, m.aim(160.0f, 240.0f).tilt); // bottom: tilt down
 }
 
 void test_fit_reproduces_points_and_is_linear(void)
@@ -128,6 +128,56 @@ void test_blob_rejects_non_finite_values(void)
     TEST_ASSERT_FALSE(deserialize(b.data(), b.size()).has_value());
 }
 
+void test_aim_non_finite_pixel_falls_back_to_home(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const Angles a = default_map().aim(nan, nan);
+    TEST_ASSERT_TRUE(std::isfinite(a.pan));
+    TEST_ASSERT_TRUE(std::isfinite(a.tilt));
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, a.pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltHomeDeg, a.tilt);
+}
+
+void test_aim_infinite_pixel_gives_finite_in_range_angles(void)
+{
+    const float inf = std::numeric_limits<float>::infinity();
+    const Angles a = default_map().aim(inf, -inf);
+    TEST_ASSERT_TRUE(std::isfinite(a.pan));
+    TEST_ASSERT_TRUE(std::isfinite(a.tilt));
+    TEST_ASSERT_TRUE(a.pan >= kPanMinDeg && a.pan <= kPanMaxDeg);
+    TEST_ASSERT_TRUE(a.tilt >= kTiltMinDeg && a.tilt <= kTiltMaxDeg);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, 0.0f, a.pan);          // non-finite pan -> home
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltHomeDeg, a.tilt); // non-finite tilt -> home
+}
+
+void test_pan_deg_to_steps_guards_non_finite_and_huge(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    TEST_ASSERT_EQUAL_INT32(0, pan_deg_to_steps(nan));
+    TEST_ASSERT_EQUAL_INT32(0, pan_deg_to_steps(std::numeric_limits<float>::infinity()));
+    TEST_ASSERT_EQUAL_INT32(512, pan_deg_to_steps(1e30f));
+    TEST_ASSERT_EQUAL_INT32(-512, pan_deg_to_steps(-1e30f));
+}
+
+void test_fit_overflow_gives_finite_or_nothing(void)
+{
+    // dx = 6e38 overflows float to inf: must be rejected, not turned into a degenerate map.
+    TEST_ASSERT_FALSE(fit({3e38f, 50, 0, 100}, {-3e38f, 200, 10, 70}).has_value());
+
+    // Pan values near FLT_MAX: (p2.pan - p1.pan) overflows, so pan_a would be inf.
+    TEST_ASSERT_FALSE(fit({40, 50, 3e38f, 100}, {280, 200, -3e38f, 70}).has_value());
+
+    // Large but representable x values: whatever comes back must have all-finite coefficients.
+    const auto m = fit({1e38f, 50, 0, 100}, {-1e38f, 200, 10, 70});
+    if (m.has_value())
+    {
+        TEST_ASSERT_TRUE(std::isfinite(m->pan_a));
+        TEST_ASSERT_TRUE(std::isfinite(m->pan_b));
+        TEST_ASSERT_TRUE(std::isfinite(m->tilt_a));
+        TEST_ASSERT_TRUE(std::isfinite(m->tilt_b));
+    }
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
@@ -143,5 +193,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_blob_rejects_wrong_length);
     RUN_TEST(test_blob_rejects_bad_magic_version_and_crc);
     RUN_TEST(test_blob_rejects_non_finite_values);
+    RUN_TEST(test_aim_non_finite_pixel_falls_back_to_home);
+    RUN_TEST(test_aim_infinite_pixel_gives_finite_in_range_angles);
+    RUN_TEST(test_pan_deg_to_steps_guards_non_finite_and_huge);
+    RUN_TEST(test_fit_overflow_gives_finite_or_nothing);
     return UNITY_END();
 }
