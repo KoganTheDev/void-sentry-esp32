@@ -72,7 +72,11 @@ void Controller::on_short_press()
 {
     if (this->_mode == ControlMode::Calibrate)
     {
+        // Stop at the pose being recorded; the stick resumes jogging on the next 25 Hz pass if still deflected.
+        this->_turret.jog(0.0f, 0.0f);
         const TrackSnapshot s = this->_detection_module.get_track_snapshot();
+        const aiming::CalState before_state = this->_session.state();
+        const int before_points = this->_session.points();
         const aiming::CalState st =
             this->_session.record((float)s.x, (float)s.y, this->_turret.position_deg(), s.detected());
         if (st == aiming::CalState::Done)
@@ -85,6 +89,7 @@ void Controller::on_short_press()
             this->_policy.set_map(map);
             this->_calibrated = true;
             this->_session.cancel();
+            this->_turret.jog(0.0f, 0.0f); // the stick may still be deflected; do not leave the turret running
             this->_mode = ControlMode::Ai;
             this->_policy.reset();
             ESP_LOGI(TAG, "Calibration complete, AI mode");
@@ -92,6 +97,12 @@ void Controller::on_short_press()
         {
             const char* why = this->_session.failure();
             ESP_LOGW(TAG, "Calibration failed: %s", why ? why : "unknown");
+        } else if (before_state == aiming::CalState::Failed)
+        {
+            ESP_LOGI(TAG, "Calibration restarted at point 1");
+        } else if (st == before_state && this->_session.points() == before_points)
+        {
+            ESP_LOGW(TAG, "Calibration press ignored: no target visible - wave at the spot");
         } else
         {
             ESP_LOGI(TAG, "Calibration points recorded: %d", this->_session.points());
@@ -172,34 +183,3 @@ void Controller::run()
 
     this->publish_status();
 }
-
-const std::tuple<MoveX, MoveY> Controller::user_mode() const
-{
-    // USER_MODE: Read joystick and command motors
-    ESP_LOGV(TAG, "USER_MODE: Reading joystick input");
-    int speed_x = this->_joystick.get_speed_x();
-    int speed_y = this->_joystick.get_speed_y();
-
-    MoveX user_yaw = (speed_x > 0) ? MoveX::Right : (speed_x < 0) ? MoveX::Left : MoveX::None;
-
-    MoveY user_pitch = (speed_y > 0) ? MoveY::Up : (speed_y < 0) ? MoveY::Down : MoveY::None;
-
-    return std::make_tuple(user_yaw, user_pitch);
-}
-
-// const std::tuple<MoveX, MoveY> Controller::ai_mode() const
-// {
-//     //MoveX move_x = std::get<0>(move_directions);
-//     //MoveY move_y = std::get<1>(move_directions);
-
-//     // Log detection results only when motion is found
-//     // if (move_x != MoveX::None || move_y != MoveY::None)
-//     // {
-//     //     ESP_LOGI(TAG, "AI_MODE: Motion detected - Moving X:%s Y:%s", MoveXToString(move_x),
-//     //              MoveYToString(move_y));
-//     // }
-
-//     ESP_LOGV(TAG, "AI_MODE: Releasing frame buffer");
-//     // return move_directions;
-//     return std::make_tuple(MoveX::None, MoveY::None);
-// }

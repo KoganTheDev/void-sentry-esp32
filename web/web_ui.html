@@ -526,7 +526,7 @@
                 <div class="stat-line">RAM <span class="stat-val" id="metric-mem">0 KB</span></div>
             </details>
 
-            <button class="toggle-btn" onclick="App.toggleMode()">SWITCH TO MANUAL</button>
+            <button class="toggle-btn" disabled title="Use the joystick button: short press toggles AI/manual, hold 1.5 s for calibration">MODE: AI</button>
         </aside>
 
         <section class="control-panel">
@@ -763,8 +763,7 @@
                     const modeName = names[m.mode] || String(m.mode).toUpperCase();
                     this.elements.mode.textContent = modeName;
                     this.state.mode = m.mode === 'user' ? 'MANUAL' : 'AI';
-                    this.elements.toggleBtn.textContent =
-                        this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
+                    this.elements.toggleBtn.textContent = `MODE: ${modeName}`;
                     document.getElementById('metric-pantilt').textContent =
                         `${Number(m.pan).toFixed(1)} / ${Number(m.tilt).toFixed(1)}`;
                     document.getElementById('metric-uncal').hidden = m.calibrated === 1;
@@ -788,11 +787,7 @@
                 },
 
                 toggleMode() {
-                    this.state.mode = this.state.mode === 'MANUAL' ? 'AI' : 'MANUAL';
-                    document.getElementById('metric-mode').textContent = this.state.mode;
-                    document.querySelector('.toggle-btn').textContent =
-                        this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
-                    this.state.commands_socket.send(`mode:${this.state.mode}`);
+                    // The mode is owned by the firmware (joystick button); the HUD button is disabled and read-only.
                 },
 
                 draw(data) {

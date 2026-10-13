@@ -17,11 +17,9 @@
 #include "calibration_session.h"
 #include "control_status.h"
 #include "joystick.h"
-#include "move_types.h"
 #include "system_control_types.h"
 #include <cstdint>
 #include <stdlib.h>
-#include <tuple>
 
 class FrameStore; // Forward declaration to minimize header inter-dependency
 
@@ -152,7 +150,5 @@ public:
 
     /** @brief Latest published status. Safe to call from any task. */
     ControlStatus control_status() const override;
-
-    const std::tuple<MoveX, MoveY> user_mode() const;
     /** @} */
 };
