@@ -45,8 +45,9 @@ public:
 
     /**
      * @brief Request a reset of detector and tracker plus an Idle snapshot.
-     * @details Only sets a flag. Safe from any task; takes effect in the detection task before the next processed
-     * frame (or within 200 ms if no frame arrives).
+     * @details Sets a flag and wakes the detection task. Safe from any task. Called from loop() (core 1, priority 1)
+     * the higher-priority detect task preempts the caller, applies the reset and publishes Idle before reset()
+     * returns, so it is synchronous in practice. The task's 200 ms wait timeout remains a backstop.
      */
     void reset() override;
 

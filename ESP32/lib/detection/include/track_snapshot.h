@@ -37,4 +37,5 @@ struct DetectionStats {
     uint32_t track_us_avg = 0;    ///< detector + tracker, average since boot
     uint64_t decode_us_total = 0; ///< sum over analysed frames; the stats line differences it per window
     uint64_t track_us_total = 0;  ///< sum of detector + tracker time over analysed frames
+    uint32_t stack_free = 0;      ///< detect task stack high-water mark in bytes, sampled every 100 frames
 };

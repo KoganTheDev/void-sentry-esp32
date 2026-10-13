@@ -18,7 +18,8 @@
 
 namespace frames
 {
-constexpr size_t kSlotCount = 4; // one writing + one latest + up to two readers holding older frames
+// one writing + one latest + readers holding older frames (up to two viewers plus the detect task)
+constexpr size_t kSlotCount = 4;
 
 struct FrameMeta {
     size_t length = 0;

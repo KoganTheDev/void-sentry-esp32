@@ -70,8 +70,7 @@ static void log_stream_stats()
         "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
         "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
         "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
-        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u det_frames=%u dec_win_us=%u "
-        "trk_win_us=%u",
+        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u",
         (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
         (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
         (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
@@ -79,8 +78,10 @@ static void log_stream_stats()
         (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
         (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
         (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
-        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg, (unsigned)det_frames,
-        (unsigned)dec_win_us, (unsigned)trk_win_us);
+        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
+    // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
+    ESP_LOGI(TAG_MAIN, "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u", (unsigned)det_frames,
+             (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free);
 }
 
 void setup()
@@ -115,9 +116,12 @@ void setup()
     if (!camera.begin())
     {
         ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed - continuing without video");
-    } else if (!frame_store.begin() || !start_camera_task(frame_store, camera_stats))
+    } else if (!frame_store.begin())
     {
-        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame pipeline failed to start - continuing without video");
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame store not ready (PSRAM slots) - continuing without video");
+    } else if (!start_camera_task(frame_store, camera_stats))
+    {
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: start_camera_task failed - continuing without video");
     } else
     {
         ESP_LOGI(TAG_MAIN, "Camera and frame pipeline running");

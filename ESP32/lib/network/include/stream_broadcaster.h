@@ -26,7 +26,7 @@
 class StreamBroadcaster
 {
 public:
-    /** @brief Register the /stream WebSocket endpoint and start the stream task (core 1, priority 1). */
+    /** @brief Register the /stream WebSocket endpoint and start the stream task (core 1, priority 4). */
     bool start(httpd_handle_t server, FrameStore& store);
 
     /**

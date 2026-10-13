@@ -152,6 +152,7 @@ void CameraDiffDetection::task_entry(void* arg) { static_cast<CameraDiffDetectio
 
 void CameraDiffDetection::task_loop()
 {
+    uint32_t processed = 0;
     for (;;)
     {
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(200)); // woken by FrameStore::publish; timeout serves reset requests
@@ -172,6 +173,15 @@ void CameraDiffDetection::task_loop()
                            lease->meta().height};
         this->detect_object(fb); // the result is read back as a track snapshot
         lease.reset();
+
+        if (++processed % 100 == 0)
+        {
+            // StackType_t is uint8_t on ESP-IDF, so the high-water mark is in bytes.
+            const uint32_t free_bytes = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr));
+            portENTER_CRITICAL(&this->_lock);
+            this->_stats.stack_free = free_bytes;
+            portEXIT_CRITICAL(&this->_lock);
+        }
     }
 }
 
@@ -187,7 +197,16 @@ void CameraDiffDetection::apply_reset()
     portEXIT_CRITICAL(&this->_lock);
 }
 
-void CameraDiffDetection::reset() { this->_reset_requested.store(true); }
+void CameraDiffDetection::reset()
+{
+    this->_reset_requested.store(true);
+    // Wake the detect task (priority 3) so it preempts the caller on core 1, applies the reset and publishes Idle
+    // before this returns; otherwise a caller in the same loop() pass could still read a stale Locked snapshot.
+    if (this->_task)
+    {
+        xTaskNotifyGive(this->_task);
+    }
+}
 
 TrackSnapshot CameraDiffDetection::get_track_snapshot() const
 {

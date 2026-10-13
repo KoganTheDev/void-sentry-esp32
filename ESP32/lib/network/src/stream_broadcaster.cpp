@@ -53,7 +53,9 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
     }
 
     TaskHandle_t task = nullptr;
-    if (xTaskCreatePinnedToCore(stream_task, "stream", 4096, this, 1, &task, 1) != pdPASS)
+    // Priority 4: the work per wake is tens of microseconds (lease + queue the send). At priority 1 it would wait
+    // behind a whole detection (priority 3) on every frame, adding video latency.
+    if (xTaskCreatePinnedToCore(stream_task, "stream", 4096, this, 4, &task, 1) != pdPASS)
     {
         ESP_LOGE(TAG_STREAM, "Failed to create stream task");
         stop();
