@@ -50,24 +50,13 @@ void test_move_converts_to_raw_value(void)
     TEST_ASSERT_EQUAL_UINT8(2, static_cast<uint8_t>(MoveY(MoveY::Down)));
 }
 
-// --- SystemControl ---
+// --- ControlMode ---
 
-void test_system_control_starts_in_ai_mode(void)
+void test_control_mode_names(void)
 {
-    SystemControl control;
-    TEST_ASSERT_TRUE(control.is_ai());
-    TEST_ASSERT_FALSE(control.is_user());
-    TEST_ASSERT_EQUAL_STRING("AI_MODE", control.to_string());
-}
-
-void test_system_control_toggles_both_ways(void)
-{
-    SystemControl control;
-    TEST_ASSERT_EQUAL(SystemControl::USER_MODE, control.toggle_mode());
-    TEST_ASSERT_TRUE(control.is_user());
-    TEST_ASSERT_EQUAL_STRING("USER_MODE", control.to_string());
-    TEST_ASSERT_EQUAL(SystemControl::AI_MODE, control.toggle_mode());
-    TEST_ASSERT_TRUE(control.is_ai());
+    TEST_ASSERT_EQUAL_STRING("ai", to_string(ControlMode::Ai));
+    TEST_ASSERT_EQUAL_STRING("user", to_string(ControlMode::User));
+    TEST_ASSERT_EQUAL_STRING("calibrate", to_string(ControlMode::Calibrate));
 }
 
 // --- Pin map (the static_asserts already ran at compile time; these check the checker) ---
@@ -97,8 +86,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_move_compares_with_enum);
     RUN_TEST(test_move_to_string);
     RUN_TEST(test_move_converts_to_raw_value);
-    RUN_TEST(test_system_control_starts_in_ai_mode);
-    RUN_TEST(test_system_control_toggles_both_ways);
+    RUN_TEST(test_control_mode_names);
     RUN_TEST(test_pin_checker_detects_reserved_pins);
     RUN_TEST(test_pin_checker_knows_camera_and_adc1);
     RUN_TEST(test_turret_uses_all_eight_free_pins);

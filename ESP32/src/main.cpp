@@ -2,8 +2,8 @@
 #include "constants.h"
 #include "controller.h"
 #include "joystick.h"
-#include "movement_manager.h"
 #include "pins.h"
+#include "turret.h"
 #include <Arduino.h>
 #include <esp_log.h>
 #include <esp_system.h>
@@ -19,10 +19,7 @@
 static const char* TAG_MAIN = "MAIN";
 
 Servo servo;
-// The 28BYJ-48 coil order needs IN1, IN3, IN2, IN4 for the Arduino Stepper library's sequence
-Stepper stepper(STEPPER_NUMBER_OF_STEPS, pins::STEPPER_IN1, pins::STEPPER_IN3, pins::STEPPER_IN2, pins::STEPPER_IN4);
-
-MovementManager movement_manager(stepper, servo);
+Turret turret(servo);
 CameraDiffDetection detection_manager;
 Joystick joystick(pins::JOYSTICK_X, pins::JOYSTICK_Y, pins::JOYSTICK_SW);
 HttpServer http_server;
@@ -30,7 +27,7 @@ Camera camera;
 FrameStore frame_store;
 CameraTaskStats camera_stats;
 
-Controller controller(movement_manager, detection_manager, joystick, frame_store);
+Controller controller(turret, detection_manager, joystick, frame_store);
 
 // One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
 static void log_stream_stats()
@@ -48,16 +45,30 @@ static void log_stream_stats()
     const TrackSnapshot track = detection_manager.get_track_snapshot();
     const uint32_t copies = camera_stats.copies.load();
     const uint32_t copy_us_avg = copies ? camera_stats.copy_us_total.load() / copies : 0;
-    ESP_LOGI(TAG_MAIN,
-             "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
-             "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
-             "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u",
-             (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
-             (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
-             (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
-             (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
-             (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
-             (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id);
+    // Per-window JPEG size average (unsigned deltas stay correct across a bytes_total wrap).
+    static uint32_t prev_copies = 0;
+    static uint32_t prev_bytes = 0;
+    const uint32_t bytes = camera_stats.bytes_total.load();
+    const uint32_t d_copies = copies - prev_copies;
+    const uint32_t jpeg_b_avg = d_copies ? (bytes - prev_bytes) / d_copies : 0;
+    prev_copies = copies;
+    prev_bytes = bytes;
+    const aiming::Angles pose = turret.position_deg();
+    const ControlStatus ctl = controller.control_status();
+    ESP_LOGI(
+        TAG_MAIN,
+        "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
+        "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
+        "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
+        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u jpeg_b_avg=%u",
+        (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
+        (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
+        (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
+        (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
+        (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
+        (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
+        (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
+        (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
 }
 
 void setup()
@@ -77,6 +88,15 @@ void setup()
     ESP_LOGI(TAG_MAIN, "Initializing Joystick...");
     joystick.begin();
     ESP_LOGI(TAG_MAIN, "Joystick initialized successfully");
+
+    // Turret first: drives the ULN2003 inputs LOW and homes the servo before anything can fail below.
+    ESP_LOGI(TAG_MAIN, "Starting turret motor task...");
+    if (!turret.begin())
+    {
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Turret motor task failed to start");
+    }
+
+    controller.begin(); // load the saved calibration from NVS (the turret has started)
 
     // Initialize Camera
     ESP_LOGI(TAG_MAIN, "Initializing Camera...");
@@ -103,7 +123,7 @@ void setup()
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(frame_store, &detection_manager))
+    if (http_server.start(frame_store, &detection_manager, &controller))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else
@@ -112,14 +132,9 @@ void setup()
         return;
     }
 
-    // Attach Servo
-    ESP_LOGD(TAG_MAIN, "Attaching Servo on pin %d", pins::SERVO);
-    servo.attach(pins::SERVO);
-    ESP_LOGI(TAG_MAIN, "Servo attached successfully");
-
     ESP_LOGI(TAG_MAIN, "====================================");
     ESP_LOGI(TAG_MAIN, "Setup Complete - System Ready!");
-    ESP_LOGI(TAG_MAIN, "AI_MODE active, waiting for frames");
+    ESP_LOGI(TAG_MAIN, "Ai mode active, waiting for frames");
     ESP_LOGI(TAG_MAIN, "====================================");
 }
 

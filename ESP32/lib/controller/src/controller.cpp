@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "cal_store.h"
 #include "camera.h"
 #include "frame_store.h"
 #include <Arduino.h>
@@ -6,30 +7,23 @@
 
 static const char* TAG = "CONTROLLER";
 
-void Controller::run()
+void Controller::begin()
 {
-    ESP_LOGV(TAG, "Controller::run() called");
-
-    if (this->_joystick.is_z_pressed()) // Flip control state
+    aiming::AimMap map;
+    if (cal_store::load(map))
     {
-        this->_system_control_state.toggle_mode();
-        this->_detection_module.reset(); // no stale lock in USER_MODE, fresh start when AI_MODE resumes
-        ESP_LOGI(TAG, "Control mode changed to: %s", this->_system_control_state.to_string());
-    }
-
-    if (this->_system_control_state.is_user())
+        this->_policy.set_map(map);
+        this->_calibrated = true;
+        ESP_LOGI(TAG, "Loaded saved calibration from NVS");
+    } else
     {
-        // USER_MODE needs no frame. Throttle so the stepper is not driven faster than it can step.
-        const uint32_t now = millis();
-        if (now - this->_last_user_move_ms >= kUserModePeriodMs)
-        {
-            this->_last_user_move_ms = now;
-            this->_movement_manager.move_relative(user_mode());
-        }
-        return;
+        ESP_LOGW(TAG, "No valid saved calibration, using the default map (hold the button 1.5 s to calibrate)");
     }
+    this->publish_status();
+}
 
-    // AI_MODE: act once per new frame sequence.
+void Controller::process_new_frame()
+{
     std::optional<frames::FrameLease> lease = this->_frame_store.acquire_latest();
     if (!lease || lease->meta().sequence == this->_last_sequence)
     {
@@ -39,44 +33,183 @@ void Controller::run()
 
     camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length, lease->meta().width,
                        lease->meta().height};
-    const std::tuple<MoveX, MoveY> move_directions = this->_detection_module.detect_object(fb);
+    this->_detection_module.detect_object(fb); // the result is read back as a track snapshot
 
-    // Release the slot before moving: the stepper blocks ~15 ms and must not pin a frame slot.
     lease.reset();
+}
 
-    if (kAiAimEnabled)
+void Controller::jog_from_joystick(uint32_t now, bool stick_neutral)
+{
+    if (now - this->_last_user_move_ms >= kUserModePeriodMs)
     {
-        this->_movement_manager.move_relative(move_directions); // Move stepper & motor
+        this->_last_user_move_ms = now;
+        // Joystick y positive = Up = larger tilt angle.
+        if (stick_neutral)
+        {
+            this->_turret.jog(0.0f, 0.0f);
+        } else
+        {
+            this->_turret.jog(this->_joystick.get_speed_x() / 255.0f, this->_joystick.get_speed_y() / 255.0f);
+        }
     }
 }
 
-const std::tuple<MoveX, MoveY> Controller::user_mode() const
+void Controller::on_long_press()
 {
-    // USER_MODE: Read joystick and command motors
-    ESP_LOGV(TAG, "USER_MODE: Reading joystick input");
-    int speed_x = this->_joystick.get_speed_x();
-    int speed_y = this->_joystick.get_speed_y();
-
-    MoveX user_yaw = (speed_x > 0) ? MoveX::Right : (speed_x < 0) ? MoveX::Left : MoveX::None;
-
-    MoveY user_pitch = (speed_y > 0) ? MoveY::Up : (speed_y < 0) ? MoveY::Down : MoveY::None;
-
-    return std::make_tuple(user_yaw, user_pitch);
+    if (this->_mode == ControlMode::Calibrate)
+    {
+        this->_session.cancel();
+        this->_mode = this->_mode_before_cal;
+        this->_policy.reset(); // the turret was jogged by hand; forget the old setpoint
+        this->_turret.jog(0.0f, 0.0f);
+        ESP_LOGI(TAG, "Calibration cancelled, back to %s", to_string(this->_mode));
+    } else
+    {
+        this->_mode_before_cal = this->_mode;
+        this->_mode = ControlMode::Calibrate;
+        this->_session.start();
+        this->_policy.reset();
+        this->_turret.jog(0.0f, 0.0f);
+        ESP_LOGI(TAG, "Calibration started (from %s)", to_string(this->_mode_before_cal));
+    }
 }
 
-// const std::tuple<MoveX, MoveY> Controller::ai_mode() const
-// {
-//     //MoveX move_x = std::get<0>(move_directions);
-//     //MoveY move_y = std::get<1>(move_directions);
+void Controller::on_short_press()
+{
+    if (this->_mode == ControlMode::Calibrate)
+    {
+        // Stop at the pose being recorded; the stick resumes jogging on the next 25 Hz pass if still deflected.
+        this->_turret.jog(0.0f, 0.0f);
+        const TrackSnapshot s = this->_detection_module.get_track_snapshot();
+        const aiming::CalState before_state = this->_session.state();
+        const int before_points = this->_session.points();
+        // Record the pose captured while the knob was held and the pan was at rest, not the pose now: pressing the
+        // knob deflects the stick, and the release is only classified ~50 ms later, so position_deg() may have
+        // drifted away from where the user aimed. Fallback (released before the pan stopped): the current pose.
+        aiming::Angles pose = this->_cal_pose_at_press;
+        if (!this->_cal_pose_captured)
+        {
+            pose = this->_turret.position_deg();
+            ESP_LOGW(TAG, "Calibration pose: no stationary pose captured during the press, using the current pose");
+        }
+        this->_cal_pose_captured = false;
+        const aiming::CalState st = this->_session.record((float)s.x, (float)s.y, pose, s.detected());
+        if (st == aiming::CalState::Done)
+        {
+            const aiming::AimMap map = *this->_session.result();
+            if (!cal_store::save(map))
+            {
+                ESP_LOGE(TAG, "Failed to save the calibration to NVS (it stays active until reboot)");
+            }
+            this->_policy.set_map(map);
+            this->_calibrated = true;
+            this->_session.cancel();
+            this->_turret.jog(0.0f, 0.0f); // the stick may still be deflected; do not leave the turret running
+            this->_mode = ControlMode::Ai;
+            this->_policy.reset();
+            ESP_LOGI(TAG, "Calibration complete, AI mode");
+        } else if (st == aiming::CalState::Failed)
+        {
+            const char* why = this->_session.failure();
+            ESP_LOGW(TAG, "Calibration failed: %s", why ? why : "unknown");
+        } else if (before_state == aiming::CalState::Failed)
+        {
+            ESP_LOGI(TAG, "Calibration restarted at point 1");
+        } else if (st == before_state && this->_session.points() == before_points)
+        {
+            ESP_LOGW(TAG, "Calibration press ignored: no target visible - wave at the spot");
+        } else
+        {
+            ESP_LOGI(TAG, "Calibration points recorded: %d", this->_session.points());
+        }
+    } else
+    {
+        this->_mode = (this->_mode == ControlMode::Ai) ? ControlMode::User : ControlMode::Ai;
+        this->_detection_module.reset(); // no stale lock in User mode, fresh start when Ai resumes
+        this->_policy.reset();
+        this->_turret.jog(0.0f, 0.0f);
+        ESP_LOGI(TAG, "Control mode changed to: %s", to_string(this->_mode));
+    }
+}
 
-//     // Log detection results only when motion is found
-//     // if (move_x != MoveX::None || move_y != MoveY::None)
-//     // {
-//     //     ESP_LOGI(TAG, "AI_MODE: Motion detected - Moving X:%s Y:%s", MoveXToString(move_x),
-//     //              MoveYToString(move_y));
-//     // }
+void Controller::publish_status()
+{
+    ControlStatus st;
+    st.mode = this->_mode;
+    st.cal_points = (uint8_t)this->_session.points();
+    st.cal_state = this->_session.state();
+    st.calibrated = this->_calibrated;
+    st.angles = this->_turret.position_deg();
+    st.cal_failure = this->_session.failure();
+    st.aims = this->_aims;
 
-//     ESP_LOGV(TAG, "AI_MODE: Releasing frame buffer");
-//     // return move_directions;
-//     return std::make_tuple(MoveX::None, MoveY::None);
-// }
+    portENTER_CRITICAL(&this->_status_lock);
+    this->_status = st;
+    portEXIT_CRITICAL(&this->_status_lock);
+}
+
+ControlStatus Controller::control_status() const
+{
+    portENTER_CRITICAL(&this->_status_lock);
+    const ControlStatus st = this->_status;
+    portEXIT_CRITICAL(&this->_status_lock);
+    return st;
+}
+
+void Controller::run()
+{
+    ESP_LOGV(TAG, "Controller::run() called");
+
+    const uint32_t now = millis();
+    const bool held = this->_joystick.is_z_held();
+    if (held && !this->_prev_held)
+    {
+        this->_cal_pose_captured = false; // a new press starts: forget any pose from an earlier one
+    }
+    this->_prev_held = held;
+    // While the knob is held in Calibrate the stick is deflected by the press itself, so the jog is zeroed and the
+    // pose is captured on the first pass where the pan has actually stopped (pan_speed() == 0).
+    if (this->_mode == ControlMode::Calibrate && held && !this->_cal_pose_captured && this->_turret.pan_speed() == 0.0f)
+    {
+        this->_cal_pose_at_press = this->_turret.position_deg();
+        this->_cal_pose_captured = true;
+    }
+    const aiming::ButtonEvent ev = this->_button.update(held, now);
+    if (ev == aiming::ButtonEvent::Long)
+    {
+        this->on_long_press();
+    } else if (ev == aiming::ButtonEvent::Short)
+    {
+        this->on_short_press();
+    }
+
+    switch (this->_mode)
+    {
+    case ControlMode::User:
+        // User mode needs no frame. Jog commands are cheap mailbox writes; keep the 25 Hz cadence.
+        this->jog_from_joystick(now, false);
+        break;
+
+    case ControlMode::Calibrate:
+        this->jog_from_joystick(now, held);
+        this->process_new_frame(); // so the HUD box shows; no aim policy while calibrating
+        break;
+
+    case ControlMode::Ai: {
+        this->process_new_frame();
+        const TrackSnapshot s = this->_detection_module.get_track_snapshot();
+        const aiming::AimCommand cmd = this->_policy.update(aiming::TrackView{s.state, (float)s.x, (float)s.y}, now);
+        if (cmd.kind == aiming::AimKind::Aim)
+        {
+            this->_turret.set_target_deg(cmd.angles);
+            ++this->_aims;
+        } else if (cmd.kind == aiming::AimKind::Home)
+        {
+            this->_turret.home();
+        }
+        break;
+    }
+    }
+
+    this->publish_status();
+}

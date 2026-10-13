@@ -203,6 +203,33 @@
             }
         }
 
+        .cal-banner {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            top: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid #ffaa00;
+            border-radius: var(--radius);
+            color: #ffaa00;
+            font-size: 0.9rem;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .cal-banner[hidden] {
+            display: none;
+        }
+
+        .uncal {
+            color: #ffaa00;
+        }
+
+        .uncal[hidden] {
+            display: none;
+        }
+
         .status-locked {
             color: var(--error) !important;
             animation: pulse-red 1s infinite;
@@ -479,12 +506,15 @@
         <main class="video-box">
             <img id="streamImg" alt="Stream image">
             <canvas id="overlayCanvas"></canvas>
+            <div id="cal-banner" class="cal-banner" hidden></div>
         </main>
 
         <aside class="stats-panel">
             <h3>Telemetry</h3>
             <div class="stat-line">SYSTEM <span class="stat-val" id="metric-sys">LINKING...</span></div>
             <div class="stat-line">MODE <span class="stat-val" id="metric-mode">AI</span></div>
+            <div class="stat-line">PAN/TILT <span class="stat-val" id="metric-pantilt">0.0 / 90.0</span></div>
+            <div class="stat-line uncal" id="metric-uncal" hidden>UNCALIBRATED</div>
             <div class="stat-line">TARGET <span class="stat-val" id="metric-lock">CLEAR</span></div>
             <div class="stat-line">COORD <span class="stat-val" id="metric-pos">0,0</span></div>
 
@@ -496,7 +526,7 @@
                 <div class="stat-line">RAM <span class="stat-val" id="metric-mem">0 KB</span></div>
             </details>
 
-            <button class="toggle-btn" onclick="App.toggleMode()">SWITCH TO MANUAL</button>
+            <button class="toggle-btn" disabled title="Use the joystick button: short press toggles AI/manual, hold 1.5 s for calibration">MODE: AI</button>
         </aside>
 
         <section class="control-panel">
@@ -727,12 +757,37 @@
                     }
                 },
 
+                updateControl(m) {
+                    if (m.mode === undefined) return; // older firmware: no controller status
+                    const names = { ai: 'AI', user: 'USER', calibrate: 'CALIBRATE' };
+                    const modeName = names[m.mode] || String(m.mode).toUpperCase();
+                    this.elements.mode.textContent = modeName;
+                    this.state.mode = m.mode === 'user' ? 'MANUAL' : 'AI';
+                    this.elements.toggleBtn.textContent = `MODE: ${modeName}`;
+                    document.getElementById('metric-pantilt').textContent =
+                        `${Number(m.pan).toFixed(1)} / ${Number(m.tilt).toFixed(1)}`;
+                    document.getElementById('metric-uncal').hidden = m.calibrated === 1;
+
+                    const banner = document.getElementById('cal-banner');
+                    const cancelHint = ' (hold the button 1.5 s to cancel)';
+                    let text = '';
+                    if (m.mode === 'calibrate') {
+                        if (m.cal_state === 'point1') {
+                            text = 'Wave at a spot near one corner, aim the turret at it, press' + cancelHint;
+                        } else if (m.cal_state === 'point2') {
+                            text = 'Now the opposite corner, aim, press' + cancelHint;
+                        } else if (m.cal_state === 'failed') {
+                            text = `${m.cal_error || 'Calibration failed'} - press to restart` + cancelHint;
+                        } else {
+                            text = 'Calibrating...' + cancelHint;
+                        }
+                    }
+                    banner.textContent = text;
+                    banner.hidden = text === '';
+                },
+
                 toggleMode() {
-                    this.state.mode = this.state.mode === 'MANUAL' ? 'AI' : 'MANUAL';
-                    document.getElementById('metric-mode').textContent = this.state.mode;
-                    document.querySelector('.toggle-btn').textContent =
-                        this.state.mode === 'MANUAL' ? 'SWITCH TO AI' : 'SWITCH TO MANUAL';
-                    this.state.commands_socket.send(`mode:${this.state.mode}`);
+                    // The mode is owned by the firmware (joystick button); the HUD button is disabled and read-only.
                 },
 
                 draw(data) {
@@ -869,6 +924,7 @@
 
                     // Update UI elements
                     App.elements.pos.textContent = `${metrics.x},${metrics.y}`;
+                    App.updateControl(metrics);
 
                     // Update lock status
                     const lockEl = document.getElementById('metric-lock');
