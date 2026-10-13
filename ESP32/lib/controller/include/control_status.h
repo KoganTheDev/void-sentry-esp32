@@ -21,6 +21,7 @@ struct ControlStatus {
     bool calibrated = false;                             ///< true once a saved or fresh calibration is active.
     aiming::Angles angles;                               ///< Current turret pose in degrees.
     const char* cal_failure = nullptr;                   ///< Static failure text, or null.
+    uint32_t aims = 0;                                   ///< Aim commands sent to the turret since boot.
 };
 
 /**

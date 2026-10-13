@@ -52,14 +52,15 @@ static void log_stream_stats()
         "[stream] up=%us captured=%u sent=%u dropped_no_slot=%u oversize=%u corrupt=%u viewers=%u "
         "copy_us_avg=%u heap=%u heap_min=%u psram=%u psram_min=%u "
         "decode_us_avg=%u track_us_avg=%u scene_changes=%u decode_fail=%u track=%s id=%u mode=%s pan=%.1f tilt=%.1f "
-        "steps_s=%.0f",
+        "steps_s=%.0f motor_late=%u motor_stack_free=%u aims=%u",
         (unsigned)(now / 1000), (unsigned)camera_stats.captured.load(), (unsigned)http_server.frames_sent(),
         (unsigned)store.dropped_no_slot, (unsigned)store.dropped_oversize, (unsigned)store.dropped_corrupt,
         (unsigned)http_server.viewer_count(), (unsigned)copy_us_avg, (unsigned)ESP.getFreeHeap(),
         (unsigned)ESP.getMinFreeHeap(), (unsigned)ESP.getFreePsram(), (unsigned)ESP.getMinFreePsram(),
         (unsigned)det.decode_us_avg, (unsigned)det.track_us_avg, (unsigned)det.scene_changes,
         (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
-        (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed());
+        (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
+        (unsigned)turret.stack_free(), (unsigned)ctl.aims);
 }
 
 void setup()

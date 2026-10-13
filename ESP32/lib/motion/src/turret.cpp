@@ -17,7 +17,8 @@ constexpr float kTiltMaxSlewDegS = 120.0f; ///< servo slew limit
 constexpr float kServoPeriodS = 0.02f;     ///< 50 Hz
 constexpr uint32_t kServoEveryTicks = 20;  ///< 1 ms ticks per servo update
 constexpr uint32_t kCoilReleaseMs = 500;
-constexpr int64_t kMinStepSpacingUs = 1500; ///< 28BYJ-48 cannot follow coil steps closer than this
+constexpr uint32_t kStackSampleTicks = 1000; ///< stack high-water mark sample period
+constexpr int64_t kMinStepSpacingUs = 1500;  ///< 28BYJ-48 cannot follow coil steps closer than this
 constexpr uint8_t kPattern[4][4] = {{1, 1, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {1, 0, 0, 1}};
 constexpr uint8_t kCoilPins[4] = {pins::STEPPER_IN1, pins::STEPPER_IN2, pins::STEPPER_IN3, pins::STEPPER_IN4};
 
@@ -113,6 +114,14 @@ uint32_t Turret::late_ticks() const
     return n;
 }
 
+uint32_t Turret::stack_free() const
+{
+    portENTER_CRITICAL(&this->_lock);
+    const uint32_t n = this->_stack_free;
+    portEXIT_CRITICAL(&this->_lock);
+    return n;
+}
+
 float Turret::pan_speed() const
 {
     portENTER_CRITICAL(&this->_lock);
@@ -149,6 +158,8 @@ void Turret::run()
     int pending = 0;          // planner steps counted but not yet emitted to the coils
     int64_t last_step_us = 0; // esp_timer time of the last emitted coil step
     uint32_t late = 0;
+    uint32_t stack_free = 0; // bytes; sampled every kStackSampleTicks
+    uint32_t sample_count = 0;
 
     for (;;)
     {
@@ -158,10 +169,14 @@ void Turret::run()
         // last_wake one tick per call and returns immediately, so missed ticks would run back-to-back within
         // microseconds. Drop them instead: resync to now. The planner just runs slower in wall time.
         const TickType_t now_tick = xTaskGetTickCount();
-        if (static_cast<int32_t>(now_tick - last_wake) > 0)
+        const int32_t lag = static_cast<int32_t>(now_tick - last_wake);
+        if (lag > 0)
         {
             last_wake = now_tick;
-            ++late;
+            if (lag > 1) // a lag of exactly 1 tick is ordinary scheduling jitter, not starvation
+            {
+                ++late;
+            }
         }
 
         // Commands: copy under the lock, apply outside it.
@@ -237,6 +252,13 @@ void Turret::run()
             }
         }
 
+        // Stack high-water mark, sampled rarely (it walks the stack). Computed outside the lock.
+        if (++sample_count >= kStackSampleTicks)
+        {
+            sample_count = 0;
+            stack_free = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr)) * sizeof(StackType_t);
+        }
+
         // Publish.
         const float pan = aiming::pan_steps_to_deg(this->_planner.position());
         const float tilt = this->_tilt_current;
@@ -246,6 +268,7 @@ void Turret::run()
         this->_published.tilt = tilt;
         this->_published_speed = speed;
         this->_late_ticks = late;
+        this->_stack_free = stack_free;
         portEXIT_CRITICAL(&this->_lock);
     }
 }

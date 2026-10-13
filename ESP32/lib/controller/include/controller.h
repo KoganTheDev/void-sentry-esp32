@@ -80,6 +80,18 @@ private:
     /** @brief Guards _status (copies only; no blocking calls inside). */
     mutable portMUX_TYPE _status_lock = portMUX_INITIALIZER_UNLOCKED;
 
+    /** @brief Aim commands issued to the turret since boot (telemetry). */
+    uint32_t _aims = 0;
+
+    /** @brief Previous raw button level; detects the start of each press. */
+    bool _prev_held = false;
+
+    /** @brief Turret pose captured while the button was held and the pan was at rest. */
+    aiming::Angles _cal_pose_at_press;
+
+    /** @brief true once _cal_pose_at_press holds a stationary pose for the current press. */
+    bool _cal_pose_captured = false;
+
     /** @brief Minimum time between joystick-driven moves in User/Calibrate mode (25 Hz). */
     static constexpr uint32_t kUserModePeriodMs = 40;
 
@@ -92,8 +104,8 @@ private:
     /** @brief Leases the newest unseen frame and runs detection on it. */
     void process_new_frame();
 
-    /** @brief Jogs the turret from the joystick at 25 Hz. */
-    void jog_from_joystick(uint32_t now);
+    /** @brief Jogs the turret from the joystick at 25 Hz; stick_neutral sends (0,0) instead of the stick. */
+    void jog_from_joystick(uint32_t now, bool stick_neutral);
 
     /** @brief Handles a Long press (enter or leave calibration). */
     void on_long_press();

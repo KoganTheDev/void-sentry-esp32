@@ -38,13 +38,19 @@ void Controller::process_new_frame()
     lease.reset();
 }
 
-void Controller::jog_from_joystick(uint32_t now)
+void Controller::jog_from_joystick(uint32_t now, bool stick_neutral)
 {
     if (now - this->_last_user_move_ms >= kUserModePeriodMs)
     {
         this->_last_user_move_ms = now;
         // Joystick y positive = Up = larger tilt angle.
-        this->_turret.jog(this->_joystick.get_speed_x() / 255.0f, this->_joystick.get_speed_y() / 255.0f);
+        if (stick_neutral)
+        {
+            this->_turret.jog(0.0f, 0.0f);
+        } else
+        {
+            this->_turret.jog(this->_joystick.get_speed_x() / 255.0f, this->_joystick.get_speed_y() / 255.0f);
+        }
     }
 }
 
@@ -77,8 +83,17 @@ void Controller::on_short_press()
         const TrackSnapshot s = this->_detection_module.get_track_snapshot();
         const aiming::CalState before_state = this->_session.state();
         const int before_points = this->_session.points();
-        const aiming::CalState st =
-            this->_session.record((float)s.x, (float)s.y, this->_turret.position_deg(), s.detected());
+        // Record the pose captured while the knob was held and the pan was at rest, not the pose now: pressing the
+        // knob deflects the stick, and the release is only classified ~50 ms later, so position_deg() may have
+        // drifted away from where the user aimed. Fallback (released before the pan stopped): the current pose.
+        aiming::Angles pose = this->_cal_pose_at_press;
+        if (!this->_cal_pose_captured)
+        {
+            pose = this->_turret.position_deg();
+            ESP_LOGW(TAG, "Calibration pose: no stationary pose captured during the press, using the current pose");
+        }
+        this->_cal_pose_captured = false;
+        const aiming::CalState st = this->_session.record((float)s.x, (float)s.y, pose, s.detected());
         if (st == aiming::CalState::Done)
         {
             const aiming::AimMap map = *this->_session.result();
@@ -126,6 +141,7 @@ void Controller::publish_status()
     st.calibrated = this->_calibrated;
     st.angles = this->_turret.position_deg();
     st.cal_failure = this->_session.failure();
+    st.aims = this->_aims;
 
     portENTER_CRITICAL(&this->_status_lock);
     this->_status = st;
@@ -145,7 +161,20 @@ void Controller::run()
     ESP_LOGV(TAG, "Controller::run() called");
 
     const uint32_t now = millis();
-    const aiming::ButtonEvent ev = this->_button.update(this->_joystick.is_z_held(), now);
+    const bool held = this->_joystick.is_z_held();
+    if (held && !this->_prev_held)
+    {
+        this->_cal_pose_captured = false; // a new press starts: forget any pose from an earlier one
+    }
+    this->_prev_held = held;
+    // While the knob is held in Calibrate the stick is deflected by the press itself, so the jog is zeroed and the
+    // pose is captured on the first pass where the pan has actually stopped (pan_speed() == 0).
+    if (this->_mode == ControlMode::Calibrate && held && !this->_cal_pose_captured && this->_turret.pan_speed() == 0.0f)
+    {
+        this->_cal_pose_at_press = this->_turret.position_deg();
+        this->_cal_pose_captured = true;
+    }
+    const aiming::ButtonEvent ev = this->_button.update(held, now);
     if (ev == aiming::ButtonEvent::Long)
     {
         this->on_long_press();
@@ -158,11 +187,11 @@ void Controller::run()
     {
     case ControlMode::User:
         // User mode needs no frame. Jog commands are cheap mailbox writes; keep the 25 Hz cadence.
-        this->jog_from_joystick(now);
+        this->jog_from_joystick(now, false);
         break;
 
     case ControlMode::Calibrate:
-        this->jog_from_joystick(now);
+        this->jog_from_joystick(now, held);
         this->process_new_frame(); // so the HUD box shows; no aim policy while calibrating
         break;
 
@@ -173,6 +202,7 @@ void Controller::run()
         if (cmd.kind == aiming::AimKind::Aim)
         {
             this->_turret.set_target_deg(cmd.angles);
+            ++this->_aims;
         } else if (cmd.kind == aiming::AimKind::Home)
         {
             this->_turret.home();

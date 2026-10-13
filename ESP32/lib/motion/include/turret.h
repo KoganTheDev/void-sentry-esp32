@@ -41,8 +41,14 @@ public:
     aiming::Angles position_deg() const override;
     float pan_speed() const override;
 
-    /** @brief Count of late wake-ups where missed 1 ms ticks were dropped (task was starved). */
+    /** @brief Count of late wake-ups (lag of more than 1 tick) where missed 1 ms ticks were dropped. */
     uint32_t late_ticks() const;
+
+    /**
+     * @brief Minimum free stack of the motor task seen so far, in bytes (high-water mark, sampled every 1000
+     * ticks; 0 until the first sample).
+     */
+    uint32_t stack_free() const;
 
 private:
     enum class CommandKind : uint8_t { None, Target, Jog, Home };
@@ -66,6 +72,7 @@ private:
     Command _command;                       ///< guarded by _lock
     aiming::Angles _published{0.0f, 90.0f}; ///< guarded by _lock
     uint32_t _late_ticks = 0;               ///< guarded by _lock
+    uint32_t _stack_free = 0;               ///< bytes, guarded by _lock
     float _published_speed = 0.0f;          ///< guarded by _lock
 
     // Owned by the motor task only.
