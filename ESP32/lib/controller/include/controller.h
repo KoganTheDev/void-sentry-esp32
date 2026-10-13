@@ -5,13 +5,13 @@
  * It coordinates a high-speed control loop that integrates:
  * 1. **Input**: Manual Joystick signals or AI Detection frames.
  * 2. **Logic**: Arbitration between user overrides and autonomous tracking.
- * 3. **Output**: Kinematic commands sent to the Movement Manager.
+ * 3. **Output**: Kinematic commands sent to the Turret.
  */
 
 #pragma once
 
 #include "base_detection_module.h"
-#include "base_movement_manager.h"
+#include "base_turret.h"
 #include "joystick.h"
 #include "move_types.h"
 #include "system_control_types.h"
@@ -30,7 +30,7 @@ class FrameStore; // Forward declaration to minimize header inter-dependency
  * - **AI_MODE**: The controller leases the latest published frame from the @ref FrameStore (once per new
  * frame sequence), passes it to the @ref BaseDetectionModule, and calculates the error vector to center the target.
  * - **USER_MODE**: The controller bypasses the CV pipeline and frames entirely, and maps @ref Joystick
- * input directly to the @ref BaseMovementManager at most once per kUserModePeriodMs.
+ * input directly to @ref BaseTurret::jog at most once per kUserModePeriodMs.
  */
 class Controller
 {
@@ -38,8 +38,8 @@ private:
     /** @brief The active operation state (Manual vs Autonomous). */
     SystemControl _system_control_state;
 
-    /** @brief Reference to the movement Manager (e.g., Servo/PWM control). */
-    BaseMovementManager& _movement_manager;
+    /** @brief Reference to the turret (non-blocking; executed by its motor task). */
+    BaseTurret& _turret;
 
     /** @brief Reference to the AI/Computer Vision module for target acquisition. */
     BaseDetectionModule& _detection_module;
@@ -52,9 +52,6 @@ private:
 
     /** @brief Minimum time between joystick-driven moves in USER_MODE (25 Hz). */
     static constexpr uint32_t kUserModePeriodMs = 40;
-
-    /// Stage 2 detects and tracks only; Stage 3 turns AI aiming on (and adds move/settle handling).
-    static constexpr bool kAiAimEnabled = false;
 
     /** @brief Timestamp (millis) of the last USER_MODE move. */
     uint32_t _last_user_move_ms = 0;
@@ -70,16 +67,15 @@ public:
 
     /**
      * @brief Construct a new Controller object.
-     * @param movement_manager Reference to the movement implementation.
+     * @param turret Reference to the turret implementation.
      * @param detection_module Reference to the detection implementation.
      * @param joystick Reference to the Joystick input handler.
      * @param frame_store Reference to the FrameStore the camera task publishes into.
      * @note Defaults to `AI_MODE` upon initialization.
      */
-    Controller(BaseMovementManager& movement_manager, BaseDetectionModule& detection_module, Joystick& joystick,
-               FrameStore& frame_store)
-        : _system_control_state(SystemControl::AI_MODE), _movement_manager(movement_manager),
-          _detection_module(detection_module), _joystick(joystick), _frame_store(frame_store)
+    Controller(BaseTurret& turret, BaseDetectionModule& detection_module, Joystick& joystick, FrameStore& frame_store)
+        : _system_control_state(SystemControl::AI_MODE), _turret(turret), _detection_module(detection_module),
+          _joystick(joystick), _frame_store(frame_store)
     {
     }
 
@@ -102,12 +98,12 @@ public:
      * 1. Check current `SystemControl` state.
      * 2. If **USER_MODE**:
      * - Poll `_joystick` for X/Y offsets (no frame needed).
-     * - Call `_movement_manager.move_relative()` at most once per kUserModePeriodMs.
+     * - Call `_turret.jog()` at most once per kUserModePeriodMs.
      * 3. If **AI_MODE**:
      * - Borrow the latest frame from the `_frame_store` via a lease; return if none or already processed.
-     * - Perform inference via `_detection_module`, release the lease, then move.
+     * - Perform inference via `_detection_module` and release the lease (aiming is added in a later task).
      * @warning Not paced by the camera: returns immediately when there is nothing to do, so the caller's loop
-     * must yield. A move blocks for roughly 15 ms while the stepper steps.
+     * must yield.
      */
     void run();
 

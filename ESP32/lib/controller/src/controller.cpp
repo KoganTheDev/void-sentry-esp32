@@ -19,12 +19,13 @@ void Controller::run()
 
     if (this->_system_control_state.is_user())
     {
-        // USER_MODE needs no frame. Throttle so the stepper is not driven faster than it can step.
+        // USER_MODE needs no frame. Jog commands are cheap mailbox writes; keep the 25 Hz cadence.
         const uint32_t now = millis();
         if (now - this->_last_user_move_ms >= kUserModePeriodMs)
         {
             this->_last_user_move_ms = now;
-            this->_movement_manager.move_relative(user_mode());
+            // Joystick y positive = Up = larger tilt angle.
+            this->_turret.jog(this->_joystick.get_speed_x() / 255.0f, this->_joystick.get_speed_y() / 255.0f);
         }
         return;
     }
@@ -39,15 +40,9 @@ void Controller::run()
 
     camera_buffer_t fb{const_cast<uint8_t*>(this->_frame_store.data(*lease)), lease->meta().length, lease->meta().width,
                        lease->meta().height};
-    const std::tuple<MoveX, MoveY> move_directions = this->_detection_module.detect_object(fb);
+    this->_detection_module.detect_object(fb); // result unused until aiming is wired in a later task
 
-    // Release the slot before moving: the stepper blocks ~15 ms and must not pin a frame slot.
     lease.reset();
-
-    if (kAiAimEnabled)
-    {
-        this->_movement_manager.move_relative(move_directions); // Move stepper & motor
-    }
 }
 
 const std::tuple<MoveX, MoveY> Controller::user_mode() const

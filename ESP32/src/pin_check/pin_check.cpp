@@ -8,18 +8,15 @@
 
 #include <Arduino.h>
 #include <ESP32Servo.h>
-#include <Stepper.h>
 #include <esp_system.h>
 
 #include "pins.h"
 
-static const int STEPS_PER_REV = 2048; // 28BYJ-48 in full-step mode
-static const int STEPPER_RPM = 10;
+static const int STEPS_PER_REV = 2048;      // 28BYJ-48 in full-step mode
+static const uint32_t STEP_DELAY_US = 2900; // about 10 RPM
 static const uint32_t JOYSTICK_WINDOW_MS = 15000;
 static const int AXIS_FULL_SWING = 2500; // of 4095; a working axis easily exceeds this corner to corner
 
-// The 28BYJ-48 coil order needs IN1, IN3, IN2, IN4 for the Arduino Stepper library's sequence.
-Stepper stepper(STEPS_PER_REV, pins::STEPPER_IN1, pins::STEPPER_IN3, pins::STEPPER_IN2, pins::STEPPER_IN4);
 Servo servo;
 
 static void release_stepper()
@@ -29,6 +26,24 @@ static void release_stepper()
     for (uint8_t pin : coils)
     {
         digitalWrite(pin, LOW);
+    }
+}
+
+// Blocking full-step drive (same 4-phase pattern as the Turret motor task); positive = clockwise.
+static void step_stepper(int steps)
+{
+    static const uint8_t pattern[4][4] = {{1, 1, 0, 0}, {0, 1, 1, 0}, {0, 0, 1, 1}, {1, 0, 0, 1}};
+    static int phase = 0;
+    const uint8_t coils[] = {pins::STEPPER_IN1, pins::STEPPER_IN2, pins::STEPPER_IN3, pins::STEPPER_IN4};
+    const int dir = steps >= 0 ? 1 : -1;
+    for (int i = 0; i < abs(steps); ++i)
+    {
+        phase = (phase + dir) & 3;
+        for (int c = 0; c < 4; ++c)
+        {
+            digitalWrite(coils[c], pattern[phase][c]);
+        }
+        delayMicroseconds(STEP_DELAY_US);
     }
 }
 
@@ -44,10 +59,10 @@ static void check_boot()
 static void check_stepper()
 {
     Serial.println("[stepper] quarter turn clockwise...");
-    stepper.step(STEPS_PER_REV / 4);
+    step_stepper(STEPS_PER_REV / 4);
     delay(500);
     Serial.println("[stepper] quarter turn counter-clockwise...");
-    stepper.step(-STEPS_PER_REV / 4);
+    step_stepper(-STEPS_PER_REV / 4);
     release_stepper();
     Serial.println("[stepper] done");
 }
@@ -135,7 +150,6 @@ void setup()
     pinMode(pins::STEPPER_IN3, OUTPUT);
     pinMode(pins::STEPPER_IN4, OUTPUT);
     release_stepper();
-    stepper.setSpeed(STEPPER_RPM);
 
     servo.setPeriodHertz(50);
     servo.attach(pins::SERVO, 500, 2400);
