@@ -17,6 +17,7 @@
 #include "calibration_session.h"
 #include "control_status.h"
 #include "joystick.h"
+#include "remote_inbox.h"
 #include "system_control_types.h"
 #include <cstdint>
 #include <stdlib.h>
@@ -30,8 +31,9 @@
  * targets for @ref BaseTurret::set_target_deg (or Home after the target is lost).
  * - **User**: no frames needed; @ref Joystick input is mapped to @ref BaseTurret::jog at most once per
  * kUserModePeriodMs.
- * - **Calibrate**: joystick jogs as in User mode; detection keeps running in its own task so the HUD box shows. A short
- * press records a calibration point (the turret's current angles paired with the visible target's pixel position).
+ * - **Calibrate**: joystick (and the HUD, except while the button is held) jogs as in User mode; detection keeps
+ * running in its own task so the HUD box shows. A short press records a calibration point (the turret's current angles
+ * paired with the visible target's pixel position).
  *
  * **Button gestures:** short press toggles Ai/User (or records a point in Calibrate); a long press enters
  * Calibrate, or cancels it and restores the previous mode.
@@ -39,7 +41,7 @@
  * The camera is fixed on the base and the turret aims absolutely, so a calibration is a fixed two-point mapping
  * from image pixels to pan/tilt angles, saved in NVS.
  */
-class Controller : public BaseStatusProvider
+class Controller : public BaseStatusProvider, public remote::BaseRemoteSink
 {
 private:
     /** @brief Reference to the turret (non-blocking; executed by its motor task). */
@@ -93,8 +95,20 @@ private:
     /** @brief Timestamp (millis) of the last joystick move. */
     uint32_t _last_user_move_ms = 0;
 
-    /** @brief Jogs the turret from the joystick at 25 Hz; stick_neutral sends (0,0) instead of the stick. */
-    void jog_from_joystick(uint32_t now, bool stick_neutral);
+    /** @brief Latest HUD command state (dead-man jog, pending mode request); guarded by _remote_lock. */
+    remote::RemoteInbox _remote_inbox;
+
+    /** @brief Guards _remote_inbox: submit() runs on the httpd task, run() on the loop task (copies only). */
+    mutable portMUX_TYPE _remote_lock = portMUX_INITIALIZER_UNLOCKED;
+
+    /**
+     * @brief Jog arbiter for User/Calibrate, at most once per kUserModePeriodMs (25 Hz).
+     * @details Calibrate with the button held sends (0,0); a deflected stick wins; else an active HUD jog; else (0,0).
+     */
+    void jog_from_inputs(uint32_t now, bool calibrate_button_held);
+
+    /** @brief Switches to a non-Calibrate mode: detection reset, policy reset, jog stop, log. */
+    void set_mode(ControlMode mode);
 
     /** @brief Handles a Long press (enter or leave calibration). */
     void on_long_press();
@@ -146,6 +160,13 @@ public:
      * must yield.
      */
     void run();
+
+    /**
+     * @brief Receives a HUD command. Safe to call from the httpd task while run() executes on another core.
+     * @details Stores the command in the inbox under a spinlock; run() applies it. Moves expire after
+     * remote::kJogTimeoutMs without a refresh (dead man).
+     */
+    void submit(const remote::Command& cmd) override;
 
     /** @brief Latest published status. Safe to call from any task. */
     ControlStatus control_status() const override;

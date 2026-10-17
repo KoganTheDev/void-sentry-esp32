@@ -26,7 +26,8 @@ HttpServer::~HttpServer()
     }
 }
 
-bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const BaseStatusProvider* status)
+bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const BaseStatusProvider* status,
+                       remote::BaseRemoteSink* remote)
 {
     this->_detection_instance = detection;
     this->_status_instance = status;
@@ -54,7 +55,8 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
             return false;
         }
 
-        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status);
+        this->_commands_handler =
+            new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status, remote);
         this->_commands_handler->register_endpoint();
 
         Serial.println("[HTTP] Server started successfully");

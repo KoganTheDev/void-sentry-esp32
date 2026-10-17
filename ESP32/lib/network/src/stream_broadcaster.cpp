@@ -1,5 +1,7 @@
 #include "stream_broadcaster.h"
 
+#include "handshake_guard.h"
+
 #include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
 #include <unistd.h>
@@ -118,6 +120,10 @@ esp_err_t StreamBroadcaster::ws_handler(httpd_req_t* req)
 
     if (req->method == HTTP_GET) // WebSocket handshake completed
     {
+        if (!handshake_origin_ok(req, TAG_STREAM))
+        {
+            return ESP_FAIL; // the server closes the session; the viewer is never added
+        }
         bool added = false;
         {
             Lock lock(self->mutex_);
