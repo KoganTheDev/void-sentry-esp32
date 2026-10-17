@@ -67,6 +67,8 @@ public:
     /** @brief Size of the JSON reply buffer on the stack. */
     static constexpr size_t kReplySize = 384;
 
+    /** @brief httpd callback for /commands: completes the handshake, or parses one text frame and sends the JSON reply.
+     */
     static esp_err_t websocket_handler(httpd_req_t* req)
     {
         CommandsWebSocketHandler* _this = reinterpret_cast<CommandsWebSocketHandler*>(req->user_ctx);
@@ -100,17 +102,17 @@ public:
                      (unsigned)ws_pkt.len);
             return ESP_FAIL; // the server closes the session
         }
-        if (ws_pkt.len == 0)
-        {
-            return ESP_OK;
-        }
 
+        // A zero-length text frame has no payload to read but still gets its one reply (parse yields Poll).
         uint8_t buf[kMaxMessage];
-        ws_pkt.payload = buf;
-        ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
-        if (ret != ESP_OK)
+        if (ws_pkt.len > 0)
         {
-            return ret;
+            ws_pkt.payload = buf;
+            ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
+            if (ret != ESP_OK)
+            {
+                return ret;
+            }
         }
 
         if (_this->_remote != nullptr)
@@ -133,7 +135,7 @@ private:
     size_t build_reply(char* out, size_t size) const
     {
         const int cap = (int)size;
-        if (_detection_instance == nullptr)
+        if (this->_detection_instance == nullptr)
         {
             // Fallback if no detection module
             ESP_LOGW(TAG_WEBSOCKETS, "No detection module connected, sending fallback metrics");
@@ -141,7 +143,7 @@ private:
                                     "{\"detected\":0,\"x\":0,\"y\":0,\"width\":320,\"height\":240,\"pixels\":0}");
         }
 
-        const TrackSnapshot t = _detection_instance->get_track_snapshot();
+        const TrackSnapshot t = this->_detection_instance->get_track_snapshot();
         // Existing keys first (older HUDs keep working), then the tracker fields.
         int len =
             snprintf(out, size,
@@ -150,9 +152,9 @@ private:
                      "\"vx\":%.1f,\"vy\":%.1f",
                      t.detected() ? 1 : 0, t.x, t.y, t.frame_width, t.frame_height, t.area_px,
                      tracking::to_string(t.state), (unsigned)t.id, t.bx, t.by, t.bw, t.bh, (double)t.vx, (double)t.vy);
-        if (len > 0 && len < cap && _status_provider != nullptr)
+        if (len > 0 && len < cap && this->_status_provider != nullptr)
         {
-            const ControlStatus c = _status_provider->control_status();
+            const ControlStatus c = this->_status_provider->control_status();
             const int extra =
                 snprintf(out + len, size - len,
                          ",\"mode\":\"%s\",\"cal\":%u,\"cal_state\":\"%s\",\"calibrated\":%d,"

@@ -31,8 +31,9 @@
  * targets for @ref BaseTurret::set_target_deg (or Home after the target is lost).
  * - **User**: no frames needed; @ref Joystick input is mapped to @ref BaseTurret::jog at most once per
  * kUserModePeriodMs.
- * - **Calibrate**: joystick jogs as in User mode; detection keeps running in its own task so the HUD box shows. A short
- * press records a calibration point (the turret's current angles paired with the visible target's pixel position).
+ * - **Calibrate**: joystick (and the HUD, except while the button is held) jogs as in User mode; detection keeps
+ * running in its own task so the HUD box shows. A short press records a calibration point (the turret's current angles
+ * paired with the visible target's pixel position).
  *
  * **Button gestures:** short press toggles Ai/User (or records a point in Calibrate); a long press enters
  * Calibrate, or cancels it and restores the previous mode.

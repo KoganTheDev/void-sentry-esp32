@@ -38,6 +38,7 @@ class BaseRemoteSink
 {
 public:
     virtual ~BaseRemoteSink() = default;
+    /** @brief Delivers one parsed command (called from the httpd task). */
     virtual void submit(const Command& cmd) = 0;
 };
 } // namespace remote

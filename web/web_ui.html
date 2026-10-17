@@ -579,7 +579,7 @@
                     held: new Map(), // token ('key:w', 'btn:up') -> direction
                     moveDir: null, // combined direction currently being sent, or null
                     moveTimer: null,
-                    fwMode: 'ai', // firmware mode from the last reply: ai | user | calibrate
+                    fwMode: null, // firmware mode from the last reply: ai | user | calibrate
                     latestData: null,
                     firing: false,
                     commandsInFlight: 0 // /commands messages sent but not yet answered
@@ -629,13 +629,14 @@
 
                 setupKeyboard() {
                     const keyMap = {
-                        'w': 'up', 'arrowup': 'up',
-                        'a': 'left', 'arrowleft': 'left',
-                        's': 'down', 'arrowdown': 'down',
-                        'd': 'right', 'arrowright': 'right'
+                        'KeyW': 'up', 'ArrowUp': 'up',
+                        'KeyA': 'left', 'ArrowLeft': 'left',
+                        'KeyS': 'down', 'ArrowDown': 'down',
+                        'KeyD': 'right', 'ArrowRight': 'right'
                     };
 
-                    const getAction = (e) => keyMap[e.key.toLowerCase()];
+                    // e.code is layout-independent, so a layout switch mid-hold cannot strand a key.
+                    const getAction = (e) => keyMap[e.code];
 
                     window.addEventListener('keydown', (e) => {
                         if (e.repeat) return;
@@ -653,7 +654,7 @@
                         // Movement Controls
                         const dir = getAction(e);
                         if (dir) {
-                            this.pressDir(`key:${lowKey}`, dir);
+                            this.pressDir(`key:${e.code}`, dir);
                         }
 
                         if (e.code === 'Space') {
@@ -664,11 +665,10 @@
                     });
 
                     window.addEventListener('keyup', (e) => {
-                        const lowKey = e.key.toLowerCase();
                         const dir = getAction(e);
 
                         if (dir) {
-                            this.releaseDir(`key:${lowKey}`);
+                            this.releaseDir(`key:${e.code}`);
                         }
 
                         if (e.code === 'Space') {

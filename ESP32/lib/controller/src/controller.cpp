@@ -181,6 +181,8 @@ void Controller::run()
         this->_cal_pose_at_press = this->_turret.position_deg();
         this->_cal_pose_captured = true;
     }
+    // A HUD mode request is dropped if calibration was active at the start of this pass, even if the button ends it.
+    const bool was_calibrating = this->_mode == ControlMode::Calibrate;
     const aiming::ButtonEvent ev = this->_button.update(held, now);
     if (ev == aiming::ButtonEvent::Long)
     {
@@ -194,7 +196,7 @@ void Controller::run()
     portENTER_CRITICAL(&this->_remote_lock);
     const std::optional<remote::RemoteMode> mode_req = this->_remote_inbox.take_mode_request();
     portEXIT_CRITICAL(&this->_remote_lock);
-    if (mode_req.has_value() && this->_mode != ControlMode::Calibrate)
+    if (mode_req.has_value() && !was_calibrating && this->_mode != ControlMode::Calibrate)
     {
         const ControlMode wanted = (*mode_req == remote::RemoteMode::Ai) ? ControlMode::Ai : ControlMode::User;
         if (wanted != this->_mode)
