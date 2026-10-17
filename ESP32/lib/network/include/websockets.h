@@ -4,6 +4,7 @@
 #include "base_detection_module.h"
 #include "camera.h"
 #include "control_status.h"
+#include "handshake_guard.h"
 #include "remote_command.h"
 #include "track_snapshot.h"
 #include "tracking_types.h"
@@ -75,7 +76,11 @@ public:
 
         if (req->method == HTTP_GET)
         {
-            // Initial WebSocket upgrade handshake
+            // Initial WebSocket upgrade handshake: refuse pages from other origins before anything else.
+            if (!handshake_origin_ok(req, TAG_WEBSOCKETS))
+            {
+                return ESP_FAIL; // the server closes the session
+            }
             ESP_LOGI(TAG_WEBSOCKETS, "WebSocket: New connection established to %s", _this->_uri);
             return ESP_OK;
         }
