@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Smart Camera ESP32: Smart Camera ESP32</title>
+<title>Void Sentry: Void Sentry</title>
 <link rel="icon" href="void_sentry_logo_favicon_32x32_pixels.png" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -28,7 +28,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Smart Camera ESP32
+   <div id="projectname">Void Sentry
    </div>
    <div id="projectbrief">An AI-driven, real-time Sentry Turret platform leveraging asynchronous I/O and computer vision to deliver high-precision autonomous motion tracking on resource-constrained embedded hardware.</div>
   </td>
@@ -98,50 +98,149 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Smart <a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> ESP32 </div></div>
+  <div class="headertitle"><div class="title">Void Sentry </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a></p>
-<div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>The Autonomous Computer Vision &amp; Kinetic Tracking System for ESP32-CAM</b></div><div align="center"> <img src="https://img.shields.io/badge/Status-Active_Development-ff6b00" alt="Status" class="inline"/> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/Smart_Camera_ESP32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen - Documentation Generator" style="pointer-events: none;" class="inline"/></a> </div><p><b>Void Sentry</b> is a high-performance, embedded autonomous tracking solution built for the ESP32-CAM. By utilizing optimized <b>Frame Differencing</b> algorithms, the system performs real-time motion analysis on the "edge," isolating moving targets and generating kinetic coordinates for hardware-based tracking without the need for external processing.</p>
-<hr  />
-<h2><a class="anchor" id="autotoc_md151"></a>
-System Architecture</h2>
-<p>The system operates on a dual-core cycle to ensure low-latency video delivery while maintaining a high-frequency tracking loop.</p>
+<div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a> </p><div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>An ESP32-CAM pan/tilt turret that tracks motion on-device and serves a live web HUD</b></div><div align="center"> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml/badge.svg" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Static Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen" style="pointer-events: none;" class="inline"/></a> <img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT" class="inline"/> <img src="https://img.shields.io/badge/C%2B%2B-17-00599C" alt="C++17" class="inline"/> <img src="https://img.shields.io/badge/Platform-ESP32-e7352c" alt="Platform: ESP32" class="inline"/> </div><h2><a class="anchor" id="autotoc_md176"></a>
+What it does</h2>
+<p>Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++17 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.</p>
+<h2><a class="anchor" id="autotoc_md177"></a>
+Highlights</h2>
 <ul>
-<li><b>Computer Vision Pipeline</b>: Optimized for <b>QVGA (320x240)</b> resolution to maximize frames-per-second (FPS) and minimize computational jitter.</li>
-<li><b>Kinetic Engine</b>: Translates motion "blob" centroids into PWM signals for high-torque servo response.</li>
-<li><b>Visual Feedback</b>: A real-time Augmented Reality (AR) overlay is injected directly into the MJPEG stream, providing zero-latency target telemetry.</li>
+<li><b>Cheap detection path:</b> each QVGA JPEG is decoded at 1/8 scale (DC coefficients only) to a 40x30 grey grid in about 7 ms, versus about 71 ms at 1/4 scale.</li>
+<li><b>Measured under load:</b> with a person close to the camera and the turret following, the worst 5 s window costs 11.4 ms per frame for decode plus tracking (25-30 ms in Stage 3, very likely caused by a HUD request storm, see the engineering notes), and every captured frame is analysed (83-84 per 5 s).</li>
+<li><b>No per-frame allocation:</b> the camera task copies frames into 4 fixed 32 KB PSRAM slots; readers hold RAII leases, and a leased slot is never rewritten.</li>
+<li><b>Dual-core by design:</b> core 1 runs camera copy, detection and control; core 0 runs network, the camera driver and the motor task. A 20 min soak showed no reboots and about 147 KB heap free (min 137 KB).</li>
+<li><b>Smooth motion:</b> trapezoidal stepper profile at a 1 kHz motor tick (max 400 steps/s, accel 800 steps/s^2), rate-limited servo (120 deg/s), soft limits and a 2 s hold after the target is lost before returning home.</li>
+<li><b>Tested off-device:</b> 132 host unit tests, also run under ASan + UBSan in CI, plus a regression bench over recorded real clips and synthetic clips.</li>
+<li><b>Hardware-driven fixes:</b> a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in <a class="el" href="md__2github_2workspace_2docs_2engineering-notes.html">docs/engineering-notes.md</a>.</li>
+<li><b>Browser-origin checks on the WebSockets:</b> handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Non-browser clients on the LAN are not authenticated yet.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md152"></a>
-Technical Specifications</h2>
+<h2><a class="anchor" id="autotoc_md178"></a>
+Architecture</h2>
+<div class="fragment"><div class="line">flowchart LR</div>
+<div class="line">    CAM[&quot;OV3660 camera&quot;] --&gt; CT[&quot;camera task (core 1)&quot;]</div>
+<div class="line">    CT --&gt; FS[&quot;FrameStore&lt;br/&gt;4 x 32 KB PSRAM slots&quot;]</div>
+<div class="line">    FS --&gt; DT[&quot;detect task (core 1)&lt;br/&gt;JPEG decode, MotionDetector, Tracker&quot;]</div>
+<div class="line">    DT --&gt; SNAP[&quot;track snapshot&quot;]</div>
+<div class="line">    SNAP --&gt; CTRL[&quot;Controller&lt;br/&gt;AimPolicy, AimMap&quot;]</div>
+<div class="line">    JOY[&quot;Joystick&quot;] --&gt; CTRL</div>
+<div class="line">    CTRL --&gt; MT[&quot;motor task (core 0)&quot;]</div>
+<div class="line">    MT --&gt; STEP[&quot;Stepper (yaw)&quot;]</div>
+<div class="line">    MT --&gt; SERVO[&quot;Servo (pitch)&quot;]</div>
+<div class="line">    FS --&gt; ST[&quot;stream task (core 1)&quot;]</div>
+<div class="line">    ST --&gt;|&quot;/stream WebSocket&quot;| HUD[&quot;Browser HUD&quot;]</div>
+<div class="line">    HUD &lt;--&gt;|&quot;/commands WebSocket&quot;| CTRL</div>
+</div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
+<div class="fragment"><div class="line">flowchart TB</div>
+<div class="line">    subgraph C0[&quot;Core 0: network, driver, motor&quot;]</div>
+<div class="line">        W[&quot;WiFi (23)&quot;]</div>
+<div class="line">        D[&quot;esp camera driver (23)&quot;]</div>
+<div class="line">        T[&quot;esp_timer (22)&quot;]</div>
+<div class="line">        L[&quot;lwIP (18)&quot;]</div>
+<div class="line">        M[&quot;motor (7)&quot;]</div>
+<div class="line">        H[&quot;httpd (5)&quot;]</div>
+<div class="line">    end</div>
+<div class="line">    subgraph C1[&quot;Core 1: camera copy, detection, control&quot;]</div>
+<div class="line">        A[&quot;camera copy (4)&quot;]</div>
+<div class="line">        S[&quot;stream (4)&quot;]</div>
+<div class="line">        E[&quot;detect (3)&quot;]</div>
+<div class="line">        P[&quot;loop(): control and stats (1)&quot;]</div>
+<div class="line">    end</div>
+</div><!-- fragment --><p>Numbers in brackets are FreeRTOS priorities. httpd is pinned to core 0 so network bursts cannot preempt detection.</p>
+<h2><a class="anchor" id="autotoc_md179"></a>
+Performance</h2>
+<p>Measured on the board (QVGA JPEG, quality 18, camera clock 12 MHz, about 16.6 fps capture).</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadLeft">Feature   </th><th class="markdownTableHeadLeft">Implementation    </th></tr>
+<th class="markdownTableHeadNone">Measurement   </th><th class="markdownTableHeadNone">Result    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft"><b>Detection Algorithm</b>   </td><td class="markdownTableBodyLeft">Temporal Frame Differencing (Greyscale)    </td></tr>
+<td class="markdownTableBodyNone">Decode, 1/8 scale DC-only vs 1/4 scale   </td><td class="markdownTableBodyNone">about 7 ms vs about 71 ms    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft"><b>Tracking Logic</b>   </td><td class="markdownTableBodyLeft">Geometric Centroid Calculation (X, Y Coordinates)    </td></tr>
+<td class="markdownTableBodyNone">Per-frame decode + track, empty scene   </td><td class="markdownTableBodyNone">7.7-9.1 ms + 0.49-0.59 ms    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft"><b>Noise Reduction</b>   </td><td class="markdownTableBodyLeft">Adaptive Hysteresis Thresholding    </td></tr>
+<td class="markdownTableBodyNone">Per-frame decode + track, person close, turret following (worst 5 s window)   </td><td class="markdownTableBodyNone">11.4 ms (Stage 3: 25-30 ms)    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyLeft"><b>I/O Protocol</b>   </td><td class="markdownTableBodyLeft">PWM (Pan/Tilt Servos) + HTTP MJPEG Stream    </td></tr>
+<td class="markdownTableBodyNone">Frames analysed per 5 s   </td><td class="markdownTableBodyNone">83-84 (every captured frame)    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyLeft"><b>Resolution</b>   </td><td class="markdownTableBodyLeft">320x240 (Optimized for Edge Inference)   </td></tr>
+<td class="markdownTableBodyNone">Tracking in internal RAM vs PSRAM   </td><td class="markdownTableBodyNone">0.6 ms vs 1.1 ms (pipeline about 12.6 KB)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Detect task stack   </td><td class="markdownTableBodyNone">2,496 B free of 4,096    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">20 min soak   </td><td class="markdownTableBodyNone">no reboots, heap about 147 KB free (min 137 KB)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> clock 20 MHz: ping / 14 KB page fetch / fps   </td><td class="markdownTableBodyNone">265 ms / 1.1-5.0 s / 27.8 fps    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> clock 12 MHz: ping / 14 KB page fetch / fps   </td><td class="markdownTableBodyNone">19 ms / 0.07-0.13 s / 16.6 fps   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md153"></a>
-Core Capabilities</h2>
-<ul>
-<li><b>Intelligent Thresholding</b>: Dynamically filters out sensor noise and environment fluctuations (e.g., lighting changes) to prevent false positives.</li>
-<li><b>Target Locking</b>: Implements "stickiness" logic to maintain focus on the primary moving mass while ignoring secondary background static.</li>
-<li><b>Low-Latency Dashboard</b>: A web-based HUD designed for mobile and desktop, featuring real-time telemetry stats and manual override controls.</li>
-<li><b>Modular Servo Control</b>: Easily adaptable for various Pan/Tilt hardware configurations.</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md154"></a>
-Software Setup</h3>
+<p>A higher camera clock means more clock and DMA activity that degrades WiFi, so 12 MHz is the best frame rate that keeps the network healthy.</p>
+<h2><a class="anchor" id="autotoc_md180"></a>
+Hardware and wiring</h2>
+<p>Parts: Freenove ESP32-WROVER CAM (OV3660, PSRAM required) on the Freenove GPIO Extension Board; 28BYJ-48 stepper with a ULN2003 driver (yaw); SG90 servo (pitch); 2-axis joystick with push button.</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Function   </th><th class="markdownTableHeadNone">GPIO    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> X / Y (ADC1, works with WiFi on)   </td><td class="markdownTableBodyNone">32 / 33    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> button   </td><td class="markdownTableBodyNone">0    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Servo (pitch)   </td><td class="markdownTableBodyNone">14    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Stepper IN1-IN4 (yaw)   </td><td class="markdownTableBodyNone">13, 12, 15, 2   </td></tr>
+</table>
+<p>With the camera attached exactly 8 GPIOs are free, and the turret uses all 8. <code><a class="el" href="pins_8h.html" title="Single source of truth for every GPIO the turret uses.">ESP32/include/pins.h</a></code> is the only place pins are defined, and its <code>static_assert</code>s reject flash/PSRAM pins, camera collisions and duplicates. GPIO12 high at reset selects 1.8 V flash and causes a boot loop, so check the ULN2003 polarity before powering on.</p>
+<h2><a class="anchor" id="autotoc_md181"></a>
+Getting started</h2>
+<p>Prerequisites: <a href="https://platformio.org/">PlatformIO</a> (CLI or the VS Code extension). The toolchain is Arduino core 2.0.17 (ESP-IDF 4.4, GCC 8.4) with C++17.</p>
 <ol type="1">
-<li>Clone the repository: <div class="fragment"><div class="line">git clone [https://github.com/KoganTheDev/void-sentry-esp32.git](https://github.com/KoganTheDev/void-sentry-esp32.git)</div>
-</div><!-- fragment --> </li>
+<li>Create the WiFi credentials header (<code>ESP32/include/secrets.h</code>, copied from <code>ESP32/include/secrets.h.example</code>) and set your network name and password. It is gitignored; never commit it.</li>
+<li>From <code>ESP32/</code>, build, flash and watch the serial log: <div class="fragment"><div class="line">pio run -e freenove_esp32_wrover</div>
+<div class="line">pio run -e freenove_esp32_wrover -t upload</div>
+<div class="line">pio device monitor        # 115200 baud</div>
+</div><!-- fragment --></li>
+<li>Read the board's IP address from the boot log. DHCP can hand out a new address after reflashing, so do not assume it.</li>
 </ol>
+<p><code>pio run -e pin_check -t upload</code> flashes a wiring bring-up test (no camera, no WiFi) and prints the result on serial.</p>
+<h2><a class="anchor" id="autotoc_md182"></a>
+Using it</h2>
+<p>Open <code><a href="http://">http://</a>&lt;board-ip&gt;/</code> in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.</p>
+<ul>
+<li><b>Modes:</b> AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved.</li>
+<li><b><a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a>:</b> a short press of the button toggles AI and User; holding it for 1.5 s enters calibration, or cancels it and restores the previous mode.</li>
+<li><b>HUD controls:</b> the mode button toggles AI and manual. In manual mode, WASD, the arrow keys or the on-screen buttons jog the turret (resent every 100 ms, with a 300 ms dead man on the board). A deflected joystick always wins over the HUD.</li>
+<li><b>Calibration:</b> hold the button for 1.5 s, aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md183"></a>
+Testing and CI</h2>
+<div class="fragment"><div class="line">pio test -e native                         # host unit tests (132), no board needed</div>
+<div class="line">pio test -e native_sanitize                # ASan + UBSan (Linux / CI)</div>
+<div class="line">pio check --severity=high --severity=medium   # cppcheck</div>
+<div class="line">python -m unittest discover -s tools/tracking -p &quot;test_*.py&quot;   # fixture tool tests</div>
+<div class="line">python -m unittest discover -s web -p &quot;test_*.py&quot;              # HUD generator tests</div>
+</div><!-- fragment --><p>CI (<code>ci.yml</code>) checks clang-format 19, builds both firmware environments, runs the native tests, the sanitizer job and the tracking bench. The bench replays recorded clips (<code>real_cross_room</code>, <code>real_hand_pause</code>, <code>real_light_switch</code>) and four synthetic clips against <code>.expect</code> files, regenerates the synthetic fixtures byte-for-byte and records cachegrind instruction counts. cppcheck blocks on warning-level findings in <code>static_analysis.yml</code>. Doxygen output is published to <a href="https://koganthedev.github.io/void-sentry-esp32/">GitHub Pages</a> from <code>main</code>. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.</p>
+<h2><a class="anchor" id="autotoc_md184"></a>
+Project layout</h2>
+<div class="fragment"><div class="line">ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/frame_store  camera task and PSRAM slots</div>
+<div class="line">ESP32/lib/detection    JPEG decode and detect task glue</div>
+<div class="line">ESP32/lib/controller   modes, joystick, ties detection to the turret</div>
+<div class="line">ESP32/lib/motion       turret, stepper and servo motor task</div>
+<div class="line">ESP32/lib/network      WiFi, HTTP/WebSocket server, stream broadcaster</div>
+<div class="line">ESP32/bench            tracking clip bench and fixtures</div>
+<div class="line">web/                   HUD source (web_ui.html) and header generator</div>
+<div class="line">tools/tracking/        clip recorder and fixture generator</div>
+<div class="line">docs/                  specs, plans and engineering notes</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md185"></a>
+Roadmap status</h2>
+<p>Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control) are done. Stage 5 (this documentation) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client). Next: on-device WiFi provisioning, and a move to Arduino core 3.x for C++20.</p>
+<p>More detail: <a class="el" href="md__2github_2workspace_2docs_2engineering-notes.html">engineering notes</a> (design decisions and debugging stories) and the <a href="https://koganthedev.github.io/void-sentry-esp32/">API documentation</a>.</p>
+<h2><a class="anchor" id="autotoc_md186"></a>
+License</h2>
+<p>MIT, see [LICENSE](LICENSE). </p>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->

@@ -1,4 +1,11 @@
 var searchData=
 [
-  ['_5fvalue_0',['_value',['../classMoveDirection.html#a129ca6e7581508c7278bbba4a9d8ad4c',1,'MoveDirection']]]
+  ['_3a_20device_20wrapper_0',['2. &lt;tt&gt;FrameStore&lt;/tt&gt;: device wrapper',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md128',1,'']]],
+  ['_3a_20hardware_20verification_1',[': hardware verification',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage4-dual-core.html#autotoc_md93',1,'Task 3 (controller + user): hardware verification'],['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage4b-hud-remote-control.html#autotoc_md101',1,'Task 4 (controller + user, later): hardware verification']]],
+  ['_3a_20real_20clips_20and_20on_20device_20verification_2',['Task 6 (controller + user, hardware): real clips and on-device verification',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md70',1,'']]],
+  ['_3a_20record_20the_20demo_20gif_20and_20add_20it_20to_20the_20readme_20slot_3',['Task 4 (with the user, later): record the demo GIF and add it to the README slot',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage5-portfolio.html#autotoc_md108',1,'']]],
+  ['_3a_20review_20push_20pr_20ci_4',['Task 3 (controller): review, push, PR, CI',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage5-portfolio.html#autotoc_md107',1,'']]],
+  ['_3a_20slot_20bookkeeping_20pure_20c_2017_20native_20tested_5',['1. &lt;tt&gt;FrameSlots&lt;/tt&gt;: slot bookkeeping (pure C++17, native-tested)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md127',1,'']]],
+  ['_3a_20verify_20on_20the_20board_6',['Task 6 (controller + user, hardware): verify on the board',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage3-motion-control.html#autotoc_md87',1,'']]],
+  ['_3a_20viewer_20bookkeeping_20pure_20c_2017_20native_20tested_7',['5. &lt;tt&gt;ViewerSet&lt;/tt&gt;: viewer bookkeeping (pure C++17, native-tested)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md131',1,'']]]
 ];

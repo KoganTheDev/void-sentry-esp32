@@ -1,11 +1,14 @@
 var searchData=
 [
-  ['kframew_0',['kFrameW',['../aim__map_8h.html#a41d0eedc471c3c14d58c972e953b1c76',1,'aiming']]],
-  ['kjogspeed_1',['kJogSpeed',['../remote__inbox_8h.html#aec8cbea47a4b17e76eaf5ca72043a15f',1,'remote']]],
-  ['kjogtimeoutms_2',['kJogTimeoutMs',['../remote__inbox_8h.html#ad852dc40068d8466be4c155081f1f1c0',1,'remote']]],
-  ['kmaxmessage_3',['kMaxMessage',['../classCommandsWebSocketHandler.html#a43f7dc7dece6d49092446f914a8209ef',1,'CommandsWebSocketHandler']]],
-  ['kmaxsubscribers_4',['kMaxSubscribers',['../classFrameStore.html#a216a1b6f187b3e970aedffccf473d484',1,'FrameStore']]],
-  ['kmincaldx_5',['kMinCalDx',['../aim__map_8h.html#a824fdb55b93f0e0e7effb4406d9855ed',1,'aiming']]],
-  ['kreplysize_6',['kReplySize',['../classCommandsWebSocketHandler.html#a860bc5c818f40e6f4848a452d3e52f30',1,'CommandsWebSocketHandler']]],
-  ['kstepsperrev_7',['kStepsPerRev',['../aim__map_8h.html#aeec6a335589d2145998d7026c2cd5586',1,'aiming']]]
+  ['job_0',['Task 5: Fixture tools, clip bench, CI job',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md68',1,'']]],
+  ['job_20model_3a_20haiku_1',['Task 3: &lt;tt&gt;native_sanitize&lt;/tt&gt; env + CI job (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md45',1,'']]],
+  ['jog_2',['Jog',['../structremote_1_1Jog.html',1,'remote']]],
+  ['jog_3',['jog',['../classBaseTurret.html#a66d48f970e376782d888d2d273ccffa3',1,'BaseTurret::jog()'],['../classTurret.html#a178e31395d3ef61d6cea41545033a7e1',1,'Turret::jog()'],['../classremote_1_1RemoteInbox.html#ad5d3f5b4ab99c0494cc0b2528e212052',1,'remote::RemoteInbox::jog(uint32_t now_ms) const']]],
+  ['jog_5factive_4',['jog_active',['../classremote_1_1RemoteInbox.html#aa91a0aac49dc18600947cf569607bfcc',1,'remote::RemoteInbox']]],
+  ['joystick_5',['Joystick',['../classJoystick.html',1,'Joystick'],['../classJoystick.html#a446881cfdacc5cdbbcbbfe0183ba4949',1,'Joystick::Joystick()']]],
+  ['jpeg_20at_201_208_20scale_6',['2. Decoding JPEG at 1/8 scale',['../md__2github_2workspace_2docs_2engineering-notes.html#autotoc_md11',1,'']]],
+  ['jpeg_5fcheck_2eh_7',['jpeg_check.h',['../jpeg__check_8h.html',1,'']]],
+  ['jpeg_5fgray_2eh_8',['jpeg_gray.h',['../jpeg__gray_8h.html',1,'']]],
+  ['jpeg_5fto_5fgray_9',['jpeg_to_gray',['../namespacejpeg__to__gray.html',1,'']]],
+  ['jpegtograytests_10',['JpegToGrayTests',['../classtest__tracking__tools_1_1JpegToGrayTests.html',1,'test_tracking_tools']]]
 ];

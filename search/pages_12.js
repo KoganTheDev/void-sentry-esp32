@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['task_20layout_0',['Void Sentry Stage 4: Dual-Core Task Layout',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html',1,'']]],
-  ['task_20layout_20implementation_20plan_1',['Stage 4 Dual-Core Task Layout Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage4-dual-core.html',1,'']]],
-  ['tooling_20implementation_20plan_2',['Void Sentry Stage 0 Tooling Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-11-void-sentry-stage0-tooling.html',1,'']]],
-  ['tracking_3',['Void Sentry Stage 2: Motion Detection and Persistent Tracking',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html',1,'']]],
-  ['tracking_20implementation_20plan_4',['Stage 2 Motion Detection and Persistent Tracking Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html',1,'']]]
+  ['rebuild_3a_20roadmap_20and_20stage_200_20design_0',['Void Sentry rebuild: roadmap and Stage 0 design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html',1,'']]],
+  ['remote_20control_1',['Void Sentry Stage 4b: HUD Remote Control',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html',1,'']]],
+  ['remote_20control_20implementation_20plan_2',['Stage 4b HUD Remote Control Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage4b-hud-remote-control.html',1,'']]],
+  ['roadmap_20and_20stage_200_20design_3',['Void Sentry rebuild: roadmap and Stage 0 design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html',1,'']]]
 ];

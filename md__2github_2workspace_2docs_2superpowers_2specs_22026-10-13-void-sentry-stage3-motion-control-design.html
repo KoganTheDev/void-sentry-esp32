@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Smart Camera ESP32: Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)</title>
+<title>Void Sentry: Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)</title>
 <link rel="icon" href="void_sentry_logo_favicon_32x32_pixels.png" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -28,7 +28,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Smart Camera ESP32
+   <div id="projectname">Void Sentry
    </div>
    <div id="projectbrief">An AI-driven, real-time Sentry Turret platform leveraging asynchronous I/O and computer vision to deliver high-precision autonomous motion tracking on resource-constrained embedded hardware.</div>
   </td>
@@ -101,16 +101,16 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md127"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md147"></a></p>
 <p>Date: 2026-10-13. Status: approved in chat (fixed camera + absolute aim, joystick 2-point calibration, hold-then-home, motor task).</p>
-<h1><a class="anchor" id="autotoc_md128"></a>
+<h1><a class="anchor" id="autotoc_md148"></a>
 Goal</h1>
 <p>In AI mode, point the turret at the tracked target. The camera is <b>not</b> mounted on the turret and stays fixed, so aiming is open-loop: map the target's image position to pan/tilt angles through a calibration, then move the motors to those angles. Motor motion must never stall detection.</p>
-<h1><a class="anchor" id="autotoc_md129"></a>
+<h1><a class="anchor" id="autotoc_md149"></a>
 Why absolute aiming (not visual servoing)</h1>
 <p>With the camera on the turret, "target left of centre -&gt; step left" converges, because each step shifts the image. With a fixed camera the image never moves when the turret moves. The target stays left of centre, and that loop would spin forever. So Stage 2's <code>direction_for()</code> is not used for aiming. A fixed camera also removes ego-motion: detection never has to pause while the turret moves.</p>
 <p>The cost is that nothing in the image confirms where the turret points. Accuracy depends on the calibration and on the stepper not skipping steps. The user checks it by eye or with a pointer on the turret.</p>
-<h1><a class="anchor" id="autotoc_md130"></a>
+<h1><a class="anchor" id="autotoc_md150"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -128,14 +128,14 @@ Decisions</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">No target   </td><td class="markdownTableBodyNone">Hold 2 s after the track goes Idle, then return home slowly   </td><td class="markdownTableBodyNone">Calm behaviour; home is a known pose   </td><td class="markdownTableBodyNone">Hold forever; sweep (cosmetic with a fixed camera)   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md131"></a>
+<h1><a class="anchor" id="autotoc_md151"></a>
 Coordinates and limits</h1>
 <ul>
 <li>Pan: degrees, 0 = home (the stepper position at boot), positive = right. Stepper: 2048 full steps per revolution (0.1758 deg/step). Soft limits +-90 deg.</li>
 <li>Tilt: servo degrees. Home 90 deg, soft limits [20, 160] deg (protects the linkage).</li>
 <li>Image: QVGA pixels from the Stage 2 <code><a class="el" href="structTrackSnapshot.html">TrackSnapshot</a></code> (x 0..319, y 0..239).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md132"></a>
+<h1><a class="anchor" id="autotoc_md152"></a>
 Architecture</h1>
 <div class="fragment"><div class="line">flowchart LR</div>
 <div class="line">    DET[CameraDiffDetection&lt;br/&gt;TrackSnapshot] --&gt; POL[AimPolicy&lt;br/&gt;pure]</div>
@@ -145,7 +145,7 @@ Architecture</h1>
 <div class="line">    CTL --&gt;|setpoint or jog| MT[MotorTask core 0&lt;br/&gt;StepPlanner + coil driver + servo]</div>
 <div class="line">    CTL --&gt;|calibration points| SES[CalibrationSession&lt;br/&gt;pure] --&gt; NVS[(NVS)]</div>
 <div class="line">    MT --&gt;|pan/tilt position| CTL</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md133"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md153"></a>
 Pure library <code>lib/aiming</code> (namespace <code>aiming</code>; no Arduino/ESP-IDF headers, no heap; native + ASan/UBSan tested)</h2>
 <ul>
 <li><b><code>AimMap</code></b> <code>{ float pan_a, pan_b, tilt_a, tilt_b; }</code>: <code>pan_deg = pan_a * x + pan_b</code>, <code>tilt_deg = tilt_a * y + tilt_b</code>. Each axis depends only on its own image axis; camera roll is ignored.<ul>
@@ -176,7 +176,7 @@ Pure library <code>lib/aiming</code> (namespace <code>aiming</code>; no Arduino/
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md134"></a>
+<h2><a class="anchor" id="autotoc_md154"></a>
 Device side</h2>
 <ul>
 <li><b>Motor task</b> (<code>lib/motion</code>, rewritten): core 0, priority 3, 1 ms period (<code>vTaskDelayUntil</code>).<ul>
@@ -202,7 +202,7 @@ Device side</h2>
 <li><b><code>/commands</code> JSON</b> gains <code>"mode":"ai|user|calibrate"</code>, <code>"cal":0|1|2</code> (points recorded), <code>"calibrated":0|1</code>, <code>"pan"</code>, <code>"tilt"</code> (current, deg, 1 decimal). The HUD shows mode, pan/tilt, the calibration prompt ("aim at the target, press" / point 1 of 2 / done / failed: reason) and "uncalibrated".</li>
 <li><b>Stats line</b> gains <code>mode=</code>, <code>pan=</code>, <code>tilt=</code>, <code>steps_s=</code> (current stepper speed).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md135"></a>
+<h1><a class="anchor" id="autotoc_md155"></a>
 Testing</h1>
 <ul>
 <li><b>Native + <code>native_sanitize</code>:</b><ul>
@@ -256,7 +256,7 @@ Testing</h1>
 <li><b>Host simulation (bench):</b> a scripted target track runs through policy + planner at 1 kHz. It asserts that the turret reaches the aim within the profile's predicted time and that the step count matches the commanded angle.</li>
 <li><b>On hardware:</b> see the success criteria below.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md136"></a>
+<h1><a class="anchor" id="autotoc_md156"></a>
 Success criteria (on hardware)</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -278,7 +278,7 @@ Success criteria (on hardware)</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Logic   </td><td class="markdownTableBodyNone">All native tests pass, also under ASan + UBSan in CI   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md137"></a>
+<h1><a class="anchor" id="autotoc_md157"></a>
 Out of scope</h1>
 <ul>
 <li>Mounting the camera on the turret (visual servoing).</li>

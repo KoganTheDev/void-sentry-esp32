@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['_7ebasedetectionmodule_0',['~BaseDetectionModule',['../classBaseDetectionModule.html#aa264fc7c05d9458b299bc53f03cabb59',1,'BaseDetectionModule']]],
-  ['_7econtroller_1',['~Controller',['../classController.html#a8351d2a68600034af0dbd1834bb21374',1,'Controller']]]
+  ['x_0',['x',['../structaiming_1_1TrackView.html#a59274f0a816a7091472f0d481f070092',1,'aiming::TrackView::x'],['../structTrackSnapshot.html#a95b6c385f7b0955fa11f8ecc98028f62',1,'TrackSnapshot::x']]]
 ];
