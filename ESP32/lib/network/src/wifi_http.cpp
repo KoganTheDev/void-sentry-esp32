@@ -71,6 +71,26 @@ esp_err_t send_json(httpd_req_t* req, const char* status, const char* body)
 
 WifiManager& manager(httpd_req_t* req) { return *static_cast<WifiManager*>(req->user_ctx); }
 
+/**
+ * @brief DNS-rebinding guard for the JSON API: the Host header must be an IPv4 literal (the board is always reached
+ * by IP). A rebinding page reaches the board under its own hostname, so it cannot read saved SSIDs, the scan or the
+ * IP. The setup page and the captive-portal catch-all stay reachable under any hostname.
+ * @return true if allowed; otherwise a 403 was already sent.
+ */
+bool api_host_ok(httpd_req_t* req)
+{
+    char host[128];
+    const size_t len = httpd_req_get_hdr_value_len(req, "Host");
+    if (len > 0 && len < sizeof(host) && httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) == ESP_OK &&
+        remote::is_ipv4_host(host, len))
+    {
+        return true;
+    }
+    httpd_resp_set_hdr(req, "Connection", "close");
+    send_json(req, "403 Forbidden", "{\"error\":\"host not allowed\"}");
+    return false;
+}
+
 esp_err_t page_handler(httpd_req_t* req)
 {
     httpd_resp_set_type(req, "text/html");
@@ -80,6 +100,10 @@ esp_err_t page_handler(httpd_req_t* req)
 
 esp_err_t status_handler(httpd_req_t* req)
 {
+    if (!api_host_ok(req))
+    {
+        return ESP_OK;
+    }
     const WifiManager::Status s = manager(req).status();
     char ssid[kEscCap];
     json_escape(s.ssid, ssid, sizeof(ssid));
@@ -91,6 +115,10 @@ esp_err_t status_handler(httpd_req_t* req)
 
 esp_err_t scan_handler(httpd_req_t* req)
 {
+    if (!api_host_ok(req))
+    {
+        return ESP_OK;
+    }
     constexpr size_t kCap = 20;
     prov::ScanResult found[kCap];
     const size_t n = manager(req).scan(found, kCap);
@@ -113,6 +141,10 @@ esp_err_t scan_handler(httpd_req_t* req)
 
 esp_err_t saved_handler(httpd_req_t* req)
 {
+    if (!api_host_ok(req))
+    {
+        return ESP_OK;
+    }
     char ssids[prov::kMaxNetworks][prov::kSsidMax + 1];
     const size_t n = manager(req).saved(ssids, prov::kMaxNetworks);
 
@@ -137,6 +169,10 @@ esp_err_t saved_handler(httpd_req_t* req)
  */
 bool read_form(httpd_req_t* req, char* buf, size_t* len)
 {
+    if (!api_host_ok(req))
+    {
+        return false;
+    }
     if (!handshake_origin_ok(req, TAG_WIFI_HTTP))
     {
         httpd_resp_set_hdr(req, "Connection", "close");
@@ -150,15 +186,25 @@ bool read_form(httpd_req_t* req, char* buf, size_t* len)
         send_json(req, "400 Bad Request", "{\"error\":\"bad request size\"}");
         return false;
     }
+    // A slow client must not hold the single httpd task (it also serves /stream and /commands): allow at most
+    // kMaxRecvTimeouts receive timeouts (recv_wait_timeout each) for the whole body, then give up with 408.
+    constexpr int kMaxRecvTimeouts = 2;
+    int timeouts = 0;
     size_t got = 0;
     while (got < total)
     {
         const int r = httpd_req_recv(req, buf + got, total - got);
         if (r <= 0)
         {
-            if (r == HTTPD_SOCK_ERR_TIMEOUT)
+            if (r == HTTPD_SOCK_ERR_TIMEOUT && ++timeouts <= kMaxRecvTimeouts)
             {
                 continue;
+            }
+            if (r == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                httpd_resp_set_hdr(req, "Connection", "close");
+                send_json(req, "408 Request Timeout", "{\"error\":\"request timeout\"}");
+                return false;
             }
             httpd_resp_set_hdr(req, "Connection", "close");
             send_json(req, "400 Bad Request", "{\"error\":\"bad request\"}");
