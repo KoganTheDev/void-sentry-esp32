@@ -52,12 +52,29 @@ jobs:
             - name: Build turret firmware
               working-directory: ESP32
               run: pio run -e freenove_esp32_wrover
-            - name: Build turret firmware (Arduino core 3.3.12)
-              working-directory: ESP32
-              run: pio run -e freenove_esp32_wrover_v3
             - name: Build pin_check
               working-directory: ESP32
               run: pio run -e pin_check
+
+    # Stage 7 side-by-side phase only: core 2 and core 3 install packages under the same names
+    # (framework-arduinoespressif32, tool-esptoolpy), so building both in one ~/.platformio swaps them and
+    # breaks the other env. Own runner and cache until the cut-over removes the core 2 env.
+    build-core3:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - uses: actions/cache@v4
+              with:
+                  path: ~/.platformio
+                  key: pio-core3-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
+            - name: Install PlatformIO
+              run: pip install -U platformio
+            - name: Build turret firmware (Arduino core 3.3.12)
+              working-directory: ESP32
+              run: pio run -e freenove_esp32_wrover_v3
 
     native-tests:
         runs-on: ubuntu-latest
