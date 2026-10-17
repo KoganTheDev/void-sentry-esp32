@@ -5,6 +5,14 @@
 #include <esp_http_server.h>
 #include <esp_log.h>
 
+// IDF 5.5 never calls a WebSocket URI handler for the handshake: ws_pre_handshake_cb runs before the 101 reply (an
+// error refuses the upgrade) and ws_post_handshake_cb after it. Both are off in the precompiled Arduino libs, so
+// platformio.ini sets them through custom_sdkconfig.
+#if !CONFIG_HTTPD_WS_PRE_HANDSHAKE_CB_SUPPORT || !CONFIG_HTTPD_WS_POST_HANDSHAKE_CB_SUPPORT
+// cppcheck-suppress preprocessorErrorDirective
+#error "needs CONFIG_HTTPD_WS_PRE/POST_HANDSHAKE_CB_SUPPORT=y (custom_sdkconfig in platformio.ini)"
+#endif
+
 /**
  * @brief Reads the Origin and Host headers of a WebSocket handshake or a browser POST and applies
  * remote::origin_allowed.

@@ -1,7 +1,6 @@
 #include "stream_broadcaster.h"
 
 #include "handshake_guard.h"
-#include "platform_compat.h"
 
 #include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
@@ -48,7 +47,8 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
     uri.handler = ws_handler;
     uri.user_ctx = this;
     uri.is_websocket = true;
-    compat::set_ws_handshake_hooks(uri, pre_handshake, post_handshake);
+    uri.ws_pre_handshake_cb = pre_handshake;
+    uri.ws_post_handshake_cb = post_handshake;
     if (httpd_register_uri_handler(server_, &uri) != ESP_OK)
     {
         ESP_LOGE(TAG_STREAM, "Failed to register /stream");
@@ -150,12 +150,6 @@ esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
 
 esp_err_t StreamBroadcaster::ws_handler(httpd_req_t* req)
 {
-    if (compat::ws_handshake_in_handler(req)) // core 2: the handshake is done and arrives here as HTTP_GET
-    {
-        const esp_err_t err = pre_handshake(req);
-        return err == ESP_OK ? post_handshake(req) : err; // ESP_FAIL: the server closes the session
-    }
-
     // The board pushes; clients have nothing to say on /stream. Drain and ignore small frames.
     httpd_ws_frame_t pkt = {};
     esp_err_t err = httpd_ws_recv_frame(req, &pkt, 0);

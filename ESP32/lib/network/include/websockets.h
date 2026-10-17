@@ -5,7 +5,6 @@
 #include "camera.h"
 #include "control_status.h"
 #include "handshake_guard.h"
-#include "platform_compat.h"
 #include "remote_command.h"
 #include "track_snapshot.h"
 #include "tracking_types.h"
@@ -52,8 +51,8 @@ public:
         uri_obj.user_ctx = this;
         uri_obj.handler = CommandsWebSocketHandler::websocket_handler;
         uri_obj.is_websocket = true;
-        compat::set_ws_handshake_hooks(uri_obj, CommandsWebSocketHandler::pre_handshake,
-                                       CommandsWebSocketHandler::post_handshake);
+        uri_obj.ws_pre_handshake_cb = CommandsWebSocketHandler::pre_handshake;
+        uri_obj.ws_post_handshake_cb = CommandsWebSocketHandler::post_handshake;
 
         httpd_register_uri_handler(this->_server_handle, &uri_obj);
     }
@@ -71,13 +70,13 @@ public:
     /** @brief Size of the JSON reply buffer on the stack. */
     static constexpr size_t kReplySize = 384;
 
-    /** @brief Handshake hook: refuses pages from other origins before the upgrade (core 3; core 2 calls it after). */
+    /** @brief ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). */
     static esp_err_t pre_handshake(httpd_req_t* req)
     {
         return handshake_origin_ok(req, TAG_WEBSOCKETS) ? ESP_OK : ESP_FAIL;
     }
 
-    /** @brief Handshake hook: logs the new session. */
+    /** @brief ws_post_handshake_cb: logs the new session once it is a WebSocket. */
     static esp_err_t post_handshake(httpd_req_t* req)
     {
         const auto* _this = reinterpret_cast<const CommandsWebSocketHandler*>(req->user_ctx);
@@ -85,17 +84,11 @@ public:
         return ESP_OK;
     }
 
-    /** @brief httpd callback for /commands: parses one text frame and sends the JSON reply (on core 2 it also gets the
-     * completed handshake). */
+    /** @brief httpd callback for /commands: parses one text frame and sends the JSON reply (the handshake goes to the
+     * pre/post hooks, never here). */
     static esp_err_t websocket_handler(httpd_req_t* req)
     {
         CommandsWebSocketHandler* _this = reinterpret_cast<CommandsWebSocketHandler*>(req->user_ctx);
-
-        if (compat::ws_handshake_in_handler(req)) // core 2: the handshake is done and arrives here as HTTP_GET
-        {
-            const esp_err_t err = pre_handshake(req);
-            return err == ESP_OK ? post_handshake(req) : err; // ESP_FAIL: the server closes the session
-        }
 
         // Get the frame header (type and length) without reading the payload.
         httpd_ws_frame_t ws_pkt;

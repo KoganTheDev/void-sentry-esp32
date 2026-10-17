@@ -43,29 +43,6 @@ jobs:
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
-            - uses: actions/cache@v4
-              with:
-                  path: ~/.platformio
-                  key: pio-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
-            - name: Install PlatformIO
-              run: pip install -U platformio
-            - name: Build turret firmware
-              working-directory: ESP32
-              run: pio run -e freenove_esp32_wrover
-            - name: Build pin_check
-              working-directory: ESP32
-              run: pio run -e pin_check
-
-    # Stage 7 side-by-side phase only: core 2 and core 3 install packages under the same names
-    # (framework-arduinoespressif32, tool-esptoolpy), so building both in one ~/.platformio swaps them and
-    # breaks the other env. Own runner and cache until the cut-over removes the core 2 env.
-    build-core3:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
-              with:
-                  python-version: "3.12"
             # custom_sdkconfig rebuilds the Arduino libs into ~/.platformio (slow); pioarduino reuses them only while
             # ESP32/sdkconfig.defaults (its hash of the custom options) is present, so cache that file too.
             - uses: actions/cache@v4
@@ -78,7 +55,10 @@ jobs:
               run: pip install -U platformio
             - name: Build turret firmware (Arduino core 3.3.12)
               working-directory: ESP32
-              run: pio run -e freenove_esp32_wrover_v3
+              run: pio run -e freenove_esp32_wrover
+            - name: Build pin_check
+              working-directory: ESP32
+              run: pio run -e pin_check
 
     native-tests:
         runs-on: ubuntu-latest
@@ -135,8 +115,8 @@ jobs:
               run: |
                   SRC="ESP32/lib/tracking/src/*.cpp ESP32/bench/track_bench.cpp"
                   INC="-I ESP32/include -I ESP32/lib/tracking/include"
-                  g++ -std=c++17 -O2 -g -fno-omit-frame-pointer -Wall -Wextra $INC $SRC -o track_bench
-                  g++ -std=c++17 -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined                       -fno-sanitize-recover=all $INC $SRC -o track_bench_asan
+                  g++ -std=c++20 -O2 -g -fno-omit-frame-pointer -Wall -Wextra $INC $SRC -o track_bench
+                  g++ -std=c++20 -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined                       -fno-sanitize-recover=all $INC $SRC -o track_bench_asan
             - name: Clip regression under ASan+UBSan
               run: ./track_bench_asan ESP32/bench/fixtures/*.gray
             - name: Clip regression and timing (release)
