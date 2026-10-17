@@ -23,13 +23,13 @@ Void Sentry watches a room through an OV3660 camera on an ESP32, finds the movin
 ## Highlights
 
 - **Cheap detection path:** each QVGA JPEG is decoded at 1/8 scale (DC coefficients only) to a 40x30 grey grid in about 7 ms, versus about 71 ms at 1/4 scale.
-- **Measured under load:** with a person close to the camera and the turret following, the worst 5 s window costs 11.4 ms per frame for decode plus tracking (25-30 ms before the dual-core rework), and every captured frame is analysed (83-84 per 5 s).
+- **Measured under load:** with a person close to the camera and the turret following, the worst 5 s window costs 11.4 ms per frame for decode plus tracking (25-30 ms in Stage 3, very likely caused by a HUD request storm, see the engineering notes), and every captured frame is analysed (83-84 per 5 s).
 - **No per-frame allocation:** the camera task copies frames into 4 fixed 32 KB PSRAM slots; readers hold RAII leases, and a leased slot is never rewritten.
 - **Dual-core by design:** core 1 runs camera copy, detection and control; core 0 runs network, the camera driver and the motor task. A 20 min soak showed no reboots and about 147 KB heap free (min 137 KB).
 - **Smooth motion:** trapezoidal stepper profile at a 1 kHz motor tick (max 400 steps/s, accel 800 steps/s^2), rate-limited servo (120 deg/s), soft limits and a 2 s hold after the target is lost before returning home.
 - **Tested off-device:** 132 host unit tests, also run under ASan + UBSan in CI, plus a regression bench over recorded real clips and synthetic clips.
 - **Hardware-driven fixes:** a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in [docs/engineering-notes.md](docs/engineering-notes.md).
-- **Secure-by-default WebSockets:** handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused.
+- **Browser-origin checks on the WebSockets:** handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Non-browser clients on the LAN are not authenticated yet.
 
 ## Architecture
 
