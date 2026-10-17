@@ -5,7 +5,8 @@
 #include <esp_log.h>
 
 /**
- * @brief Reads the Origin and Host headers of a WebSocket handshake and applies remote::origin_allowed.
+ * @brief Reads the Origin and Host headers of a WebSocket handshake or a browser POST and applies
+ * remote::origin_allowed.
  * @details Headers are copied into 128 B stack buffers. An Origin too long for the buffer counts as not allowed; a
  * Host too long counts as empty (so any present Origin is rejected). A rejection is logged with the origin only.
  * @param req The handshake request (req->method == HTTP_GET).
@@ -40,12 +41,12 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
 
     if (origin_too_long)
     {
-        ESP_LOGW(tag, "WebSocket handshake refused: Origin header too long");
+        ESP_LOGW(tag, "request refused: Origin header too long");
         return false;
     }
     if (!remote::origin_allowed(origin, origin_len, host, host_len))
     {
-        ESP_LOGW(tag, "WebSocket handshake refused: Origin %.*s", (int)origin_len, origin);
+        ESP_LOGW(tag, "request refused: Origin %.*s", (int)origin_len, origin);
         return false;
     }
     return true;

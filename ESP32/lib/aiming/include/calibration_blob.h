@@ -10,6 +10,7 @@
 #pragma once
 
 #include "aim_map.h"
+#include "crc32.h"
 
 #include <array>
 #include <cstddef>
@@ -21,8 +22,8 @@ namespace aiming
 constexpr size_t kBlobSize = 28;
 using Blob = std::array<uint8_t, kBlobSize>;
 
-/** @brief Standard CRC-32 (IEEE 802.3, reflected, polynomial 0xEDB88320) of len bytes at data. */
-uint32_t crc32(const uint8_t* data, size_t len);
+/** @brief Standard CRC-32 of len bytes at data; the implementation lives in lib/checksum. */
+using checksum::crc32;
 /** @brief Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes. */
 Blob serialize(const AimMap& map);
 /**

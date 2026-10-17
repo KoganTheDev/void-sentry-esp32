@@ -10,7 +10,6 @@
 #include <esp_log.h>
 #include <esp_system.h>
 
-#include "secrets.h" // Not committed: copy include/secrets.h.example to include/secrets.h and set your WiFi
 #include "wifi_manager.h"
 
 #include "camera.h"
@@ -42,6 +41,7 @@ Turret turret(servo);
 CameraDiffDetection detection_manager;
 Joystick joystick(pins::JOYSTICK_X, pins::JOYSTICK_Y, pins::JOYSTICK_SW);
 HttpServer http_server;
+WifiManager wifi;
 Camera camera;
 FrameStore frame_store;
 CameraTaskStats camera_stats;
@@ -112,9 +112,10 @@ static void log_stream_stats()
         (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
         (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
     // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
-    ESP_LOGI(TAG_MAIN, "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d",
+    ESP_LOGI(TAG_MAIN,
+             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s",
              (unsigned)det_frames, (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free, idle_pct[0],
-             idle_pct[1], (int)WiFi.RSSI());
+             idle_pct[1], (int)WiFi.RSSI(), wifi.mode_name());
 }
 
 void setup()
@@ -170,14 +171,13 @@ void setup()
         ESP_LOGE(TAG_MAIN, "Detection task failed to start - continuing without detection");
     }
 
-    // Connect WiFi
-    ESP_LOGI(TAG_MAIN, "Connecting to WiFi...");
-    WifiManager::connect(WIFI_SSID, WIFI_PASSWORD);
-    ESP_LOGI(TAG_MAIN, "WiFi connection sequence initiated");
+    // WiFi: loads the saved networks and starts joining or the setup hotspot; never blocks (maintain() drives it)
+    ESP_LOGI(TAG_MAIN, "Starting WiFi...");
+    wifi.begin();
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(frame_store, &detection_manager, &controller, &controller))
+    if (http_server.start(frame_store, &detection_manager, &controller, &controller, &wifi))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else
@@ -194,8 +194,8 @@ void setup()
 
 void loop()
 {
-    controller.run();        // Run main control loop
-    WifiManager::maintain(); // Maintain WiFi connection
+    controller.run(); // Run main control loop
+    wifi.maintain();  // WiFi plan, scans, setup hotspot DNS, serial wifi-reset
     log_stream_stats();
 
     // capture() used to pace loop(); now it spins unpaced, so always yield one tick to idle/other tasks.
