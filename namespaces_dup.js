@@ -2,6 +2,7 @@ var namespaces_dup =
 [
     [ "html_header", "namespacehtml__header.html", [
       [ "render_header", "namespacehtml__header.html#ae5709d0112f15bb8236e5b0981076278", null ],
+      [ "render_wifi_header", "namespacehtml__header.html#aacde8c6adcff33afc7113c47232e8969", null ],
       [ "write_if_changed", "namespacehtml__header.html#a787e935b4c6016ff60543d3d6152ae58", null ]
     ] ],
     [ "jpeg_to_gray", "namespacejpeg__to__gray.html", null ],

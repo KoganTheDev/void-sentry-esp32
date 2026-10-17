@@ -22,6 +22,17 @@ var annotated_dup =
       [ "SlotReleaser", "classframes_1_1SlotReleaser.html", null ],
       [ "ViewerSet", "classframes_1_1ViewerSet.html", "classframes_1_1ViewerSet" ]
     ] ],
+    [ "prov", null, [
+      [ "Action", "structprov_1_1Action.html", null ],
+      [ "Candidates", "structprov_1_1Candidates.html", null ],
+      [ "NetworkEntry", "structprov_1_1NetworkEntry.html", null ],
+      [ "NetworkList", "classprov_1_1NetworkList.html", "classprov_1_1NetworkList" ],
+      [ "PinGuard", "classprov_1_1PinGuard.html", "classprov_1_1PinGuard" ],
+      [ "PinRecord", "structprov_1_1PinRecord.html", null ],
+      [ "PinResult", "structprov_1_1PinResult.html", null ],
+      [ "ScanResult", "structprov_1_1ScanResult.html", null ],
+      [ "WifiPlan", "classprov_1_1WifiPlan.html", "classprov_1_1WifiPlan" ]
+    ] ],
     [ "remote", null, [
       [ "BaseRemoteSink", "classremote_1_1BaseRemoteSink.html", "classremote_1_1BaseRemoteSink" ],
       [ "Command", "structremote_1_1Command.html", "structremote_1_1Command" ],
@@ -30,6 +41,7 @@ var annotated_dup =
     ] ],
     [ "test_html_header", "namespacetest__html__header.html", [
       [ "RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
+      [ "RenderWifiHeaderTests", "classtest__html__header_1_1RenderWifiHeaderTests.html", null ],
       [ "WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ]
     ] ],
     [ "test_tracking_tools", "namespacetest__tracking__tools.html", [
@@ -69,5 +81,6 @@ var annotated_dup =
     [ "TestDetection", "classTestDetection.html", null ],
     [ "TrackSnapshot", "structTrackSnapshot.html", "structTrackSnapshot" ],
     [ "Turret", "classTurret.html", "classTurret" ],
-    [ "WifiManager", "classWifiManager.html", null ]
+    [ "WifiManager", "classWifiManager.html", "classWifiManager" ],
+    [ "WifiStore", "classWifiStore.html", "classWifiStore" ]
 ];

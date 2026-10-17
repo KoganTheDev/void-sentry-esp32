@@ -109,6 +109,7 @@ $(function(){initNavTree('calibration__blob_8h.html',''); initResizable(true); }
 <p>Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="aim__map_8h_source.html">aim_map.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="crc32_8h_source.html">crc32.h</a>&quot;</code><br />
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
@@ -124,10 +125,6 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::Blob</b> = s
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ab3100b9f08090bd8da1a9aea3df8a81a" id="r_ab3100b9f08090bd8da1a9aea3df8a81a"><td class="memItemLeft" align="right" valign="top"><a id="ab3100b9f08090bd8da1a9aea3df8a81a" name="ab3100b9f08090bd8da1a9aea3df8a81a"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::crc32</b> (const uint8_t *data, size_t len)</td></tr>
-<tr class="memdesc:ab3100b9f08090bd8da1a9aea3df8a81a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Standard CRC-32 (IEEE 802.3, reflected, polynomial 0xEDB88320) of len bytes at data. <br /></td></tr>
-<tr class="separator:ab3100b9f08090bd8da1a9aea3df8a81a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fae5066724bbf2344d13794a92fc894" id="r_a4fae5066724bbf2344d13794a92fc894"><td class="memItemLeft" align="right" valign="top"><a id="a4fae5066724bbf2344d13794a92fc894" name="a4fae5066724bbf2344d13794a92fc894"></a>
 Blob&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::serialize</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;map)</td></tr>
 <tr class="memdesc:a4fae5066724bbf2344d13794a92fc894"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes. <br /></td></tr>

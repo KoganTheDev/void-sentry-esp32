@@ -4,5 +4,7 @@ var dir_fb99582e778fdafdc6484a1e0fddbcd1 =
     [ "stream_broadcaster.h", "stream__broadcaster_8h.html", "stream__broadcaster_8h" ],
     [ "turret_server.h", "turret__server_8h_source.html", null ],
     [ "websockets.h", "websockets_8h_source.html", null ],
-    [ "wifi_manager.h", "wifi__manager_8h_source.html", null ]
+    [ "wifi_http.h", "wifi__http_8h.html", "wifi__http_8h" ],
+    [ "wifi_manager.h", "wifi__manager_8h.html", "wifi__manager_8h" ],
+    [ "wifi_store.h", "wifi__store_8h.html", "wifi__store_8h" ]
 ];

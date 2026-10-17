@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['get_5fip_0',['get_ip',['../classWifiManager.html#ab6d404b26fe156a38983439275e309d1',1,'WifiManager']]],
-  ['get_5fspeed_5fx_1',['get_speed_x',['../classJoystick.html#afc4c9f9dd95402760cbf69d5c35ec435',1,'Joystick']]],
-  ['get_5fspeed_5fy_2',['get_speed_y',['../classJoystick.html#ae78d70c3b5f357b7cd31d2bc79b76669',1,'Joystick']]],
-  ['get_5fstats_3',['get_stats',['../classBaseDetectionModule.html#a5db4871c4907e31a9e86fdee1608b32e',1,'BaseDetectionModule::get_stats()'],['../classCameraDiffDetection.html#a92d4077ded3803096addf4143a006fc9',1,'CameraDiffDetection::get_stats()']]],
-  ['get_5ftrack_5fsnapshot_4',['get_track_snapshot',['../classBaseDetectionModule.html#a41b108f22763c96aabb047a911f59e82',1,'BaseDetectionModule::get_track_snapshot()'],['../classCameraDiffDetection.html#afd8c88d08af3c4594505709408be48e2',1,'CameraDiffDetection::get_track_snapshot()']]],
-  ['get_5fvalue_5',['get_value',['../classMoveDirection.html#ad02f2c26b334a6522dcfdda8597be072',1,'MoveDirection']]],
-  ['get_5fx_6',['get_x',['../classJoystick.html#afd2a78cd13bf73d65bcf519f936cb3ae',1,'Joystick']]],
-  ['get_5fy_7',['get_y',['../classJoystick.html#ab201351a439c108946b341c856c714fb',1,'Joystick']]]
+  ['find_0',['find',['../classprov_1_1NetworkList.html#ae07f6801075538db26eb33863acacd98',1,'prov::NetworkList']]],
+  ['fit_1',['fit',['../aim__map_8h.html#a29510865ab2fb4b1db34025dac5aa1f1',1,'aiming']]],
+  ['forget_2',['forget',['../classWifiManager.html#a1d7f5a1f914059c06a7fada225f5c613',1,'WifiManager::forget()'],['../classprov_1_1NetworkList.html#af7283a2d815886fe1f211d9502a9a0a2',1,'prov::NetworkList::forget()']]],
+  ['form_5ffield_3',['form_field',['../form_8h.html#ab09db02f0928dda89bb3426ff56cba27',1,'prov']]],
+  ['form_5fhas_5fkey_4',['form_has_key',['../form_8h.html#a7586ea38ffd6d4d633e3464eb857e0a7',1,'prov']]],
+  ['frames_5fsent_5',['frames_sent',['../classHttpServer.html#a8d6b3350ea803a591b55faebef86a88f',1,'HttpServer']]]
 ];

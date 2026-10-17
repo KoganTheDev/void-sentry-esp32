@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['jog_0',['jog',['../classBaseTurret.html#a66d48f970e376782d888d2d273ccffa3',1,'BaseTurret::jog()'],['../classTurret.html#a178e31395d3ef61d6cea41545033a7e1',1,'Turret::jog()'],['../classremote_1_1RemoteInbox.html#ad5d3f5b4ab99c0494cc0b2528e212052',1,'remote::RemoteInbox::jog(uint32_t now_ms) const']]],
-  ['jog_5factive_1',['jog_active',['../classremote_1_1RemoteInbox.html#aa91a0aac49dc18600947cf569607bfcc',1,'remote::RemoteInbox']]],
-  ['joystick_2',['Joystick',['../classJoystick.html#a446881cfdacc5cdbbcbbfe0183ba4949',1,'Joystick']]]
+  ['index_5fhandler_0',['index_handler',['../classHttpServer.html#ac37693f45d9eac094872a2c67cb44245',1,'HttpServer']]],
+  ['is_5factive_1',['is_active',['../classJoystick.html#a2e404f73565562f8b2fb0e13d809d68d',1,'Joystick']]],
+  ['is_5fcomplete_5fjpeg_2',['is_complete_jpeg',['../jpeg__check_8h.html#a3914fd05246b522decbcb5a1cf448fc6',1,'frames']]],
+  ['is_5fnone_3',['is_none',['../classMoveDirection.html#ab434475cdc40a3a5ccb8fedae3b54ec2',1,'MoveDirection']]],
+  ['is_5fz_5fheld_4',['is_z_held',['../classJoystick.html#a7a9b93194e4622ba6a6f17a072ae53c1',1,'Joystick']]],
+  ['is_5fz_5fpressed_5',['is_z_pressed',['../classJoystick.html#ac75bdb237df7b3b305af353468d7d185',1,'Joystick']]]
 ];

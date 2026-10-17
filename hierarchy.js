@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "prov::Action", "structprov_1_1Action.html", null ],
     [ "aiming::AimCommand", "structaiming_1_1AimCommand.html", null ],
     [ "aiming::AimMap", "structaiming_1_1AimMap.html", null ],
     [ "aiming::AimPolicy", "classaiming_1_1AimPolicy.html", null ],
@@ -26,6 +27,7 @@ var hierarchy =
     [ "Camera", "classCamera.html", null ],
     [ "camera_buffer_t", "structcamera__buffer__t.html", null ],
     [ "CameraTaskStats", "structCameraTaskStats.html", null ],
+    [ "prov::Candidates", "structprov_1_1Candidates.html", null ],
     [ "remote::Command", "structremote_1_1Command.html", null ],
     [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
     [ "ControlStatus", "structControlStatus.html", null ],
@@ -46,18 +48,27 @@ var hierarchy =
     [ "MoveDirection< MoveYValue >", "classMoveDirection.html", [
       [ "MoveY", "classMoveY.html", null ]
     ] ],
+    [ "prov::NetworkEntry", "structprov_1_1NetworkEntry.html", null ],
+    [ "prov::NetworkList", "classprov_1_1NetworkList.html", null ],
+    [ "WifiManager::Outcome", "structWifiManager_1_1Outcome.html", null ],
+    [ "prov::PinGuard", "classprov_1_1PinGuard.html", null ],
+    [ "prov::PinRecord", "structprov_1_1PinRecord.html", null ],
+    [ "prov::PinResult", "structprov_1_1PinResult.html", null ],
     [ "aiming::PlannerConfig", "structaiming_1_1PlannerConfig.html", null ],
     [ "aiming::PolicyConfig", "structaiming_1_1PolicyConfig.html", null ],
     [ "frames::ReadyList", "structframes_1_1ReadyList.html", null ],
     [ "remote::RemoteInbox", "classremote_1_1RemoteInbox.html", null ],
+    [ "prov::ScanResult", "structprov_1_1ScanResult.html", null ],
     [ "frames::SlotReleaser", "classframes_1_1SlotReleaser.html", [
       [ "FrameStore", "classFrameStore.html", null ],
       [ "frames::FrameSlots", "classframes_1_1FrameSlots.html", null ]
     ] ],
+    [ "WifiManager::Status", "structWifiManager_1_1Status.html", null ],
     [ "aiming::StepPlanner", "classaiming_1_1StepPlanner.html", null ],
     [ "StreamBroadcaster", "classStreamBroadcaster.html", null ],
     [ "unittest.TestCase", null, [
       [ "test_html_header.RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
+      [ "test_html_header.RenderWifiHeaderTests", "classtest__html__header_1_1RenderWifiHeaderTests.html", null ],
       [ "test_html_header.WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ],
       [ "test_tracking_tools.GhostClipTests", "classtest__tracking__tools_1_1GhostClipTests.html", null ],
       [ "test_tracking_tools.JpegToGrayTests", "classtest__tracking__tools_1_1JpegToGrayTests.html", null ],
@@ -69,5 +80,7 @@ var hierarchy =
     [ "tracking::TrackState", "structtracking_1_1TrackState.html", null ],
     [ "aiming::TrackView", "structaiming_1_1TrackView.html", null ],
     [ "frames::ViewerSet", "classframes_1_1ViewerSet.html", null ],
-    [ "WifiManager", "classWifiManager.html", null ]
+    [ "WifiManager", "classWifiManager.html", null ],
+    [ "prov::WifiPlan", "classprov_1_1WifiPlan.html", null ],
+    [ "WifiStore", "classWifiStore.html", null ]
 ];

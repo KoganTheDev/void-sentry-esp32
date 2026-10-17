@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['readylist_0',['ReadyList',['../structframes_1_1ReadyList.html',1,'frames']]],
-  ['remoteinbox_1',['RemoteInbox',['../classremote_1_1RemoteInbox.html',1,'remote']]],
-  ['renderheadertests_2',['RenderHeaderTests',['../classtest__html__header_1_1RenderHeaderTests.html',1,'test_html_header']]]
+  ['outcome_0',['Outcome',['../structWifiManager_1_1Outcome.html',1,'WifiManager']]]
 ];

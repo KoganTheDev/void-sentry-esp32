@@ -113,9 +113,9 @@ $(function(){initNavTree('classHttpServer.html',''); initResizable(true); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6490b6b48dba748b0486d77b7bbd2994" id="r_a6490b6b48dba748b0486d77b7bbd2994"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6490b6b48dba748b0486d77b7bbd2994">start</a> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr, const <a class="el" href="classBaseStatusProvider.html">BaseStatusProvider</a> *status=nullptr, <a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *remote=nullptr)</td></tr>
-<tr class="memdesc:a6490b6b48dba748b0486d77b7bbd2994"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
-<tr class="separator:a6490b6b48dba748b0486d77b7bbd2994"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9254d2bb17ef347048c0ee181d6ad95" id="r_aa9254d2bb17ef347048c0ee181d6ad95"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9254d2bb17ef347048c0ee181d6ad95">start</a> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr, const <a class="el" href="classBaseStatusProvider.html">BaseStatusProvider</a> *status=nullptr, <a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *remote=nullptr, <a class="el" href="classWifiManager.html">WifiManager</a> *wifi=nullptr)</td></tr>
+<tr class="memdesc:aa9254d2bb17ef347048c0ee181d6ad95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
+<tr class="separator:aa9254d2bb17ef347048c0ee181d6ad95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d6b3350ea803a591b55faebef86a88f" id="r_a8d6b3350ea803a591b55faebef86a88f"><td class="memItemLeft" align="right" valign="top"><a id="a8d6b3350ea803a591b55faebef86a88f" name="a8d6b3350ea803a591b55faebef86a88f"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames_sent</b> () const</td></tr>
 <tr class="memdesc:a8d6b3350ea803a591b55faebef86a88f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frames successfully sent to /stream viewers since boot. <br /></td></tr>
@@ -187,8 +187,8 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a6490b6b48dba748b0486d77b7bbd2994" name="a6490b6b48dba748b0486d77b7bbd2994"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6490b6b48dba748b0486d77b7bbd2994">&#9670;&#160;</a></span>start()</h2>
+<a id="aa9254d2bb17ef347048c0ee181d6ad95" name="aa9254d2bb17ef347048c0ee181d6ad95"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9254d2bb17ef347048c0ee181d6ad95">&#9670;&#160;</a></span>start()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -211,7 +211,12 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *</td>          <td class="paramname"><span class="paramname"><em>remote</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *</td>          <td class="paramname"><span class="paramname"><em>remote</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classWifiManager.html">WifiManager</a> *</td>          <td class="paramname"><span class="paramname"><em>wifi</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -223,6 +228,7 @@ Static Public Member Functions</h2></td></tr>
     <tr><td class="paramname">detection</td><td>Optional pointer to detection module for motion visualization. </td></tr>
     <tr><td class="paramname">status</td><td>Optional status provider (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>); when null the mode/calibration fields are omitted. </td></tr>
     <tr><td class="paramname">remote</td><td>Optional sink for the HUD's /commands messages (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>); when null they are ignored. </td></tr>
+    <tr><td class="paramname">wifi</td><td>Optional WiFi manager; when set, the setup page, its JSON API and the captive-portal catch-all are registered (after all other routes). </td></tr>
   </table>
   </dd>
 </dl>

@@ -1,10 +1,13 @@
 var searchData=
 [
-  ['pan_5fdeg_5fto_5fsteps_0',['pan_deg_to_steps',['../aim__map_8h.html#a813645c39ac80d64efe49d906113c9fe',1,'aiming']]],
-  ['pan_5fspeed_1',['pan_speed',['../classBaseTurret.html#a28bf227eafab63bbd822e4497c3fdf85',1,'BaseTurret::pan_speed()'],['../classTurret.html#aa1c3e90f66c058c6d4afed69aa2c850a',1,'Turret::pan_speed()']]],
-  ['pan_5fsteps_5fto_5fdeg_2',['pan_steps_to_deg',['../aim__map_8h.html#ad0bee5ec0b09f39ee004cd19a972e2b6',1,'aiming']]],
-  ['parse_3',['parse',['../remote__command_8h.html#a428dc2a9a274a3bad42cb3e519be87b9',1,'remote']]],
-  ['position_5fdeg_4',['position_deg',['../classBaseTurret.html#a4a2b7dfc9abecd6e491643b979db3d3a',1,'BaseTurret::position_deg()'],['../classTurret.html#a0b6cbbd581932cbff94a43eb3300d4a8',1,'Turret::position_deg()']]],
-  ['process_5',['process',['../classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872',1,'tracking::MotionDetector']]],
-  ['publish_6',['publish',['../classframes_1_1FrameSlots.html#a8c82d1a48e26cd5f49df8b685851c43e',1,'frames::FrameSlots']]]
+  ['on_5fdisconnected_0',['on_disconnected',['../classprov_1_1WifiPlan.html#a9385c38779caa50803ddfea3507cde68',1,'prov::WifiPlan']]],
+  ['on_5fjoin_5ffailed_1',['on_join_failed',['../classprov_1_1WifiPlan.html#a273d2c281fbe2151888ff92e190d4357',1,'prov::WifiPlan']]],
+  ['on_5fjoined_2',['on_joined',['../classprov_1_1WifiPlan.html#a86ecf2cd4999b8474b4c72f36bdfabe7',1,'prov::WifiPlan']]],
+  ['on_5fnetwork_5fadded_3',['on_network_added',['../classprov_1_1WifiPlan.html#a35131fb812888e4fc679ded8a5f19570',1,'prov::WifiPlan']]],
+  ['on_5fscan_5fdone_4',['on_scan_done',['../classprov_1_1WifiPlan.html#aa1022b92a3aa45f2fdd7bc8959bb9558',1,'prov::WifiPlan']]],
+  ['on_5fsession_5fclosed_5',['on_session_closed',['../classStreamBroadcaster.html#a7f588b64b82dbe0a98f3a7b9cf71897f',1,'StreamBroadcaster']]],
+  ['operator_20uint8_5ft_6',['operator uint8_t',['../classMoveDirection.html#af0463f6a6b1897b9d2aaa5cb94af206e',1,'MoveDirection']]],
+  ['operator_21_7',['operator!',['../classMoveDirection.html#a8306660625ef7a0a44f2c32709bb93ac',1,'MoveDirection']]],
+  ['operator_21_3d_8',['operator!=',['../classMoveDirection.html#a85ab7cbe17b0a493c7a47bfb1ab749b2',1,'MoveDirection']]],
+  ['operator_3d_3d_9',['operator==',['../classMoveDirection.html#a1d6fe45bf2a1b7e1c4f0d4d556564663',1,'MoveDirection']]]
 ];

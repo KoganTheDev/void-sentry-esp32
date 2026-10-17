@@ -1,14 +1,15 @@
 var searchData=
 [
-  ['save_0',['save',['../cal__store_8h.html#af24ad21c12dad0bbe217ef82ee699f7b',1,'cal_store']]],
-  ['serialize_1',['serialize',['../calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894',1,'aiming']]],
-  ['set_5ftarget_2',['set_target',['../classaiming_1_1StepPlanner.html#a1461024f0e047d3f81c14fb78b156789',1,'aiming::StepPlanner']]],
-  ['set_5ftarget_5fdeg_3',['set_target_deg',['../classBaseTurret.html#a206cf5fbbf857b72639f0906284ef09e',1,'BaseTurret::set_target_deg()'],['../classTurret.html#a439c132a5939142d7b0cadb2dd13500f',1,'Turret::set_target_deg()']]],
-  ['set_5fvelocity_4',['set_velocity',['../classaiming_1_1StepPlanner.html#a11caa4a1096082a051306fee50f323d8',1,'aiming::StepPlanner']]],
-  ['stack_5ffree_5',['stack_free',['../classTurret.html#ad56c38645858d37205b5f2532824ce9d',1,'Turret']]],
-  ['start_6',['start',['../classaiming_1_1CalibrationSession.html#aabbc6032a9133f8497a818df12763162',1,'aiming::CalibrationSession::start()'],['../classStreamBroadcaster.html#a1656a8b65e436b33412305ebe8aedbf2',1,'StreamBroadcaster::start()'],['../classHttpServer.html#a6490b6b48dba748b0486d77b7bbd2994',1,'HttpServer::start()']]],
-  ['start_5fcamera_5ftask_7',['start_camera_task',['../camera__task_8h.html#a0624d04eb78227689a8cfd697c087ce4',1,'camera_task.cpp']]],
-  ['start_5ftask_8',['start_task',['../classCameraDiffDetection.html#a7dc96540eba988f912144b2c09c9a9d9',1,'CameraDiffDetection']]],
-  ['stop_9',['stop',['../classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e',1,'StreamBroadcaster::stop()'],['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer::stop()']]],
-  ['submit_10',['submit',['../classController.html#abd54cabecb052201737b1ffe1ecaf259',1,'Controller::submit()'],['../classremote_1_1BaseRemoteSink.html#a5e51f7f8cc04bae0b73b72e8448debbc',1,'remote::BaseRemoteSink::submit()'],['../classremote_1_1RemoteInbox.html#abe8b6e4cb106d3b8a63bb5518d1314e5',1,'remote::RemoteInbox::submit()']]]
+  ['ready_0',['ready',['../classFrameStore.html#a78fa2190d6de1f8c8ecc6e65967fe140',1,'FrameStore']]],
+  ['ready_5ffor_1',['ready_for',['../classframes_1_1ViewerSet.html#a8be7677d73cb254d9eb60bdc91ece0f8',1,'frames::ViewerSet']]],
+  ['record_2',['record',['../classaiming_1_1CalibrationSession.html#ae7ebd56ad89d7e5fc948903758b81fbc',1,'aiming::CalibrationSession']]],
+  ['register_5fendpoint_3',['register_endpoint',['../classCommandsWebSocketHandler.html#a35ae7b22e4bd7464a7a90077a6036e36',1,'CommandsWebSocketHandler']]],
+  ['register_5fwifi_5froutes_4',['register_wifi_routes',['../wifi__http_8h.html#ab785e8ab86ec005ca5819c61277fcb0a',1,'wifi_http.cpp']]],
+  ['remove_5fsubscriber_5',['remove_subscriber',['../classFrameStore.html#a56f5a6809c29468a107de82506cec8df',1,'FrameStore']]],
+  ['render_5fheader_6',['render_header',['../namespacehtml__header.html#ae5709d0112f15bb8236e5b0981076278',1,'html_header']]],
+  ['render_5fwifi_5fheader_7',['render_wifi_header',['../namespacehtml__header.html#aacde8c6adcff33afc7113c47232e8969',1,'html_header']]],
+  ['reset_8',['reset',['../classaiming_1_1AimPolicy.html#a4f48bffba06e5bec57905f9eead6af5e',1,'aiming::AimPolicy::reset()'],['../classBaseDetectionModule.html#af20105ae3e768c91230ceca43e4d5413',1,'BaseDetectionModule::reset()'],['../classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7',1,'CameraDiffDetection::reset()'],['../classtracking_1_1MotionDetector.html#a226ac9b8ea2af2e4716400a6472ad325',1,'tracking::MotionDetector::reset()'],['../classtracking_1_1Tracker.html#a7292ae44d6fe3ff1212b6733db644e65',1,'tracking::Tracker::reset()']]],
+  ['reset_5fposition_9',['reset_position',['../classaiming_1_1StepPlanner.html#ace49a59c6edd71564361ba5d29175c3f',1,'aiming::StepPlanner']]],
+  ['restore_10',['restore',['../classprov_1_1NetworkList.html#a9881f6e0db858e9ad8c2a5da1982794c',1,'prov::NetworkList']]],
+  ['run_11',['run',['../classController.html#a692f0f5dc600cdcb79786a31cf283ce1',1,'Controller']]]
 ];

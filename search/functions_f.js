@@ -1,6 +1,24 @@
 var searchData=
 [
-  ['take_5fmode_5frequest_0',['take_mode_request',['../classremote_1_1RemoteInbox.html#a78b57ca021b5892c60e12ed3c0f0a9e8',1,'remote::RemoteInbox']]],
-  ['to_5fstring_1',['to_string',['../classMoveX.html#af98d9dcfd882ff9959be3bdbbd22125d',1,'MoveX::to_string()'],['../classMoveY.html#a52d06fd28d24038d654b6e2d2df9d8c3',1,'MoveY::to_string()'],['../system__control__types_8h.html#aa2b8e116520d920c9874518935a5a6c7',1,'to_string():&#160;system_control_types.h']]],
-  ['turret_2',['Turret',['../classTurret.html#a167e90e0e278473fc453571841aad6bd',1,'Turret']]]
+  ['save_0',['save',['../cal__store_8h.html#af24ad21c12dad0bbe217ef82ee699f7b',1,'cal_store']]],
+  ['save_5fnets_1',['save_nets',['../classWifiStore.html#a583c31fa2ea611b74d491d25f262d90b',1,'WifiStore']]],
+  ['save_5fpin_2',['save_pin',['../classWifiStore.html#a603a4a6907659b89691af16055b8e557',1,'WifiStore']]],
+  ['saved_3',['saved',['../classWifiManager.html#a069eb8f1135410fcf1c6006014d5055f',1,'WifiManager']]],
+  ['scan_4',['scan',['../classWifiManager.html#ac61c93bf2dfa4b377938825a0e211f40',1,'WifiManager']]],
+  ['serialize_5',['serialize',['../calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894',1,'aiming']]],
+  ['serialize_5fnets_6',['serialize_nets',['../blobs_8h.html#a9205897de7f9291ef791a70135b378ec',1,'prov']]],
+  ['serialize_5fpin_7',['serialize_pin',['../blobs_8h.html#aa54a228556b6071e3aac02b8e3e20c8a',1,'prov']]],
+  ['set_5fpin_8',['set_pin',['../classprov_1_1PinGuard.html#aeb05075291e1bc53b3ffe228db6f4b91',1,'prov::PinGuard']]],
+  ['set_5ftarget_9',['set_target',['../classaiming_1_1StepPlanner.html#a1461024f0e047d3f81c14fb78b156789',1,'aiming::StepPlanner']]],
+  ['set_5ftarget_5fdeg_10',['set_target_deg',['../classBaseTurret.html#a206cf5fbbf857b72639f0906284ef09e',1,'BaseTurret::set_target_deg()'],['../classTurret.html#a439c132a5939142d7b0cadb2dd13500f',1,'Turret::set_target_deg()']]],
+  ['set_5fvelocity_11',['set_velocity',['../classaiming_1_1StepPlanner.html#a11caa4a1096082a051306fee50f323d8',1,'aiming::StepPlanner']]],
+  ['setup_5fmode_12',['setup_mode',['../classWifiManager.html#ae7dfd22ab4fbd836842c6197d0ba939a',1,'WifiManager']]],
+  ['sha256_13',['sha256',['../sha256_8h.html#af45c1b59a4784be82e1792b7d6951232',1,'prov']]],
+  ['stack_5ffree_14',['stack_free',['../classTurret.html#ad56c38645858d37205b5f2532824ce9d',1,'Turret']]],
+  ['start_15',['start',['../classaiming_1_1CalibrationSession.html#aabbc6032a9133f8497a818df12763162',1,'aiming::CalibrationSession::start()'],['../classStreamBroadcaster.html#a1656a8b65e436b33412305ebe8aedbf2',1,'StreamBroadcaster::start()'],['../classHttpServer.html#aa9254d2bb17ef347048c0ee181d6ad95',1,'HttpServer::start()'],['../classprov_1_1WifiPlan.html#a9bc82e427a8deb607ec7b42cb1d8cf61',1,'prov::WifiPlan::start()']]],
+  ['start_5fcamera_5ftask_16',['start_camera_task',['../camera__task_8h.html#a0624d04eb78227689a8cfd697c087ce4',1,'camera_task.cpp']]],
+  ['start_5ftask_17',['start_task',['../classCameraDiffDetection.html#a7dc96540eba988f912144b2c09c9a9d9',1,'CameraDiffDetection']]],
+  ['status_18',['status',['../classWifiManager.html#a77d44b083f397f26c996bd7e7899163e',1,'WifiManager']]],
+  ['stop_19',['stop',['../classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e',1,'StreamBroadcaster::stop()'],['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer::stop()']]],
+  ['submit_20',['submit',['../classController.html#abd54cabecb052201737b1ffe1ecaf259',1,'Controller::submit()'],['../classremote_1_1BaseRemoteSink.html#a5e51f7f8cc04bae0b73b72e8448debbc',1,'remote::BaseRemoteSink::submit()'],['../classremote_1_1RemoteInbox.html#abe8b6e4cb106d3b8a63bb5518d1314e5',1,'remote::RemoteInbox::submit()']]]
 ];

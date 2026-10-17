@@ -101,9 +101,9 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 4b: HUD Remote Control</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md164"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md173"></a></p>
 <p>Date: 2026-10-17. Status: written by the assistant; the user asked to continue implementing and to batch the hardware tests for later.</p>
-<h1><a class="anchor" id="autotoc_md165"></a>
+<h1><a class="anchor" id="autotoc_md174"></a>
 Problem</h1>
 <p>The roadmap's Stage 4 ("Control loop") includes parsing the HUD's <code>move:</code> and <code>mode:</code> commands. The Stage 4 dual-core spec left them out of scope, so today:</p>
 <ul>
@@ -111,10 +111,10 @@ Problem</h1>
 <li>The HUD's mode button is disabled; modes change only with the joystick button.</li>
 <li><code><a class="el" href="classCommandsWebSocketHandler.html" title="The /commands WebSocket: parses each HUD message, hands it to the remote sink and replies with JSON m...">CommandsWebSocketHandler</a></code> calls <code>malloc</code> twice per message (about 25 messages/s per HUD) and leaks the JSON buffer when a send fails.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md166"></a>
+<h1><a class="anchor" id="autotoc_md175"></a>
 Goal</h1>
 <p>Drive the turret from the HUD in manual mode, and switch AI/manual from the HUD, without weakening the joystick path or the Stage 4 task layout.</p>
-<h1><a class="anchor" id="autotoc_md167"></a>
+<h1><a class="anchor" id="autotoc_md176"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -140,7 +140,7 @@ Decisions</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">HUD   </td><td class="markdownTableBodyNone">Mode button enabled (sends <code>mode:ai</code>/<code>mode:user</code>); held keys/buttons combine into one direction, resent every 100 ms; <code>move:stop</code> on release, window blur and tab hide; manual controls dimmed in Ai mode   </td><td class="markdownTableBodyNone">Matches the dead-man timeout and makes the state visible   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md168"></a>
+<h1><a class="anchor" id="autotoc_md177"></a>
 Success criteria</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -154,7 +154,7 @@ Success criteria</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">No regression   </td><td class="markdownTableBodyNone"><code>idle0</code> with 1 HUD stays at least 60%; detection windows unchanged   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md169"></a>
+<h1><a class="anchor" id="autotoc_md178"></a>
 Out of scope</h1>
 <p>Calibration from the HUD, firing hardware, WiFi provisioning. </p>
 </div></div><!-- contents -->

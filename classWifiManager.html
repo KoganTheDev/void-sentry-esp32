@@ -99,154 +99,215 @@ $(function(){initNavTree('classWifiManager.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classWifiManager-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">WifiManager Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Handles asynchronous WiFi connection and automated reconnection logic.  
+<p>Glue between the pure <a class="el" href="classprov_1_1WifiPlan.html" title="Decides what the WiFi glue should do next. Events that do not apply to the current state return Actio...">prov::WifiPlan</a> and the Arduino WiFi stack.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="wifi__manager_8h_source.html">wifi_manager.h</a>&gt;</code></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ac6c4d034ba6892d7f1ffb2e444986a69" id="r_ac6c4d034ba6892d7f1ffb2e444986a69"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac6c4d034ba6892d7f1ffb2e444986a69">connect</a> (const String &amp;ssid, const String &amp;password)</td></tr>
-<tr class="memdesc:ac6c4d034ba6892d7f1ffb2e444986a69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initiates an asynchronous connection to a WiFi access point.  <br /></td></tr>
-<tr class="separator:ac6c4d034ba6892d7f1ffb2e444986a69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab90b63a72a420c96e221b57ea64b9b4a" id="r_ab90b63a72a420c96e221b57ea64b9b4a"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab90b63a72a420c96e221b57ea64b9b4a">is_connected</a> ()</td></tr>
-<tr class="memdesc:ab90b63a72a420c96e221b57ea64b9b4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polls the WiFi hardware for current connection status.  <br /></td></tr>
-<tr class="separator:ab90b63a72a420c96e221b57ea64b9b4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6d404b26fe156a38983439275e309d1" id="r_ab6d404b26fe156a38983439275e309d1"><td class="memItemLeft" align="right" valign="top">static String&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab6d404b26fe156a38983439275e309d1">get_ip</a> ()</td></tr>
-<tr class="memdesc:ab6d404b26fe156a38983439275e309d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local IPv4 address as a string.  <br /></td></tr>
-<tr class="separator:ab6d404b26fe156a38983439275e309d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a176f051b2bcf1f14c355f0150b85e68a" id="r_a176f051b2bcf1f14c355f0150b85e68a"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a">maintain</a> ()</td></tr>
-<tr class="memdesc:a176f051b2bcf1f14c355f0150b85e68a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Heartbeat function. Checks if WiFi has diconnected, if so, attempts to reconnect.  <br /></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structWifiManager_1_1Outcome.html">Outcome</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structWifiManager_1_1Outcome.html" title="Outcome with the lockout time for Result::LockedOut.">Outcome</a> with the lockout time for Result::LockedOut.  <a href="structWifiManager_1_1Outcome.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structWifiManager_1_1Status.html">Status</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Snapshot for /api/wifi/status.  <a href="structWifiManager_1_1Status.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a8f94efebd879ee570288ee15d51429e9" id="r_a8f94efebd879ee570288ee15d51429e9"><td class="memItemLeft" align="right" valign="top"><a id="a8f94efebd879ee570288ee15d51429e9" name="a8f94efebd879ee570288ee15d51429e9"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f94efebd879ee570288ee15d51429e9">Result</a> { <b>Ok</b>
+, <b>BadInput</b>
+, <b>WrongPin</b>
+, <b>LockedOut</b>
+ }</td></tr>
+<tr class="memdesc:a8f94efebd879ee570288ee15d51429e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of <a class="el" href="#a20142cbf1e7dda964ff28fdb56942c6f" title="Adds (or replaces) a network after checking the PIN; the first add with no PIN set defines the PIN.">add()</a>/forget(); the HTTP layer maps it to 200 / 400 / 403 / 429. <br /></td></tr>
+<tr class="separator:a8f94efebd879ee570288ee15d51429e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79a7bdb2efc9f741c95473252983aedc" id="r_a79a7bdb2efc9f741c95473252983aedc"><td class="memItemLeft" align="right" valign="top"><a id="a79a7bdb2efc9f741c95473252983aedc" name="a79a7bdb2efc9f741c95473252983aedc"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>AddOutcome</b> = <a class="el" href="structWifiManager_1_1Outcome.html">Outcome</a></td></tr>
+<tr class="separator:a79a7bdb2efc9f741c95473252983aedc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7290df067a1e29a15f0ea45cb8045c2" id="r_ad7290df067a1e29a15f0ea45cb8045c2"><td class="memItemLeft" align="right" valign="top"><a id="ad7290df067a1e29a15f0ea45cb8045c2" name="ad7290df067a1e29a15f0ea45cb8045c2"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>ForgetOutcome</b> = <a class="el" href="structWifiManager_1_1Outcome.html">Outcome</a></td></tr>
+<tr class="separator:ad7290df067a1e29a15f0ea45cb8045c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a2d970687142a553ffdff394296ca7d34" id="r_a2d970687142a553ffdff394296ca7d34"><td class="memItemLeft" align="right" valign="top"><a id="a2d970687142a553ffdff394296ca7d34" name="a2d970687142a553ffdff394296ca7d34"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WifiManager</b> (const <a class="el" href="classWifiManager.html">WifiManager</a> &amp;)=delete</td></tr>
+<tr class="separator:a2d970687142a553ffdff394296ca7d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd0d6cb67773226ef005aa3121d92946" id="r_abd0d6cb67773226ef005aa3121d92946"><td class="memItemLeft" align="right" valign="top"><a id="abd0d6cb67773226ef005aa3121d92946" name="abd0d6cb67773226ef005aa3121d92946"></a>
+<a class="el" href="classWifiManager.html">WifiManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classWifiManager.html">WifiManager</a> &amp;)=delete</td></tr>
+<tr class="separator:abd0d6cb67773226ef005aa3121d92946"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93a3cc8f22bedaba2856f41e38015843" id="r_a93a3cc8f22bedaba2856f41e38015843"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a93a3cc8f22bedaba2856f41e38015843">begin</a> ()</td></tr>
+<tr class="memdesc:a93a3cc8f22bedaba2856f41e38015843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads NVS, brings up the WiFi stack and starts the connection plan. Returns at once.  <br /></td></tr>
+<tr class="separator:a93a3cc8f22bedaba2856f41e38015843"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a176f051b2bcf1f14c355f0150b85e68a" id="r_a176f051b2bcf1f14c355f0150b85e68a"><td class="memItemLeft" align="right" valign="top"><a id="a176f051b2bcf1f14c355f0150b85e68a" name="a176f051b2bcf1f14c355f0150b85e68a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>maintain</b> ()</td></tr>
+<tr class="memdesc:a176f051b2bcf1f14c355f0150b85e68a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial <code>wifi-reset</code>. <br /></td></tr>
 <tr class="separator:a176f051b2bcf1f14c355f0150b85e68a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77d44b083f397f26c996bd7e7899163e" id="r_a77d44b083f397f26c996bd7e7899163e"><td class="memItemLeft" align="right" valign="top"><a id="a77d44b083f397f26c996bd7e7899163e" name="a77d44b083f397f26c996bd7e7899163e"></a>
+<a class="el" href="structWifiManager_1_1Status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>status</b> ()</td></tr>
+<tr class="memdesc:a77d44b083f397f26c996bd7e7899163e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thread-safe snapshot of mode, SSID, IP, whether a PIN is set and the last failure. <br /></td></tr>
+<tr class="separator:a77d44b083f397f26c996bd7e7899163e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac97fb179d0c3b7d14fe048f3daaa880c" id="r_ac97fb179d0c3b7d14fe048f3daaa880c"><td class="memItemLeft" align="right" valign="top"><a id="ac97fb179d0c3b7d14fe048f3daaa880c" name="ac97fb179d0c3b7d14fe048f3daaa880c"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mode_name</b> ()</td></tr>
+<tr class="memdesc:ac97fb179d0c3b7d14fe048f3daaa880c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Short mode name for logs ("sta" | "setup" | "joining" | "lost"). <br /></td></tr>
+<tr class="separator:ac97fb179d0c3b7d14fe048f3daaa880c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7dfd22ab4fbd836842c6197d0ba939a" id="r_ae7dfd22ab4fbd836842c6197d0ba939a"><td class="memItemLeft" align="right" valign="top"><a id="ae7dfd22ab4fbd836842c6197d0ba939a" name="ae7dfd22ab4fbd836842c6197d0ba939a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>setup_mode</b> () const</td></tr>
+<tr class="memdesc:ae7dfd22ab4fbd836842c6197d0ba939a"><td class="mdescLeft">&#160;</td><td class="mdescRight">true while the setup hotspot is running (atomic, no lock). <br /></td></tr>
+<tr class="separator:ae7dfd22ab4fbd836842c6197d0ba939a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b91e79d675c0f49a09a3a359f25995a" id="r_a6b91e79d675c0f49a09a3a359f25995a"><td class="memItemLeft" align="right" valign="top"><a id="a6b91e79d675c0f49a09a3a359f25995a" name="a6b91e79d675c0f49a09a3a359f25995a"></a>
+prov::PlanState&#160;</td><td class="memItemRight" valign="bottom"><b>plan_state</b> ()</td></tr>
+<tr class="memdesc:a6b91e79d675c0f49a09a3a359f25995a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Current plan state (thread-safe; for tests and diagnostics). <br /></td></tr>
+<tr class="separator:a6b91e79d675c0f49a09a3a359f25995a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac61c93bf2dfa4b377938825a0e211f40" id="r_ac61c93bf2dfa4b377938825a0e211f40"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac61c93bf2dfa4b377938825a0e211f40">scan</a> (<a class="el" href="structprov_1_1ScanResult.html">prov::ScanResult</a> *out, size_t cap)</td></tr>
+<tr class="memdesc:ac61c93bf2dfa4b377938825a0e211f40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the cached scan (strongest entry per SSID, hidden networks skipped).  <br /></td></tr>
+<tr class="separator:ac61c93bf2dfa4b377938825a0e211f40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a069eb8f1135410fcf1c6006014d5055f" id="r_a069eb8f1135410fcf1c6006014d5055f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a069eb8f1135410fcf1c6006014d5055f">saved</a> (char(*ssids)[prov::kSsidMax+1], size_t cap)</td></tr>
+<tr class="memdesc:a069eb8f1135410fcf1c6006014d5055f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the saved SSIDs.  <br /></td></tr>
+<tr class="separator:a069eb8f1135410fcf1c6006014d5055f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a20142cbf1e7dda964ff28fdb56942c6f" id="r_a20142cbf1e7dda964ff28fdb56942c6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structWifiManager_1_1Outcome.html">AddOutcome</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20142cbf1e7dda964ff28fdb56942c6f">add</a> (const char *ssid, size_t ssid_len, const char *pass, size_t pass_len, const char *pin, size_t pin_len, uint32_t now_ms)</td></tr>
+<tr class="memdesc:a20142cbf1e7dda964ff28fdb56942c6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds (or replaces) a network after checking the PIN; the first add with no PIN set defines the PIN.  <br /></td></tr>
+<tr class="separator:a20142cbf1e7dda964ff28fdb56942c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d7f5a1f914059c06a7fada225f5c613" id="r_a1d7f5a1f914059c06a7fada225f5c613"><td class="memItemLeft" align="right" valign="top"><a id="a1d7f5a1f914059c06a7fada225f5c613" name="a1d7f5a1f914059c06a7fada225f5c613"></a>
+<a class="el" href="structWifiManager_1_1Outcome.html">ForgetOutcome</a>&#160;</td><td class="memItemRight" valign="bottom"><b>forget</b> (const char *ssid, size_t ssid_len, const char *pin, size_t pin_len, uint32_t now_ms)</td></tr>
+<tr class="memdesc:a1d7f5a1f914059c06a7fada225f5c613"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forgets a saved network after checking the PIN (same PinGuard as add, so lockouts are shared). <br /></td></tr>
+<tr class="separator:a1d7f5a1f914059c06a7fada225f5c613"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a1e3255666b046813397e5cd37011744e" id="r_a1e3255666b046813397e5cd37011744e"><td class="memItemLeft" align="right" valign="top"><a id="a1e3255666b046813397e5cd37011744e" name="a1e3255666b046813397e5cd37011744e"></a>
+static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kScanCap</b> = 24</td></tr>
+<tr class="memdesc:a1e3255666b046813397e5cd37011744e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity of the scan cache (strongest networks beyond it are not guaranteed to be kept). <br /></td></tr>
+<tr class="separator:a1e3255666b046813397e5cd37011744e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Handles asynchronous WiFi connection and automated reconnection logic. </p>
+<div class="textblock"><p>Glue between the pure <a class="el" href="classprov_1_1WifiPlan.html" title="Decides what the WiFi glue should do next. Events that do not apply to the current state return Actio...">prov::WifiPlan</a> and the Arduino WiFi stack. </p>
+<p>Driven only from loop() through <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a>; nothing here blocks. WiFi events (arduino_events task) only set atomic flags; <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a> turns them into plan events. The httpd task (core 0) and <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a> (core 1) share the network list, PIN guard, scan cache and plan state under one FreeRTOS mutex. All WiFi API calls and plan calls happen in <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a>/begin(); the HTTP accessors only touch shared state and set request flags. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ac6c4d034ba6892d7f1ffb2e444986a69" name="ac6c4d034ba6892d7f1ffb2e444986a69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac6c4d034ba6892d7f1ffb2e444986a69">&#9670;&#160;</a></span>connect()</h2>
+<a id="a20142cbf1e7dda964ff28fdb56942c6f" name="a20142cbf1e7dda964ff28fdb56942c6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20142cbf1e7dda964ff28fdb56942c6f">&#9670;&#160;</a></span>add()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void WifiManager::connect </td>
+          <td class="memname"><a class="el" href="structWifiManager_1_1Outcome.html">WifiManager::AddOutcome</a> WifiManager::add </td>
           <td>(</td>
-          <td class="paramtype">const String &amp;</td>          <td class="paramname"><span class="paramname"><em>ssid</em></span>, </td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>ssid</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const String &amp;</td>          <td class="paramname"><span class="paramname"><em>password</em></span>&#160;)</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>ssid_len</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>pass</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>pass_len</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>pin</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>pin_len</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>now_ms</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Initiates an asynchronous connection to a WiFi access point. </p>
-<p>Sets mode to WIFI_STA and disables sleep modes for better hardware stability. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ssid</td><td>Service Set Identifier of the network. </td></tr>
-    <tr><td class="paramname">password</td><td>key for the network. </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Adds (or replaces) a network after checking the PIN; the first add with no PIN set defines the PIN. </p>
+<p>Inputs are validated before any PIN attempt is counted. Persists the list (and the new PIN record) and asks <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a> to tell the plan; a full list evicts the oldest entry. </p>
 
 </div>
 </div>
-<a id="ab6d404b26fe156a38983439275e309d1" name="ab6d404b26fe156a38983439275e309d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6d404b26fe156a38983439275e309d1">&#9670;&#160;</a></span>get_ip()</h2>
+<a id="a93a3cc8f22bedaba2856f41e38015843" name="a93a3cc8f22bedaba2856f41e38015843"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93a3cc8f22bedaba2856f41e38015843">&#9670;&#160;</a></span>begin()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">String WifiManager::get_ip </td>
+          <td class="memname">void WifiManager::begin </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Returns the local IPv4 address as a string. </p>
-<dl class="section return"><dt>Returns</dt><dd>String formatted IP (e.g. "192.168.1.50") or "0.0.0.0" if unavailable. </dd></dl>
+<p>Loads NVS, brings up the WiFi stack and starts the connection plan. Returns at once. </p>
+<p>Must run before the HTTP server starts (it sets up the TCP/IP stack). </p>
 
 </div>
 </div>
-<a id="ab90b63a72a420c96e221b57ea64b9b4a" name="ab90b63a72a420c96e221b57ea64b9b4a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab90b63a72a420c96e221b57ea64b9b4a">&#9670;&#160;</a></span>is_connected()</h2>
+<a id="a069eb8f1135410fcf1c6006014d5055f" name="a069eb8f1135410fcf1c6006014d5055f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a069eb8f1135410fcf1c6006014d5055f">&#9670;&#160;</a></span>saved()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool WifiManager::is_connected </td>
+          <td class="memname">size_t WifiManager::saved </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">char(*)</td>          <td class="paramname"><span class="paramname"><em>ssids</em></span>[prov::kSsidMax+1], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>cap</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Polls the WiFi hardware for current connection status. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if currently connected to an AP with a valid IP. </dd></dl>
+<p>Copies the saved SSIDs. </p>
+<dl class="section return"><dt>Returns</dt><dd>Number written (at most cap). </dd></dl>
 
 </div>
 </div>
-<a id="a176f051b2bcf1f14c355f0150b85e68a" name="a176f051b2bcf1f14c355f0150b85e68a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a176f051b2bcf1f14c355f0150b85e68a">&#9670;&#160;</a></span>maintain()</h2>
+<a id="ac61c93bf2dfa4b377938825a0e211f40" name="ac61c93bf2dfa4b377938825a0e211f40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac61c93bf2dfa4b377938825a0e211f40">&#9670;&#160;</a></span>scan()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void WifiManager::maintain </td>
+          <td class="memname">size_t WifiManager::scan </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structprov_1_1ScanResult.html">prov::ScanResult</a> *</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>cap</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Heartbeat function. Checks if WiFi has diconnected, if so, attempts to reconnect. </p>
-<p>Monitors connection health. If the connection is lost, it manages throttle-controlled reconnection attempts to avoid CPU spikes. </p>
+<p>Copies the cached scan (strongest entry per SSID, hidden networks skipped). </p>
+<p>Requests a new async scan from <a class="el" href="#a176f051b2bcf1f14c355f0150b85e68a" title="Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial wifi-reset.">maintain()</a> if the cache is older than 10 s, so the first call after a long pause may return an old or empty list; call again after a few seconds. </p><dl class="section return"><dt>Returns</dt><dd>Number of entries written to out (at most cap). </dd></dl>
 
 </div>
 </div>

@@ -310,7 +310,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line"><span class="keywordtype">void</span> test_crc32_known_vector(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>* s = <span class="stringliteral">&quot;123456789&quot;</span>;</div>
-<div class="line">    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, <a class="code hl_function" href="calibration__blob_8h.html#ab3100b9f08090bd8da1a9aea3df8a81a">crc32</a>(<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>uint8_t*<span class="keyword">&gt;</span>(s), 9));</div>
+<div class="line">    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, crc32(<span class="keyword">reinterpret_cast&lt;</span><span class="keyword">const </span>uint8_t*<span class="keyword">&gt;</span>(s), 9));</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">void</span> test_blob_round_trip(<span class="keywordtype">void</span>)</div>
@@ -379,9 +379,8 @@ Task 1: AimMap and calibration blob</h2>
 <div class="ttc" id="aaim__map_8h_html_ad045b32c88ad60c2c9538164d8c45c59"><div class="ttname"><a href="aim__map_8h.html#ad045b32c88ad60c2c9538164d8c45c59">aiming::default_map</a></div><div class="ttdeci">AimMap default_map()</div><div class="ttdoc">Camera next to the turret, 66 x 50 degree field of view, image centre = home.</div><div class="ttdef"><b>Definition</b> aim_map.cpp:33</div></div>
 <div class="ttc" id="aaim__map_8h_html_ad0bee5ec0b09f39ee004cd19a972e2b6"><div class="ttname"><a href="aim__map_8h.html#ad0bee5ec0b09f39ee004cd19a972e2b6">aiming::pan_steps_to_deg</a></div><div class="ttdeci">float pan_steps_to_deg(int32_t steps)</div><div class="ttdoc">Converts a pan step count (28BYJ-48 full steps from home) to degrees; the inverse of pan_deg_to_steps...</div><div class="ttdef"><b>Definition</b> aim_map.cpp:81</div></div>
 <div class="ttc" id="acalibration__blob_8h_html"><div class="ttname"><a href="calibration__blob_8h.html">calibration_blob.h</a></div><div class="ttdoc">Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).</div></div>
-<div class="ttc" id="acalibration__blob_8h_html_a3b68e39bc03da70a56b14a67f9f336b8"><div class="ttname"><a href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">aiming::deserialize</a></div><div class="ttdeci">std::optional&lt; AimMap &gt; deserialize(const uint8_t *data, size_t len)</div><div class="ttdoc">Parses a blob; empty if the length, magic, version, CRC or float values are invalid.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:43</div></div>
-<div class="ttc" id="acalibration__blob_8h_html_a4fae5066724bbf2344d13794a92fc894"><div class="ttname"><a href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">aiming::serialize</a></div><div class="ttdeci">Blob serialize(const AimMap &amp;map)</div><div class="ttdoc">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:29</div></div>
-<div class="ttc" id="acalibration__blob_8h_html_ab3100b9f08090bd8da1a9aea3df8a81a"><div class="ttname"><a href="calibration__blob_8h.html#ab3100b9f08090bd8da1a9aea3df8a81a">aiming::crc32</a></div><div class="ttdeci">uint32_t crc32(const uint8_t *data, size_t len)</div><div class="ttdoc">Standard CRC-32 (IEEE 802.3, reflected, polynomial 0xEDB88320) of len bytes at data.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:15</div></div>
+<div class="ttc" id="acalibration__blob_8h_html_a3b68e39bc03da70a56b14a67f9f336b8"><div class="ttname"><a href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">aiming::deserialize</a></div><div class="ttdeci">std::optional&lt; AimMap &gt; deserialize(const uint8_t *data, size_t len)</div><div class="ttdoc">Parses a blob; empty if the length, magic, version, CRC or float values are invalid.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:29</div></div>
+<div class="ttc" id="acalibration__blob_8h_html_a4fae5066724bbf2344d13794a92fc894"><div class="ttname"><a href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">aiming::serialize</a></div><div class="ttdeci">Blob serialize(const AimMap &amp;map)</div><div class="ttdoc">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:15</div></div>
 <div class="ttc" id="astructaiming_1_1AimMap_html"><div class="ttname"><a href="structaiming_1_1AimMap.html">aiming::AimMap</a></div><div class="ttdoc">pan = pan_a * x + pan_b, tilt = tilt_a * y + tilt_b.</div><div class="ttdef"><b>Definition</b> aim_map.h:43</div></div>
 <div class="ttc" id="astructaiming_1_1AimMap_html_a72e368e744c014f5668c380cbb49bade"><div class="ttname"><a href="structaiming_1_1AimMap.html#a72e368e744c014f5668c380cbb49bade">aiming::AimMap::aim</a></div><div class="ttdeci">Angles aim(float x, float y) const</div><div class="ttdoc">Angles for an image position, clamped to the soft limits.</div><div class="ttdef"><b>Definition</b> aim_map.cpp:31</div></div>
 <div class="ttc" id="astructaiming_1_1Angles_html"><div class="ttname"><a href="structaiming_1_1Angles.html">aiming::Angles</a></div><div class="ttdoc">Turret pose: pan degrees from home (positive = right), tilt servo degrees (larger = up).</div><div class="ttdef"><b>Definition</b> aim_map.h:29</div></div>
@@ -575,7 +574,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    std::memcpy(b.data() + 4, &amp;kVersion, 2);</div>
 <div class="line">    std::memcpy(b.data() + 6, &amp;reserved, 2);</div>
 <div class="line">    std::memcpy(b.data() + 8, values, 16);</div>
-<div class="line">    <span class="keyword">const</span> uint32_t crc = <a class="code hl_function" href="calibration__blob_8h.html#ab3100b9f08090bd8da1a9aea3df8a81a">crc32</a>(b.data(), kCrcOffset);</div>
+<div class="line">    <span class="keyword">const</span> uint32_t crc = crc32(b.data(), kCrcOffset);</div>
 <div class="line">    std::memcpy(b.data() + kCrcOffset, &amp;crc, 4);</div>
 <div class="line">    <span class="keywordflow">return</span> b;</div>
 <div class="line">}</div>
@@ -592,7 +591,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    std::memcpy(&amp;magic, data, 4);</div>
 <div class="line">    std::memcpy(&amp;version, data + 4, 2);</div>
 <div class="line">    std::memcpy(&amp;stored_crc, data + kCrcOffset, 4);</div>
-<div class="line">    <span class="keywordflow">if</span> (magic != kMagic || version != kVersion || stored_crc != <a class="code hl_function" href="calibration__blob_8h.html#ab3100b9f08090bd8da1a9aea3df8a81a">crc32</a>(data, kCrcOffset))</div>
+<div class="line">    <span class="keywordflow">if</span> (magic != kMagic || version != kVersion || stored_crc != crc32(data, kCrcOffset))</div>
 <div class="line">    {</div>
 <div class="line">        <span class="keywordflow">return</span> std::nullopt;</div>
 <div class="line">    }</div>
@@ -1795,7 +1794,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li><code>_session.failure()</code></li>
 </ul>
 <p>**/commands JSON.**</p><ul>
-<li><code><a class="el" href="classHttpServer.html#a6490b6b48dba748b0486d77b7bbd2994" title="Configures and launches the web server on port 80.">HttpServer::start</a>(<a class="el" href="classFrameStore.html">FrameStore</a>&amp;, BaseDetectionModule*, const BaseStatusProvider* status = nullptr)</code> stores the status provider like the detection instance.</li>
+<li><code><a class="el" href="classHttpServer.html#aa9254d2bb17ef347048c0ee181d6ad95" title="Configures and launches the web server on port 80.">HttpServer::start</a>(<a class="el" href="classFrameStore.html">FrameStore</a>&amp;, BaseDetectionModule*, const BaseStatusProvider* status = nullptr)</code> stores the status provider like the detection instance.</li>
 <li>Raise the JSON buffer from 256 to 384 bytes (malloc size and both snprintf bounds).</li>
 <li>After <code>"vy"</code>, append: <code>,"mode":"%s","cal":u,"cal_state":"%s","calibrated":d,"pan":%.1f,"tilt":%.1f,"cal_error":"%s"</code></li>
 <li><code>cal_state</code> is one of <code>idle|point1|point2|done|failed</code>.</li>
@@ -1824,7 +1823,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li class="unchecked"><b>Step 1:</b> Make the mode type, <code>cal_store</code>, <code>control_status</code> and controller changes.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 2:</b> Update the <code>/commands</code> JSON and <code><a class="el" href="classHttpServer.html#a6490b6b48dba748b0486d77b7bbd2994" title="Configures and launches the web server on port 80.">HttpServer::start</a></code>, and wire <code>main.cpp</code>: <code>http_server.start(frame_store, &amp;detection_manager, &amp;controller)</code> and <code>controller.begin()</code>.</li>
+<li class="unchecked"><b>Step 2:</b> Update the <code>/commands</code> JSON and <code><a class="el" href="classHttpServer.html#aa9254d2bb17ef347048c0ee181d6ad95" title="Configures and launches the web server on port 80.">HttpServer::start</a></code>, and wire <code>main.cpp</code>: <code>http_server.start(frame_store, &amp;detection_manager, &amp;controller)</code> and <code>controller.begin()</code>.</li>
 </ul>
 <ul class="check">
 <li class="unchecked"><b>Step 3:</b> HUD changes.</li>
