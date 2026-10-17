@@ -1,7 +1,7 @@
 #include "jpeg_gray.h"
 
 #include <cstring>
-#include <esp_jpg_decode.h>
+#include <platform_compat.h>
 
 namespace jpeg_gray
 {
@@ -73,6 +73,6 @@ bool decode(const uint8_t* jpeg, size_t len, tracking::GrayFrame& out)
         return false;
     }
     DecodeContext ctx{jpeg, len, &out, false};
-    return esp_jpg_decode(len, JPG_SCALE_8X, read_jpeg, write_gray, &ctx) == ESP_OK && ctx.size_ok;
+    return compat::jpg_decode_8x(len, read_jpeg, write_gray, &ctx) == ESP_OK && ctx.size_ok;
 }
 } // namespace jpeg_gray

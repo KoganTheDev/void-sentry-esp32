@@ -52,6 +52,9 @@ jobs:
             - name: Build turret firmware
               working-directory: ESP32
               run: pio run -e freenove_esp32_wrover
+            - name: Build turret firmware (Arduino core 3.3.12)
+              working-directory: ESP32
+              run: pio run -e freenove_esp32_wrover_v3
             - name: Build pin_check
               working-directory: ESP32
               run: pio run -e pin_check

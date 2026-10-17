@@ -3,6 +3,7 @@
 #include "controller.h"
 #include "joystick.h"
 #include "pins.h"
+#include "platform_compat.h"
 #include "turret.h"
 #include <Arduino.h>
 #include <atomic>
@@ -30,7 +31,7 @@ static void IRAM_ATTR idle_sample_hook()
 {
     const BaseType_t core = xPortGetCoreID();
     tick_samples[core].fetch_add(1, std::memory_order_relaxed);
-    if (xTaskGetCurrentTaskHandleForCPU(core) == xTaskGetIdleTaskHandleForCPU(core))
+    if (compat::current_task_for_core(core) == compat::idle_task_for_core(core))
     {
         idle_samples[core].fetch_add(1, std::memory_order_relaxed);
     }
