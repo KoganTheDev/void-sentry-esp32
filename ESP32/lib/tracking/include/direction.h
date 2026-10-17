@@ -1,6 +1,6 @@
 /**
  * @file direction.h
- * @brief Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17, header-only).
+ * @brief Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20, header-only).
  * @details Only Locked and Coasting targets produce a direction. Stage 3 uses this to aim; Stage 2 only reports it.
  */
 

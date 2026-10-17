@@ -39,21 +39,21 @@ static ScanResult scan_entry(const char* ssid, int8_t rssi)
 void test_crc32_known_value(void)
 {
     const char* s = "123456789";
-    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, checksum::crc32(reinterpret_cast<const uint8_t*>(s), 9));
-    TEST_ASSERT_EQUAL_HEX32(0u, checksum::crc32(nullptr, 0));
+    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, checksum::crc32({reinterpret_cast<const uint8_t*>(s), 9}));
+    TEST_ASSERT_EQUAL_HEX32(0u, checksum::crc32({}));
 }
 
 void test_aiming_crc32_alias_matches(void)
 {
     const char* s = "123456789";
-    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, aiming::crc32(reinterpret_cast<const uint8_t*>(s), 9));
+    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, aiming::crc32({reinterpret_cast<const uint8_t*>(s), 9}));
 }
 
 void test_calibration_blob_still_round_trips(void)
 {
-    const aiming::AimMap m{10.0f, 0.5f, -3.0f, 0.25f};
+    const aiming::AimMap m{.pan_a = 10.0f, .pan_b = 0.5f, .tilt_a = -3.0f, .tilt_b = 0.25f};
     const aiming::Blob b = aiming::serialize(m);
-    const auto back = aiming::deserialize(b.data(), b.size());
+    const auto back = aiming::deserialize(b);
     TEST_ASSERT_TRUE(back.has_value());
     TEST_ASSERT_EQUAL_FLOAT(10.0f, back->pan_a);
     TEST_ASSERT_EQUAL_FLOAT(0.25f, back->tilt_b);
@@ -207,7 +207,7 @@ void test_choose_orders_by_rssi(void)
     add(l, "B", "");
     add(l, "C", "");
     const ScanResult scan[] = {scan_entry("A", -70), scan_entry("C", -40), scan_entry("B", -55)};
-    const Candidates c = choose_networks(scan, 3, l);
+    const Candidates c = choose_networks({scan, 3}, l);
     TEST_ASSERT_EQUAL_UINT(3, c.count);
     TEST_ASSERT_EQUAL_UINT8(2, c.idx[0]);
     TEST_ASSERT_EQUAL_UINT8(1, c.idx[1]);
@@ -220,7 +220,7 @@ void test_choose_duplicate_ssids_take_max(void)
     add(l, "A", "");
     add(l, "B", "");
     const ScanResult scan[] = {scan_entry("A", -80), scan_entry("B", -60), scan_entry("A", -30)};
-    const Candidates c = choose_networks(scan, 3, l);
+    const Candidates c = choose_networks({scan, 3}, l);
     TEST_ASSERT_EQUAL_UINT(2, c.count);
     TEST_ASSERT_EQUAL_UINT8(0, c.idx[0]);
     TEST_ASSERT_EQUAL_UINT8(1, c.idx[1]);
@@ -233,7 +233,7 @@ void test_choose_ties_keep_list_order(void)
     add(l, "B", "");
     add(l, "C", "");
     const ScanResult scan[] = {scan_entry("C", -50), scan_entry("B", -50), scan_entry("A", -50)};
-    const Candidates c = choose_networks(scan, 3, l);
+    const Candidates c = choose_networks({scan, 3}, l);
     TEST_ASSERT_EQUAL_UINT(3, c.count);
     TEST_ASSERT_EQUAL_UINT8(0, c.idx[0]);
     TEST_ASSERT_EQUAL_UINT8(1, c.idx[1]);
@@ -246,7 +246,7 @@ void test_choose_ignores_empty_ssids_and_unsaved(void)
     add(l, "A", "");
     const ScanResult scan[] = {scan_entry("", -20), scan_entry("Other", -30), scan_entry("a", -30),
                                scan_entry("A", -90)};
-    const Candidates c = choose_networks(scan, 4, l);
+    const Candidates c = choose_networks({scan, 4}, l);
     TEST_ASSERT_EQUAL_UINT(1, c.count);
     TEST_ASSERT_EQUAL_UINT8(0, c.idx[0]);
 }
@@ -256,10 +256,10 @@ void test_choose_no_matches(void)
     NetworkList l;
     add(l, "A", "");
     const ScanResult scan[] = {scan_entry("Z", -30)};
-    TEST_ASSERT_EQUAL_UINT(0, choose_networks(scan, 1, l).count);
-    TEST_ASSERT_EQUAL_UINT(0, choose_networks(nullptr, 0, l).count);
+    TEST_ASSERT_EQUAL_UINT(0, choose_networks({scan, 1}, l).count);
+    TEST_ASSERT_EQUAL_UINT(0, choose_networks({}, l).count);
     NetworkList empty;
-    TEST_ASSERT_EQUAL_UINT(0, choose_networks(scan, 1, empty).count);
+    TEST_ASSERT_EQUAL_UINT(0, choose_networks({scan, 1}, empty).count);
 }
 
 // ---- blobs ----
@@ -276,7 +276,7 @@ static NetworkList sample_list()
 
 static void refresh_crc(uint8_t* b, size_t len)
 {
-    const uint32_t crc = checksum::crc32(b, len - 4);
+    const uint32_t crc = checksum::crc32({b, len - 4});
     std::memcpy(b + len - 4, &crc, 4);
 }
 
@@ -284,7 +284,7 @@ void test_nets_round_trip(void)
 {
     const NetworkList l = sample_list();
     const auto blob = serialize_nets(l);
-    const auto back = deserialize_nets(blob.data(), blob.size());
+    const auto back = deserialize_nets(blob);
     TEST_ASSERT_TRUE(back.has_value());
     TEST_ASSERT_EQUAL_UINT(3, back->size());
     for (size_t i = 0; i < 3; ++i)
@@ -303,7 +303,7 @@ void test_nets_empty_list_round_trip(void)
 {
     const NetworkList l;
     const auto blob = serialize_nets(l);
-    const auto back = deserialize_nets(blob.data(), blob.size());
+    const auto back = deserialize_nets(blob);
     TEST_ASSERT_TRUE(back.has_value());
     TEST_ASSERT_EQUAL_UINT(0, back->size());
 }
@@ -323,12 +323,12 @@ void test_nets_layout_constants(void)
 void test_nets_rejects_bad_length_and_null(void)
 {
     const auto blob = serialize_nets(sample_list());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size() - 1).has_value());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), 0).has_value());
-    TEST_ASSERT_FALSE(deserialize_nets(nullptr, blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets({blob.data(), blob.size() - 1}).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets({blob.data(), 0}).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets({}).has_value());
     std::array<uint8_t, kNetsBlobSize + 1> longer{};
     std::memcpy(longer.data(), blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(longer.data(), longer.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(longer).has_value());
 }
 
 void test_nets_rejects_bad_magic(void)
@@ -336,7 +336,7 @@ void test_nets_rejects_bad_magic(void)
     auto blob = serialize_nets(sample_list());
     blob[0] ^= 0xFF;
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_bad_version(void)
@@ -344,17 +344,17 @@ void test_nets_rejects_bad_version(void)
     auto blob = serialize_nets(sample_list());
     blob[4] = 2;
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_bad_crc(void)
 {
     auto blob = serialize_nets(sample_list());
     blob[10] ^= 0x01; // flip a payload bit without fixing the CRC
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
     blob = serialize_nets(sample_list());
     blob[blob.size() - 1] ^= 0x01;
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_count_over_three(void)
@@ -362,7 +362,7 @@ void test_nets_rejects_count_over_three(void)
     auto blob = serialize_nets(sample_list());
     blob[5] = 4;
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_unterminated_ssid(void)
@@ -373,7 +373,7 @@ void test_nets_rejects_unterminated_ssid(void)
         blob[6 + i] = 'x'; // entry 0 SSID field has no NUL
     }
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_unterminated_password(void)
@@ -384,7 +384,7 @@ void test_nets_rejects_unterminated_password(void)
         blob[6 + kSsidMax + 1 + i] = 'p'; // entry 0 password field has no NUL
     }
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_invalid_entry(void)
@@ -392,22 +392,22 @@ void test_nets_rejects_invalid_entry(void)
     auto blob = serialize_nets(sample_list());
     blob[6] = 0; // entry 0 now has an empty SSID
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 
     blob = serialize_nets(sample_list());
     const size_t pass_off = 6 + kSsidMax + 1;
     std::memset(&blob[pass_off], 0, kPassMax + 1);
     std::memcpy(&blob[pass_off], "abc", 3); // password of 3 characters is neither empty nor 8-63
     refresh_crc(blob.data(), blob.size());
-    TEST_ASSERT_FALSE(deserialize_nets(blob.data(), blob.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(blob).has_value());
 }
 
 void test_nets_rejects_all_zero_buffer(void)
 {
     const std::array<uint8_t, kNetsBlobSize> zeros{};
-    TEST_ASSERT_FALSE(deserialize_nets(zeros.data(), zeros.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_nets(zeros).has_value());
     const std::array<uint8_t, kPinBlobSize> pin_zeros{};
-    TEST_ASSERT_FALSE(deserialize_pin(pin_zeros.data(), pin_zeros.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin(pin_zeros).has_value());
 }
 
 static PinRecord sample_pin()
@@ -429,14 +429,14 @@ void test_pin_round_trip(void)
 {
     const PinRecord r = sample_pin();
     const auto blob = serialize_pin(r);
-    const auto back = deserialize_pin(blob.data(), blob.size());
+    const auto back = deserialize_pin(blob);
     TEST_ASSERT_TRUE(back.has_value());
     TEST_ASSERT_TRUE(back->set);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(r.salt, back->salt, kSaltLen);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(r.hash, back->hash, kHashLen);
 
     const auto unset = serialize_pin(PinRecord{});
-    const auto back2 = deserialize_pin(unset.data(), unset.size());
+    const auto back2 = deserialize_pin(unset);
     TEST_ASSERT_TRUE(back2.has_value());
     TEST_ASSERT_FALSE(back2->set);
 }
@@ -452,27 +452,27 @@ void test_pin_layout_constants(void)
 void test_pin_rejections(void)
 {
     const auto good = serialize_pin(sample_pin());
-    TEST_ASSERT_FALSE(deserialize_pin(good.data(), good.size() - 1).has_value());
-    TEST_ASSERT_FALSE(deserialize_pin(nullptr, good.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin({good.data(), good.size() - 1}).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin({}).has_value());
 
     auto b = good;
     b[1] ^= 0xFF; // magic
     refresh_crc(b.data(), b.size());
-    TEST_ASSERT_FALSE(deserialize_pin(b.data(), b.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin(b).has_value());
 
     b = good;
     b[4] = 9; // version
     refresh_crc(b.data(), b.size());
-    TEST_ASSERT_FALSE(deserialize_pin(b.data(), b.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin(b).has_value());
 
     b = good;
     b[20] ^= 0x01; // CRC mismatch
-    TEST_ASSERT_FALSE(deserialize_pin(b.data(), b.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin(b).has_value());
 
     b = good;
     b[5] = 2; // set byte out of range
     refresh_crc(b.data(), b.size());
-    TEST_ASSERT_FALSE(deserialize_pin(b.data(), b.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize_pin(b).has_value());
 }
 
 int main(int, char**)

@@ -33,14 +33,14 @@ static void expect_digest(const char* hex, const std::array<uint8_t, 32>& d)
 
 static std::array<uint8_t, 32> sha_str(const char* s)
 {
-    return sha256(reinterpret_cast<const uint8_t*>(s), std::strlen(s));
+    return sha256({reinterpret_cast<const uint8_t*>(s), std::strlen(s)});
 }
 
 // ---- SHA-256 ----
 
 void test_sha256_empty(void)
 {
-    expect_digest("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", sha256(nullptr, 0));
+    expect_digest("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", sha256({}));
 }
 
 void test_sha256_abc(void)
@@ -59,8 +59,7 @@ static uint8_t g_million[1000000];
 void test_sha256_million_a(void)
 {
     std::memset(g_million, 'a', sizeof(g_million));
-    expect_digest("cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
-                  sha256(g_million, sizeof(g_million)));
+    expect_digest("cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0", sha256(g_million));
 }
 
 void test_sha256_padding_boundaries_differ(void)
@@ -72,7 +71,7 @@ void test_sha256_padding_boundaries_differ(void)
     std::array<uint8_t, 32> prev{};
     for (size_t l : lens)
     {
-        const auto d = sha256(buf, l);
+        const auto d = sha256({buf, l});
         TEST_ASSERT_TRUE(d != prev);
         prev = d;
     }
@@ -135,7 +134,7 @@ void test_pin_hash_is_salted_sha256(void)
     uint8_t buf[kSaltLen + 4];
     std::memcpy(buf, kSalt, kSaltLen);
     std::memcpy(buf + kSaltLen, "1234", 4);
-    const auto h = sha256(buf, sizeof(buf));
+    const auto h = sha256(buf);
     TEST_ASSERT_TRUE(g.record().set);
     TEST_ASSERT_EQUAL_MEMORY(kSalt, g.record().salt, kSaltLen);
     TEST_ASSERT_EQUAL_MEMORY(h.data(), g.record().hash, kHashLen);
@@ -270,7 +269,7 @@ void test_pin_record_round_trip(void)
 
 static bool field(const char* body, const char* key, char* out, size_t cap, size_t* n = nullptr)
 {
-    return form_field(body, std::strlen(body), key, out, cap, n);
+    return form_field(body, key, out, cap, n);
 }
 
 void test_form_plain_field(void)
@@ -357,8 +356,8 @@ void test_form_body_size_limit(void)
     std::memset(body, 'a', sizeof(body));
     std::memcpy(body, "k=", 2);
     char out[300];
-    TEST_ASSERT_TRUE(form_field(body, 256, "k", out, sizeof(out), nullptr));
-    TEST_ASSERT_FALSE(form_field(body, 257, "k", out, sizeof(out), nullptr));
+    TEST_ASSERT_TRUE(form_field({body, 256}, "k", out, sizeof(out), nullptr));
+    TEST_ASSERT_FALSE(form_field({body, 257}, "k", out, sizeof(out), nullptr));
 }
 
 void test_form_out_cap(void)
@@ -377,43 +376,43 @@ void test_validate_ssid(void)
 {
     char s[40];
     std::memset(s, 'a', sizeof(s));
-    TEST_ASSERT_FALSE(valid_ssid(s, 0));
-    TEST_ASSERT_TRUE(valid_ssid(s, 1));
-    TEST_ASSERT_TRUE(valid_ssid(s, 32));
-    TEST_ASSERT_FALSE(valid_ssid(s, 33));
-    TEST_ASSERT_FALSE(valid_ssid(nullptr, 5));
+    TEST_ASSERT_FALSE(valid_ssid({s, 0}));
+    TEST_ASSERT_TRUE(valid_ssid({s, 1}));
+    TEST_ASSERT_TRUE(valid_ssid({s, 32}));
+    TEST_ASSERT_FALSE(valid_ssid({s, 33}));
+    TEST_ASSERT_FALSE(valid_ssid({}));
 }
 
 void test_validate_password(void)
 {
     char s[70];
     std::memset(s, 'a', sizeof(s));
-    TEST_ASSERT_TRUE(valid_password(s, 0));
-    TEST_ASSERT_TRUE(valid_password(nullptr, 0));
-    TEST_ASSERT_FALSE(valid_password(s, 7));
-    TEST_ASSERT_TRUE(valid_password(s, 8));
-    TEST_ASSERT_TRUE(valid_password(s, 63));
-    TEST_ASSERT_FALSE(valid_password(s, 64));
+    TEST_ASSERT_TRUE(valid_password({s, 0}));
+    TEST_ASSERT_TRUE(valid_password({}));
+    TEST_ASSERT_FALSE(valid_password({s, 7}));
+    TEST_ASSERT_TRUE(valid_password({s, 8}));
+    TEST_ASSERT_TRUE(valid_password({s, 63}));
+    TEST_ASSERT_FALSE(valid_password({s, 64}));
     s[3] = '\x07';
-    TEST_ASSERT_FALSE(valid_password(s, 8));
+    TEST_ASSERT_FALSE(valid_password({s, 8}));
     s[3] = static_cast<char>(0x7F);
-    TEST_ASSERT_FALSE(valid_password(s, 8));
+    TEST_ASSERT_FALSE(valid_password({s, 8}));
     s[3] = static_cast<char>(0xD7);
-    TEST_ASSERT_FALSE(valid_password(s, 8));
+    TEST_ASSERT_FALSE(valid_password({s, 8}));
     s[3] = ' ';
-    TEST_ASSERT_TRUE(valid_password(s, 8));
+    TEST_ASSERT_TRUE(valid_password({s, 8}));
     s[3] = '~';
-    TEST_ASSERT_TRUE(valid_password(s, 8));
+    TEST_ASSERT_TRUE(valid_password({s, 8}));
 }
 
 void test_validate_pin(void)
 {
-    TEST_ASSERT_FALSE(valid_pin("123", 3));
-    TEST_ASSERT_TRUE(valid_pin("1234", 4));
-    TEST_ASSERT_TRUE(valid_pin("12345678", 8));
-    TEST_ASSERT_FALSE(valid_pin("123456789", 9));
-    TEST_ASSERT_FALSE(valid_pin("12a4", 4));
-    TEST_ASSERT_FALSE(valid_pin(nullptr, 4));
+    TEST_ASSERT_FALSE(valid_pin({"123", 3}));
+    TEST_ASSERT_TRUE(valid_pin({"1234", 4}));
+    TEST_ASSERT_TRUE(valid_pin({"12345678", 8}));
+    TEST_ASSERT_FALSE(valid_pin({"123456789", 9}));
+    TEST_ASSERT_FALSE(valid_pin({"12a4", 4}));
+    TEST_ASSERT_FALSE(valid_pin({}));
 }
 
 // ---- WifiPlan ----
@@ -786,11 +785,11 @@ void test_plan_added_flag_is_consumed_by_one_scan(void)
 
 void test_form_has_key_tells_missing_from_invalid(void)
 {
-    TEST_ASSERT_TRUE(form_has_key("ssid=a&password=", 16, "password"));
-    TEST_ASSERT_TRUE(form_has_key("ssid=a&password=%zz", 18, "password"));
-    TEST_ASSERT_FALSE(form_has_key("ssid=a&pin=1234", 15, "password"));
-    TEST_ASSERT_FALSE(form_has_key("ssid=a&xpassword=1", 18, "password"));
-    TEST_ASSERT_FALSE(form_has_key("password", 8, "password"));
+    TEST_ASSERT_TRUE(form_has_key({"ssid=a&password=", 16}, "password"));
+    TEST_ASSERT_TRUE(form_has_key({"ssid=a&password=%zz", 18}, "password"));
+    TEST_ASSERT_FALSE(form_has_key({"ssid=a&pin=1234", 15}, "password"));
+    TEST_ASSERT_FALSE(form_has_key({"ssid=a&xpassword=1", 18}, "password"));
+    TEST_ASSERT_FALSE(form_has_key({"password", 8}, "password"));
 }
 
 int main(int, char**)

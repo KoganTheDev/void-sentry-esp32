@@ -138,16 +138,17 @@ Action WifiPlan::on_network_added(uint32_t now_ms)
 
 Action WifiPlan::tick(uint32_t now_ms)
 {
+    using enum PlanState;
     switch (_state)
     {
-    case PlanState::Joining:
+    case Joining:
         if (static_cast<uint32_t>(now_ms - _join_ms) >= kJoinTimeoutMs)
         {
             _last_fail = JoinFail::Timeout;
             return fail_over(now_ms);
         }
         return Action{};
-    case PlanState::Lost:
+    case Lost:
         if (static_cast<uint32_t>(now_ms - _lost_ms) >= kLostToSetupMs)
         {
             _state = PlanState::Setup;
@@ -159,7 +160,7 @@ Action WifiPlan::tick(uint32_t now_ms)
             }
         }
         return Action{};
-    case PlanState::Setup:
+    case Setup:
         if (static_cast<uint32_t>(now_ms - _scan_ms) >= kSetupRescanMs)
         {
             _scan_ms = now_ms;

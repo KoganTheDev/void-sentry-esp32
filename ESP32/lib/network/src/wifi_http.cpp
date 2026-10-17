@@ -83,7 +83,7 @@ bool api_host_ok(httpd_req_t* req)
     char host[128];
     const size_t len = httpd_req_get_hdr_value_len(req, "Host");
     if (len > 0 && len < sizeof(host) && httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) == ESP_OK &&
-        remote::is_ipv4_host(host, len))
+        remote::is_ipv4_host({host, len}))
     {
         return true;
     }
@@ -260,23 +260,23 @@ esp_err_t add_handler(httpd_req_t* req)
     size_t ssid_len = 0;
     size_t pass_len = 0;
     size_t pin_len = 0;
-    if (!prov::form_field(body, body_len, "ssid", ssid, sizeof(ssid), &ssid_len))
+    if (!prov::form_field({body, body_len}, "ssid", ssid, sizeof(ssid), &ssid_len))
     {
         err = send_json(req, "400 Bad Request", "{\"error\":\"missing or too long ssid\"}");
     } else
     {
         // Only a missing password key means an open network; a present but oversized or malformed one is a 400.
         bool pass_ok = true;
-        if (!prov::form_field(body, body_len, "password", pass, sizeof(pass), &pass_len))
+        if (!prov::form_field({body, body_len}, "password", pass, sizeof(pass), &pass_len))
         {
-            if (prov::form_has_key(body, body_len, "password"))
+            if (prov::form_has_key({body, body_len}, "password"))
             {
                 pass_ok = false;
             }
             pass[0] = '\0';
             pass_len = 0;
         }
-        if (!prov::form_field(body, body_len, "pin", pin, sizeof(pin), &pin_len))
+        if (!prov::form_field({body, body_len}, "pin", pin, sizeof(pin), &pin_len))
         {
             pin[0] = '\0'; // a missing or oversized PIN is just a wrong one
             pin_len = 0;
@@ -312,12 +312,12 @@ esp_err_t forget_handler(httpd_req_t* req)
     }
     size_t ssid_len = 0;
     size_t pin_len = 0;
-    if (!prov::form_field(body, body_len, "ssid", ssid, sizeof(ssid), &ssid_len))
+    if (!prov::form_field({body, body_len}, "ssid", ssid, sizeof(ssid), &ssid_len))
     {
         err = send_json(req, "400 Bad Request", "{\"error\":\"missing or too long ssid\"}");
     } else
     {
-        if (!prov::form_field(body, body_len, "pin", pin, sizeof(pin), &pin_len))
+        if (!prov::form_field({body, body_len}, "pin", pin, sizeof(pin), &pin_len))
         {
             pin[0] = '\0';
             pin_len = 0;

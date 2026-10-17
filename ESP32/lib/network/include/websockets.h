@@ -127,7 +127,7 @@ public:
 
         if (_this->_remote != nullptr)
         {
-            _this->_remote->submit(remote::parse(reinterpret_cast<const char*>(buf), ws_pkt.len));
+            _this->_remote->submit(remote::parse({reinterpret_cast<const char*>(buf), ws_pkt.len}));
         }
 
         char json[kReplySize];

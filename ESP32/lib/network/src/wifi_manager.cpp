@@ -3,6 +3,7 @@
 #include <cstring>
 #include <esp_system.h>
 #include <esp_wifi.h>
+#include <span>
 
 static const char* TAG = "WIFI_MANAGER";
 
@@ -280,7 +281,7 @@ void WifiManager::poll_scan(uint32_t now)
         {
             this->collect_scan(n, now);
             WiFi.scanDelete();
-            cand = prov::choose_networks(this->_scan, this->_scan_n, this->_list);
+            cand = prov::choose_networks(std::span<const prov::ScanResult>(this->_scan, this->_scan_n), this->_list);
         }
         if (this->_plan_scan_pending)
         {
@@ -314,16 +315,17 @@ void WifiManager::apply(prov::Action a, uint32_t now)
 {
     // A stale candidate (list edited since the scan: the index now holds another SSID or none) counts as a failed
     // join; at most 3 candidates exist.
+    using enum prov::ActionKind;
     for (int guard = 0; guard < 4; ++guard)
     {
         switch (a.kind)
         {
-        case prov::ActionKind::None:
+        case None:
             return;
-        case prov::ActionKind::StartScan:
+        case StartScan:
             this->_plan_scan_pending = true;
             return;
-        case prov::ActionKind::Join:
+        case Join:
             if (a.network >= this->_list.size() || a.network >= prov::kMaxNetworks ||
                 strcmp(this->_list.at(a.network).ssid, this->_cand_ssid[a.network]) != 0)
             {
@@ -332,10 +334,10 @@ void WifiManager::apply(prov::Action a, uint32_t now)
             }
             this->do_join(this->_list.at(a.network));
             return;
-        case prov::ActionKind::StartHotspot:
+        case StartHotspot:
             this->start_hotspot();
             return;
-        case prov::ActionKind::StopHotspot:
+        case StopHotspot:
             this->_stop_pending = true;
             this->_stop_at_ms = now + kHotspotGraceMs;
             return;
@@ -566,7 +568,7 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
 {
     Outcome out;
     Lock lock(this->_mutex);
-    if (!prov::valid_ssid(ssid, ssid_len) || !prov::valid_password(pass, pass_len))
+    if (!prov::valid_ssid({ssid, ssid_len}) || !prov::valid_password({pass, pass_len}))
     {
         return out; // BadInput; no PIN attempt is counted
     }
@@ -625,7 +627,7 @@ WifiManager::ForgetOutcome WifiManager::forget(const char* ssid, size_t ssid_len
 {
     Outcome out;
     Lock lock(this->_mutex);
-    if (!prov::valid_ssid(ssid, ssid_len) || !this->_pin.record().set)
+    if (!prov::valid_ssid({ssid, ssid_len}) || !this->_pin.record().set)
     {
         return out;
     }

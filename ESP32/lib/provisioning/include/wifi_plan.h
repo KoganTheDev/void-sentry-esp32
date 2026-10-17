@@ -1,6 +1,6 @@
 /**
  * @file wifi_plan.h
- * @brief WiFi connection state machine: events in, actions out (pure C++17, no heap).
+ * @brief WiFi connection state machine: events in, actions out (pure C++20, no heap).
  */
 
 #pragma once

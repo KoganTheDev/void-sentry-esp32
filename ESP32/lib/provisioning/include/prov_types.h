@@ -1,6 +1,6 @@
 /**
  * @file prov_types.h
- * @brief Plain value types shared by the WiFi provisioning logic (pure C++17, no heap).
+ * @brief Plain value types shared by the WiFi provisioning logic (pure C++20, no heap).
  */
 
 #pragma once

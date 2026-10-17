@@ -1,7 +1,7 @@
 /**
  * @file frame_slots.h
  * @brief Slot bookkeeping for camera frames: who may write which slot, and RAII leases for readers.
- * @details Pure C++17, no platform headers, so it is unit tested natively (with ASan/UBSan in CI).
+ * @details Pure C++20, no platform headers, so it is unit tested natively (with ASan/UBSan in CI).
  * NOT thread-safe on its own: on the device, FrameStore serializes every call with a mutex.
  *
  * A slot is Free, Writing or Published. One Published slot is the latest. A Published slot that is no longer

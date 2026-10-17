@@ -1,11 +1,13 @@
 /**
  * @file choose.h
- * @brief Picks which saved networks to try, given a scan (pure C++17, no heap).
+ * @brief Picks which saved networks to try, given a scan (pure C++20, no heap).
  */
 
 #pragma once
 
 #include "network_list.h"
+
+#include <span>
 
 namespace prov
 {
@@ -14,5 +16,5 @@ namespace prov
  * @details Several APs with one SSID count by their strongest RSSI. Ties keep list order. Scan entries with an
  * empty SSID are ignored.
  */
-Candidates choose_networks(const ScanResult* scan, size_t scan_count, const NetworkList& list);
+Candidates choose_networks(std::span<const ScanResult> scan, const NetworkList& list);
 } // namespace prov

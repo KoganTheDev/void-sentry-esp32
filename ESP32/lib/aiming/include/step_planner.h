@@ -1,6 +1,6 @@
 /**
  * @file step_planner.h
- * @brief Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).
+ * @brief Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).
  * @details Target mode moves to an absolute step count: accelerate, cruise, brake so it stops exactly on the target
  * (no overshoot); a new target mid-move is reached by braking first, never by an instant reversal. Jog mode follows a
  * commanded velocity with the same acceleration limit. Both modes brake into the soft limits and never step past

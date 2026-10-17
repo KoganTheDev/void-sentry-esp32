@@ -35,8 +35,8 @@ void test_default_map_edges(void)
 
 void test_fit_reproduces_points_and_is_linear(void)
 {
-    const CalPoint p1{40.0f, 50.0f, -30.0f, 110.0f};
-    const CalPoint p2{280.0f, 200.0f, 25.0f, 70.0f};
+    const CalPoint p1{.x = 40.0f, .y = 50.0f, .pan = -30.0f, .tilt = 110.0f};
+    const CalPoint p2{.x = 280.0f, .y = 200.0f, .pan = 25.0f, .tilt = 70.0f};
     const auto m = fit(p1, p2);
     TEST_ASSERT_TRUE(m.has_value());
     TEST_ASSERT_FLOAT_WITHIN(0.001f, -30.0f, m->aim(40.0f, 50.0f).pan);
@@ -62,7 +62,7 @@ void test_fit_rejects_non_finite(void)
 
 void test_aim_is_clamped_to_soft_limits(void)
 {
-    const AimMap steep{2.0f, -320.0f, -2.0f, 330.0f};
+    const AimMap steep{.pan_a = 2.0f, .pan_b = -320.0f, .tilt_a = -2.0f, .tilt_b = 330.0f};
     const Angles lo = steep.aim(0.0f, 240.0f);
     const Angles hi = steep.aim(320.0f, 0.0f);
     TEST_ASSERT_EQUAL_FLOAT(kPanMinDeg, lo.pan);
@@ -82,14 +82,14 @@ void test_deg_steps_round_trip(void)
 void test_crc32_known_vector(void)
 {
     const char* s = "123456789";
-    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, crc32(reinterpret_cast<const uint8_t*>(s), 9));
+    TEST_ASSERT_EQUAL_HEX32(0xCBF43926u, crc32({reinterpret_cast<const uint8_t*>(s), 9}));
 }
 
 void test_blob_round_trip(void)
 {
-    const AimMap m{0.25f, -40.0f, -0.2f, 112.0f};
+    const AimMap m{.pan_a = 0.25f, .pan_b = -40.0f, .tilt_a = -0.2f, .tilt_b = 112.0f};
     const Blob b = serialize(m);
-    const auto back = deserialize(b.data(), b.size());
+    const auto back = deserialize(b);
     TEST_ASSERT_TRUE(back.has_value());
     TEST_ASSERT_EQUAL_FLOAT(m.pan_a, back->pan_a);
     TEST_ASSERT_EQUAL_FLOAT(m.pan_b, back->pan_b);
@@ -100,8 +100,8 @@ void test_blob_round_trip(void)
 void test_blob_rejects_wrong_length(void)
 {
     const Blob b = serialize(default_map());
-    TEST_ASSERT_FALSE(deserialize(b.data(), b.size() - 1).has_value());
-    TEST_ASSERT_FALSE(deserialize(nullptr, kBlobSize).has_value());
+    TEST_ASSERT_FALSE(deserialize({b.data(), b.size() - 1}).has_value());
+    TEST_ASSERT_FALSE(deserialize({}).has_value());
 }
 
 void test_blob_rejects_bad_magic_version_and_crc(void)
@@ -109,15 +109,15 @@ void test_blob_rejects_bad_magic_version_and_crc(void)
     Blob b = serialize(default_map());
     Blob bad_magic = b;
     bad_magic[0] ^= 0xFF;
-    TEST_ASSERT_FALSE(deserialize(bad_magic.data(), bad_magic.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize(bad_magic).has_value());
 
     Blob bad_version = b;
     bad_version[4] = 9; // version field (little-endian uint16 at offset 4)
-    TEST_ASSERT_FALSE(deserialize(bad_version.data(), bad_version.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize(bad_version).has_value());
 
     Blob bad_payload = b;
     bad_payload[10] ^= 0x01; // inside the floats: CRC must catch it
-    TEST_ASSERT_FALSE(deserialize(bad_payload.data(), bad_payload.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize(bad_payload).has_value());
 }
 
 void test_blob_rejects_non_finite_values(void)
@@ -125,7 +125,7 @@ void test_blob_rejects_non_finite_values(void)
     AimMap m = default_map();
     m.tilt_b = std::numeric_limits<float>::infinity();
     const Blob b = serialize(m); // CRC is valid, value is not
-    TEST_ASSERT_FALSE(deserialize(b.data(), b.size()).has_value());
+    TEST_ASSERT_FALSE(deserialize(b).has_value());
 }
 
 void test_aim_non_finite_pixel_falls_back_to_home(void)

@@ -17,7 +17,7 @@ size_t bounded_len(const char* s, size_t cap)
 }
 } // namespace
 
-Candidates choose_networks(const ScanResult* scan, size_t scan_count, const NetworkList& list)
+Candidates choose_networks(std::span<const ScanResult> scan, const NetworkList& list)
 {
     Candidates out;
     int best[kMaxNetworks] = {};
@@ -27,7 +27,7 @@ Candidates choose_networks(const ScanResult* scan, size_t scan_count, const Netw
     {
         const size_t len = std::strlen(list.at(i).ssid);
         best[i] = -1000;
-        for (size_t s = 0; scan != nullptr && s < scan_count; ++s)
+        for (size_t s = 0; s < scan.size(); ++s)
         {
             const size_t slen = bounded_len(scan[s].ssid, sizeof(scan[s].ssid));
             if (slen == 0 || slen != len || std::memcmp(scan[s].ssid, list.at(i).ssid, len) != 0)

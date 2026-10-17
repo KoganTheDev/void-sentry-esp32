@@ -53,7 +53,7 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
         ESP_LOGW(tag, "request refused: Origin header too long");
         return false;
     }
-    if (!remote::origin_allowed(origin, origin_len, host, host_len))
+    if (!remote::origin_allowed({origin, origin_len}, {host, host_len}))
     {
         ESP_LOGW(tag, "request refused: Origin %.*s", (int)origin_len, origin);
         return false;

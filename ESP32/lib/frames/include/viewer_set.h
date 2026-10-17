@@ -1,6 +1,6 @@
 /**
  * @file viewer_set.h
- * @brief Which stream viewers should receive which frame (pure C++17, natively tested).
+ * @brief Which stream viewers should receive which frame (pure C++20, natively tested).
  * @details A viewer that is still receiving (busy) is skipped, so it never builds a backlog and always gets the
  * newest frame next - this is what keeps stream latency low. NOT thread-safe; StreamBroadcaster locks around it.
  */

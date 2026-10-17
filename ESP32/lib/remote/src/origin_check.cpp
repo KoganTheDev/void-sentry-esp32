@@ -1,23 +1,20 @@
 #include "origin_check.h"
 
-#include <cstring>
-
 namespace remote
 {
 namespace
 {
-bool matches(const char* origin, size_t origin_len, const char* scheme, size_t scheme_len, const char* host,
-             size_t host_len)
+bool matches(std::string_view origin, std::string_view scheme, std::string_view host)
 {
-    return origin_len == scheme_len + host_len && std::memcmp(origin, scheme, scheme_len) == 0 &&
-           std::memcmp(origin + scheme_len, host, host_len) == 0;
+    return origin.size() == scheme.size() + host.size() && origin.starts_with(scheme) &&
+           origin.substr(scheme.size()) == host;
 }
 
-bool all_digits(const char* s, size_t n)
+bool all_digits(std::string_view s)
 {
-    for (size_t i = 0; i < n; ++i)
+    for (const char c : s)
     {
-        if (s[i] < '0' || s[i] > '9')
+        if (c < '0' || c > '9')
         {
             return false;
         }
@@ -26,9 +23,10 @@ bool all_digits(const char* s, size_t n)
 }
 } // namespace
 
-bool is_ipv4_host(const char* host, size_t len)
+bool is_ipv4_host(std::string_view host)
 {
-    if (host == nullptr || len == 0)
+    const size_t len = host.size();
+    if (len == 0)
     {
         return false;
     }
@@ -64,34 +62,33 @@ bool is_ipv4_host(const char* host, size_t len)
         return false;
     }
     ++pos;
-    size_t port_len = len - pos;
-    if (port_len < 1 || port_len > 5 || !all_digits(host + pos, port_len))
+    const std::string_view port_digits = host.substr(pos);
+    if (port_digits.empty() || port_digits.size() > 5 || !all_digits(port_digits))
     {
         return false;
     }
     int port = 0;
-    for (size_t i = pos; i < len; ++i)
+    for (const char c : port_digits)
     {
-        port = port * 10 + (host[i] - '0');
+        port = port * 10 + (c - '0');
     }
     return port >= 1 && port <= 65535;
 }
 
-bool origin_allowed(const char* origin, size_t origin_len, const char* host, size_t host_len)
+bool origin_allowed(std::string_view origin, std::string_view host)
 {
-    if (origin == nullptr || origin_len == 0)
+    if (origin.empty())
     {
         return true;
     }
-    if (host == nullptr || host_len == 0)
+    if (host.empty())
     {
         return false;
     }
-    if (!is_ipv4_host(host, host_len))
+    if (!is_ipv4_host(host))
     {
         return false;
     }
-    return matches(origin, origin_len, "http://", 7, host, host_len) ||
-           matches(origin, origin_len, "https://", 8, host, host_len);
+    return matches(origin, "http://", host) || matches(origin, "https://", host);
 }
 } // namespace remote

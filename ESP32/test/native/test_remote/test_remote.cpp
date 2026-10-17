@@ -15,7 +15,7 @@ using namespace remote;
 void setUp(void) {}
 void tearDown(void) {}
 
-static Command parse_str(const char* s) { return parse(s, std::strlen(s)); }
+static Command parse_str(const char* s) { return parse(s); }
 
 static void expect_move(const char* s, int pan, int tilt)
 {
@@ -70,19 +70,18 @@ void test_parse_unknown_is_poll(void)
     expect_poll("fire:maybe");
     char big[200];
     std::memset(big, 'x', sizeof(big));
-    TEST_ASSERT_TRUE(parse(big, sizeof(big)).kind == CommandKind::Poll);
-    TEST_ASSERT_TRUE(parse(nullptr, 0).kind == CommandKind::Poll);
-    TEST_ASSERT_TRUE(parse(nullptr, 5).kind == CommandKind::Poll);
+    TEST_ASSERT_TRUE(parse({big, sizeof(big)}).kind == CommandKind::Poll);
+    TEST_ASSERT_TRUE(parse({}).kind == CommandKind::Poll);
 }
 
 void test_parse_reads_only_len_bytes(void)
 {
-    const Command c = parse("move:upXYZ", 7);
+    const Command c = parse({"move:upXYZ", 7});
     TEST_ASSERT_TRUE(c.kind == CommandKind::Move);
     TEST_ASSERT_EQUAL_INT(0, c.pan);
     TEST_ASSERT_EQUAL_INT(1, c.tilt);
     // A prefix of a longer valid word is still exact-matched on len.
-    const Command d = parse("move:up-left", 7);
+    const Command d = parse({"move:up-left", 7});
     TEST_ASSERT_TRUE(d.kind == CommandKind::Move);
     TEST_ASSERT_EQUAL_INT(0, d.pan);
 }

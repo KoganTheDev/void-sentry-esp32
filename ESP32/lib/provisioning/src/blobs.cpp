@@ -3,6 +3,7 @@
 #include "crc32.h"
 
 #include <cstring>
+#include <span>
 
 namespace prov
 {
@@ -13,21 +14,22 @@ constexpr uint32_t kPinMagic = 0x50575356u;  // "VSWP" little-endian
 constexpr uint8_t kVersion = 1;
 constexpr size_t kEntrySize = kSsidMax + 1 + kPassMax + 1 + 4;
 
-bool header_ok(const uint8_t* data, size_t len, size_t want_len, uint32_t magic)
+bool header_ok(std::span<const uint8_t> data, size_t want_len, uint32_t magic)
 {
-    if (data == nullptr || len != want_len)
+    const size_t len = data.size();
+    if (len != want_len)
     {
         return false;
     }
     uint32_t m = 0;
-    std::memcpy(&m, data, 4);
+    std::memcpy(&m, data.data(), 4);
     if (m != magic || data[4] != kVersion)
     {
         return false;
     }
     uint32_t stored = 0;
-    std::memcpy(&stored, data + len - 4, 4);
-    return stored == checksum::crc32(data, len - 4);
+    std::memcpy(&stored, data.data() + len - 4, 4);
+    return stored == checksum::crc32(data.first(len - 4));
 }
 } // namespace
 
@@ -45,21 +47,21 @@ std::array<uint8_t, kNetsBlobSize> serialize_nets(const NetworkList& list)
         std::memcpy(p + kSsidMax + 1, e.pass, kPassMax + 1);
         std::memcpy(p + kSsidMax + 1 + kPassMax + 1, &e.last_ok_seq, 4);
     }
-    const uint32_t crc = checksum::crc32(b.data(), kNetsBlobSize - 4);
+    const uint32_t crc = checksum::crc32(std::span<const uint8_t>(b).first(kNetsBlobSize - 4));
     std::memcpy(b.data() + kNetsBlobSize - 4, &crc, 4);
     return b;
 }
 
-std::optional<NetworkList> deserialize_nets(const uint8_t* data, size_t len)
+std::optional<NetworkList> deserialize_nets(std::span<const uint8_t> blob)
 {
-    if (!header_ok(data, len, kNetsBlobSize, kNetsMagic) || data[5] > kMaxNetworks)
+    if (!header_ok(blob, kNetsBlobSize, kNetsMagic) || blob[5] > kMaxNetworks)
     {
         return std::nullopt;
     }
     NetworkList list;
-    for (size_t i = 0; i < data[5]; ++i)
+    for (size_t i = 0; i < blob[5]; ++i)
     {
-        const uint8_t* p = data + 6 + i * kEntrySize;
+        const uint8_t* p = blob.data() + 6 + i * kEntrySize;
         NetworkEntry e;
         std::memcpy(e.ssid, p, kSsidMax + 1);
         std::memcpy(e.pass, p + kSsidMax + 1, kPassMax + 1);
@@ -80,21 +82,21 @@ std::array<uint8_t, kPinBlobSize> serialize_pin(const PinRecord& rec)
     b[5] = rec.set ? 1 : 0;
     std::memcpy(b.data() + 6, rec.salt, kSaltLen);
     std::memcpy(b.data() + 6 + kSaltLen, rec.hash, kHashLen);
-    const uint32_t crc = checksum::crc32(b.data(), kPinBlobSize - 4);
+    const uint32_t crc = checksum::crc32(std::span<const uint8_t>(b).first(kPinBlobSize - 4));
     std::memcpy(b.data() + kPinBlobSize - 4, &crc, 4);
     return b;
 }
 
-std::optional<PinRecord> deserialize_pin(const uint8_t* data, size_t len)
+std::optional<PinRecord> deserialize_pin(std::span<const uint8_t> blob)
 {
-    if (!header_ok(data, len, kPinBlobSize, kPinMagic) || data[5] > 1)
+    if (!header_ok(blob, kPinBlobSize, kPinMagic) || blob[5] > 1)
     {
         return std::nullopt;
     }
     PinRecord rec;
-    rec.set = data[5] == 1;
-    std::memcpy(rec.salt, data + 6, kSaltLen);
-    std::memcpy(rec.hash, data + 6 + kSaltLen, kHashLen);
+    rec.set = blob[5] == 1;
+    std::memcpy(rec.salt, blob.data() + 6, kSaltLen);
+    std::memcpy(rec.hash, blob.data() + 6 + kSaltLen, kHashLen);
     return rec;
 }
 } // namespace prov

@@ -1,6 +1,6 @@
 /**
  * @file pin_guard.h
- * @brief PIN storage (salted SHA-256) with constant-time check and escalating lockout (pure C++17, no heap).
+ * @brief PIN storage (salted SHA-256) with constant-time check and escalating lockout (pure C++20, no heap).
  */
 
 #pragma once

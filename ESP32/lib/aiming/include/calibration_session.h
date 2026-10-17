@@ -1,6 +1,6 @@
 /**
  * @file calibration_session.h
- * @brief Two-point joystick calibration as a state machine (pure C++17, natively tested).
+ * @brief Two-point joystick calibration as a state machine (pure C++20, natively tested).
  * @details start() -> WaitPoint1 -> WaitPoint2 -> Done (result() holds the fitted map) or Failed (failure() says
  * why). record() ignores presses while no target is visible (the point is meaningless) and while Idle; in Failed
  * the next record() restarts at point 1 without recording. cancel() returns to Idle from any state.
