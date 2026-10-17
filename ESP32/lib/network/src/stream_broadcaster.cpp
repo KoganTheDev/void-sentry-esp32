@@ -1,6 +1,7 @@
 #include "stream_broadcaster.h"
 
 #include "handshake_guard.h"
+#include "platform_compat.h"
 
 #include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
@@ -47,6 +48,7 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
     uri.handler = ws_handler;
     uri.user_ctx = this;
     uri.is_websocket = true;
+    compat::set_ws_handshake_hooks(uri, pre_handshake, post_handshake);
     if (httpd_register_uri_handler(server_, &uri) != ESP_OK)
     {
         ESP_LOGE(TAG_STREAM, "Failed to register /stream");
@@ -113,39 +115,45 @@ size_t StreamBroadcaster::viewer_count()
     return viewers_.size();
 }
 
-esp_err_t StreamBroadcaster::ws_handler(httpd_req_t* req)
+esp_err_t StreamBroadcaster::pre_handshake(httpd_req_t* req)
+{
+    return handshake_origin_ok(req, TAG_STREAM) ? ESP_OK : ESP_FAIL; // a refused viewer is never added
+}
+
+esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
 {
     auto* self = static_cast<StreamBroadcaster*>(req->user_ctx);
     const int fd = httpd_req_to_sockfd(req);
-
-    if (req->method == HTTP_GET) // WebSocket handshake completed
+    bool added = false;
     {
-        if (!handshake_origin_ok(req, TAG_STREAM))
+        Lock lock(self->mutex_);
+        const bool is_new = !self->viewers_.index_of(fd);
+        added = self->viewers_.add(fd);
+        if (added && is_new)
         {
-            return ESP_FAIL; // the server closes the session; the viewer is never added
-        }
-        bool added = false;
-        {
-            Lock lock(self->mutex_);
-            const bool is_new = !self->viewers_.index_of(fd);
-            added = self->viewers_.add(fd);
-            if (added && is_new)
+            if (auto index = self->viewers_.index_of(fd))
             {
-                if (auto index = self->viewers_.index_of(fd))
-                {
-                    ++self->generation_[*index]; // identifies this viewer, not just its (reusable) fd
-                }
+                ++self->generation_[*index]; // identifies this viewer, not just its (reusable) fd
             }
         }
-        if (!added)
-        {
-            ESP_LOGW(TAG_STREAM, "Viewer limit (%u) reached, closing fd %d", (unsigned)frames::kMaxViewers, fd);
-            httpd_sess_trigger_close(req->handle, fd);
-        } else
-        {
-            ESP_LOGI(TAG_STREAM, "Viewer connected (fd %d)", fd);
-        }
-        return ESP_OK;
+    }
+    if (!added)
+    {
+        ESP_LOGW(TAG_STREAM, "Viewer limit (%u) reached, closing fd %d", (unsigned)frames::kMaxViewers, fd);
+        httpd_sess_trigger_close(req->handle, fd);
+    } else
+    {
+        ESP_LOGI(TAG_STREAM, "Viewer connected (fd %d)", fd);
+    }
+    return ESP_OK;
+}
+
+esp_err_t StreamBroadcaster::ws_handler(httpd_req_t* req)
+{
+    if (compat::ws_handshake_in_handler(req)) // core 2: the handshake is done and arrives here as HTTP_GET
+    {
+        const esp_err_t err = pre_handshake(req);
+        return err == ESP_OK ? post_handshake(req) : err; // ESP_FAIL: the server closes the session
     }
 
     // The board pushes; clients have nothing to say on /stream. Drain and ignore small frames.

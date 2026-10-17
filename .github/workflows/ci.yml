@@ -66,9 +66,13 @@ jobs:
             - uses: actions/setup-python@v5
               with:
                   python-version: "3.12"
+            # custom_sdkconfig rebuilds the Arduino libs into ~/.platformio (slow); pioarduino reuses them only while
+            # ESP32/sdkconfig.defaults (its hash of the custom options) is present, so cache that file too.
             - uses: actions/cache@v4
               with:
-                  path: ~/.platformio
+                  path: |
+                      ~/.platformio
+                      ESP32/sdkconfig.defaults
                   key: pio-core3-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO
               run: pip install -U platformio

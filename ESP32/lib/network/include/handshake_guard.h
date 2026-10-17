@@ -1,6 +1,7 @@
 #pragma once
 
 #include "origin_check.h"
+#include <esp32-hal-log.h> // route the refusal log through Arduino's logger (otherwise silenced)
 #include <esp_http_server.h>
 #include <esp_log.h>
 

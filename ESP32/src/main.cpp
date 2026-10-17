@@ -121,6 +121,7 @@ static void log_stream_stats()
 
 void setup()
 {
+    compat::start_min_free_tracking(); // first: otherwise psram_min stays 0 on core 3
     Serial.begin(BAUDRATE);
     delay(100);
     esp_register_freertos_tick_hook_for_cpu(idle_sample_hook, 0);
