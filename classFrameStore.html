@@ -139,10 +139,13 @@ std::optional&lt; <a class="el" href="classframes_1_1FrameLease.html">frames::Fr
 <tr class="memitem:a5385277cc698af8bc745e4c13b693c87" id="r_a5385277cc698af8bc745e4c13b693c87"><td class="memItemLeft" align="right" valign="top"><a id="a5385277cc698af8bc745e4c13b693c87" name="a5385277cc698af8bc745e4c13b693c87"></a>
 const uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><b>data</b> (const <a class="el" href="classframes_1_1FrameLease.html">frames::FrameLease</a> &amp;lease) const</td></tr>
 <tr class="separator:a5385277cc698af8bc745e4c13b693c87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abca363ef4129945f76512b6c02b18196" id="r_abca363ef4129945f76512b6c02b18196"><td class="memItemLeft" align="right" valign="top"><a id="abca363ef4129945f76512b6c02b18196" name="abca363ef4129945f76512b6c02b18196"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_subscriber</b> (TaskHandle_t task)</td></tr>
-<tr class="memdesc:abca363ef4129945f76512b6c02b18196"><td class="mdescLeft">&#160;</td><td class="mdescRight">Task to wake (xTaskNotifyGive) on every publish. Set once, before frames flow. <br /></td></tr>
-<tr class="separator:abca363ef4129945f76512b6c02b18196"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ee4af5639624b8c13e48ce2d107d5b9" id="r_a7ee4af5639624b8c13e48ce2d107d5b9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ee4af5639624b8c13e48ce2d107d5b9">add_subscriber</a> (TaskHandle_t task)</td></tr>
+<tr class="memdesc:a7ee4af5639624b8c13e48ce2d107d5b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a task to wake (xTaskNotifyGive) on every publish.  <br /></td></tr>
+<tr class="separator:a7ee4af5639624b8c13e48ce2d107d5b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56f5a6809c29468a107de82506cec8df" id="r_a56f5a6809c29468a107de82506cec8df"><td class="memItemLeft" align="right" valign="top"><a id="a56f5a6809c29468a107de82506cec8df" name="a56f5a6809c29468a107de82506cec8df"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>remove_subscriber</b> (TaskHandle_t task)</td></tr>
+<tr class="memdesc:a56f5a6809c29468a107de82506cec8df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregister a task. Unknown or null handles are ignored. Remove before deleting the task. <br /></td></tr>
+<tr class="separator:a56f5a6809c29468a107de82506cec8df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d836de880ea80a9bc2f5a624adfce26" id="r_a9d836de880ea80a9bc2f5a624adfce26"><td class="memItemLeft" align="right" valign="top"><a id="a9d836de880ea80a9bc2f5a624adfce26" name="a9d836de880ea80a9bc2f5a624adfce26"></a>
 <a class="el" href="structFrameStoreStats.html">FrameStoreStats</a>&#160;</td><td class="memItemRight" valign="bottom"><b>stats</b> ()</td></tr>
 <tr class="separator:a9d836de880ea80a9bc2f5a624adfce26"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -159,8 +162,32 @@ Static Public Attributes</h2></td></tr>
 <tr class="memitem:a9f7f9fb7ce1b5aea19b01b842bfdb456" id="r_a9f7f9fb7ce1b5aea19b01b842bfdb456"><td class="memItemLeft" align="right" valign="top"><a id="a9f7f9fb7ce1b5aea19b01b842bfdb456" name="a9f7f9fb7ce1b5aea19b01b842bfdb456"></a>
 static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kSlotBytes</b> = 32 * 1024</td></tr>
 <tr class="separator:a9f7f9fb7ce1b5aea19b01b842bfdb456"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a216a1b6f187b3e970aedffccf473d484" id="r_a216a1b6f187b3e970aedffccf473d484"><td class="memItemLeft" align="right" valign="top"><a id="a216a1b6f187b3e970aedffccf473d484" name="a216a1b6f187b3e970aedffccf473d484"></a>
+static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxSubscribers</b> = 2</td></tr>
+<tr class="memdesc:a216a1b6f187b3e970aedffccf473d484"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of tasks woken on each publish (stream task + detection task). <br /></td></tr>
+<tr class="separator:a216a1b6f187b3e970aedffccf473d484"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a7ee4af5639624b8c13e48ce2d107d5b9" name="a7ee4af5639624b8c13e48ce2d107d5b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ee4af5639624b8c13e48ce2d107d5b9">&#9670;&#160;</a></span>add_subscriber()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool FrameStore::add_subscriber </td>
+          <td>(</td>
+          <td class="paramtype">TaskHandle_t</td>          <td class="paramname"><span class="paramname"><em>task</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register a task to wake (xTaskNotifyGive) on every publish. </p>
+<dl class="section return"><dt>Returns</dt><dd>false when all kMaxSubscribers slots are taken; adding a handle already registered is a no-op that returns true. Safe from any task; no heap. </dd></dl>
+
+</div>
+</div>
 <a id="a4922a17b27e4c3ba74012592dc35a48b" name="a4922a17b27e4c3ba74012592dc35a48b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4922a17b27e4c3ba74012592dc35a48b">&#9670;&#160;</a></span>release_slot()</h2>
 

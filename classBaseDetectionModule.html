@@ -133,7 +133,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
 <tr class="memdesc:a41b108f22763c96aabb047a911f59e82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Latest tracker output, safe to call from another task (implementations copy under a lock).  <br /></td></tr>
 <tr class="separator:a41b108f22763c96aabb047a911f59e82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af20105ae3e768c91230ceca43e4d5413" id="r_af20105ae3e768c91230ceca43e4d5413"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af20105ae3e768c91230ceca43e4d5413">reset</a> ()</td></tr>
-<tr class="memdesc:af20105ae3e768c91230ceca43e4d5413"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drop the current target and background. Called from the loop task only.  <br /></td></tr>
+<tr class="memdesc:af20105ae3e768c91230ceca43e4d5413"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drop the current target and background. Implementations must make this safe to call from any task.  <br /></td></tr>
 <tr class="separator:af20105ae3e768c91230ceca43e4d5413"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5db4871c4907e31a9e86fdee1608b32e" id="r_a5db4871c4907e31a9e86fdee1608b32e"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structDetectionStats.html">DetectionStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5db4871c4907e31a9e86fdee1608b32e">get_stats</a> () const</td></tr>
 <tr class="memdesc:a5db4871c4907e31a9e86fdee1608b32e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detection timings and counters for the stats line.  <br /></td></tr>
@@ -264,7 +264,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~BaseDetectionModu
 </table>
 </div><div class="memdoc">
 
-<p>Drop the current target and background. Called from the loop task only. </p>
+<p>Drop the current target and background. Implementations must make this safe to call from any task. </p>
 
 <p>Reimplemented in <a class="el" href="classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7">CameraDiffDetection</a>.</p>
 

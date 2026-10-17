@@ -1739,7 +1739,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li>Tasks 1-3: <code>aiming::*</code>.</li>
 <li>Task 4: <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>.</li>
 <li>Stage 2: <code><a class="el" href="classBaseDetectionModule.html#a41b108f22763c96aabb047a911f59e82" title="Latest tracker output, safe to call from another task (implementations copy under a lock).">BaseDetectionModule::get_track_snapshot()</a></code>, which returns <code><a class="el" href="structTrackSnapshot.html">TrackSnapshot</a>{state, x, y, ...}</code> in pixels, with <code>detected()</code> true for Locked or Coasting.</li>
-<li><code><a class="el" href="classBaseDetectionModule.html#af20105ae3e768c91230ceca43e4d5413" title="Drop the current target and background. Called from the loop task only.">BaseDetectionModule::reset()</a></code>.</li>
+<li><code><a class="el" href="classBaseDetectionModule.html#af20105ae3e768c91230ceca43e4d5413" title="Drop the current target and background. Implementations must make this safe to call from any task.">BaseDetectionModule::reset()</a></code>.</li>
 </ul>
 </li>
 </ul>

@@ -120,14 +120,38 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a0624d04eb78227689a8cfd697c087ce4" id="r_a0624d04eb78227689a8cfd697c087ce4"><td class="memItemLeft" align="right" valign="top"><a id="a0624d04eb78227689a8cfd697c087ce4" name="a0624d04eb78227689a8cfd697c087ce4"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>start_camera_task</b> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="structCameraTaskStats.html">CameraTaskStats</a> &amp;stats)</td></tr>
-<tr class="memdesc:a0624d04eb78227689a8cfd697c087ce4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start the camera task (core 1, priority 2, 4096-byte stack). Call after esp_camera init succeeded. <br /></td></tr>
+<tr class="memitem:a0624d04eb78227689a8cfd697c087ce4" id="r_a0624d04eb78227689a8cfd697c087ce4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0624d04eb78227689a8cfd697c087ce4">start_camera_task</a> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="structCameraTaskStats.html">CameraTaskStats</a> &amp;stats)</td></tr>
+<tr class="memdesc:a0624d04eb78227689a8cfd697c087ce4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start the camera task (core 1, priority 4, 4096-byte stack). Call after esp_camera init succeeded.  <br /></td></tr>
 <tr class="separator:a0624d04eb78227689a8cfd697c087ce4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>FreeRTOS task that owns frame capture: driver frame -&gt; checks -&gt; copy into a <a class="el" href="classFrameStore.html">FrameStore</a> slot -&gt; publish. </p>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="a0624d04eb78227689a8cfd697c087ce4" name="a0624d04eb78227689a8cfd697c087ce4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0624d04eb78227689a8cfd697c087ce4">&#9670;&#160;</a></span>start_camera_task()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool start_camera_task </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classFrameStore.html">FrameStore</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>store</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structCameraTaskStats.html">CameraTaskStats</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>stats</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Start the camera task (core 1, priority 4, 4096-byte stack). Call after esp_camera init succeeded. </p>
+<p>Priority 4 is above detection (3): the copy is short and returns the driver buffer. </p>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

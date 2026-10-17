@@ -121,9 +121,9 @@ Inheritance diagram for Controller:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td colspan="2"><div class="groupHeader">Lifecycle Management</div></td></tr>
-<tr class="memitem:a13e85c7eef08c4163c955dea5ba3f8c7" id="r_a13e85c7eef08c4163c955dea5ba3f8c7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13e85c7eef08c4163c955dea5ba3f8c7">Controller</a> (<a class="el" href="classBaseTurret.html">BaseTurret</a> &amp;turret, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick, <a class="el" href="classFrameStore.html">FrameStore</a> &amp;frame_store)</td></tr>
-<tr class="memdesc:a13e85c7eef08c4163c955dea5ba3f8c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a> object.  <br /></td></tr>
-<tr class="separator:a13e85c7eef08c4163c955dea5ba3f8c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabbbef71a4654b2c66118a54b72be086" id="r_aabbbef71a4654b2c66118a54b72be086"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aabbbef71a4654b2c66118a54b72be086">Controller</a> (<a class="el" href="classBaseTurret.html">BaseTurret</a> &amp;turret, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> &amp;detection_module, <a class="el" href="classJoystick.html">Joystick</a> &amp;joystick)</td></tr>
+<tr class="memdesc:aabbbef71a4654b2c66118a54b72be086"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a> object.  <br /></td></tr>
+<tr class="separator:aabbbef71a4654b2c66118a54b72be086"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8351d2a68600034af0dbd1834bb21374" id="r_a8351d2a68600034af0dbd1834bb21374"><td class="memItemLeft" align="right" valign="top"><a id="a8351d2a68600034af0dbd1834bb21374" name="a8351d2a68600034af0dbd1834bb21374"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>~Controller</b> () override</td></tr>
 <tr class="memdesc:a8351d2a68600034af0dbd1834bb21374"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a> object. <br /></td></tr>
@@ -144,15 +144,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>begin</b> ()</td></tr
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Runs the control loop: button gestures, the three modes and the published status. </p>
 <p><b>Modes</b> (<a class="el" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a">ControlMode</a>):</p><ul>
-<li><b>Ai</b>: the controller leases the latest published frame from the <a class="el" href="classFrameStore.html">FrameStore</a> (once per new frame sequence), passes it to the <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a>, then feeds the track to the <a class="el" href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a>, which yields absolute pan/tilt targets for <a class="el" href="classBaseTurret.html#a206cf5fbbf857b72639f0906284ef09e">BaseTurret::set_target_deg</a> (or Home after the target is lost).</li>
+<li><b>Ai</b>: every pass the controller reads the track snapshot that the <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> publishes (the detection runs in its own task) and feeds it to the <a class="el" href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a>, which yields absolute pan/tilt targets for <a class="el" href="classBaseTurret.html#a206cf5fbbf857b72639f0906284ef09e">BaseTurret::set_target_deg</a> (or Home after the target is lost).</li>
 <li><b>User</b>: no frames needed; <a class="el" href="classJoystick.html">Joystick</a> input is mapped to <a class="el" href="classBaseTurret.html#a66d48f970e376782d888d2d273ccffa3">BaseTurret::jog</a> at most once per kUserModePeriodMs.</li>
-<li><b>Calibrate</b>: joystick jogs as in User mode and detection runs so the HUD box shows. A short press records a calibration point (the turret's current angles paired with the visible target's pixel position).</li>
+<li><b>Calibrate</b>: joystick jogs as in User mode; detection keeps running in its own task so the HUD box shows. A short press records a calibration point (the turret's current angles paired with the visible target's pixel position).</li>
 </ul>
 <p><b>Button gestures:</b> short press toggles Ai/User (or records a point in Calibrate); a long press enters Calibrate, or cancels it and restores the previous mode.</p>
 <p>The camera is fixed on the base and the turret aims absolutely, so a calibration is a fixed two-point mapping from image pixels to pan/tilt angles, saved in NVS. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a13e85c7eef08c4163c955dea5ba3f8c7" name="a13e85c7eef08c4163c955dea5ba3f8c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13e85c7eef08c4163c955dea5ba3f8c7">&#9670;&#160;</a></span>Controller()</h2>
+<a id="aabbbef71a4654b2c66118a54b72be086" name="aabbbef71a4654b2c66118a54b72be086"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabbbef71a4654b2c66118a54b72be086">&#9670;&#160;</a></span>Controller()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -173,12 +173,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>begin</b> ()</td></tr
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classJoystick.html">Joystick</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>joystick</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classFrameStore.html">FrameStore</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>frame_store</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="classJoystick.html">Joystick</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>joystick</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -194,7 +189,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>begin</b> ()</td></tr
     <tr><td class="paramname">turret</td><td>Reference to the turret implementation. </td></tr>
     <tr><td class="paramname">detection_module</td><td>Reference to the detection implementation. </td></tr>
     <tr><td class="paramname">joystick</td><td>Reference to the <a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a> input handler. </td></tr>
-    <tr><td class="paramname">frame_store</td><td>Reference to the <a class="el" href="classFrameStore.html">FrameStore</a> the camera task publishes into. </td></tr>
   </table>
   </dd>
 </dl>

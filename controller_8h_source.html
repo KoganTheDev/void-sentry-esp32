@@ -115,76 +115,67 @@ $(function(){initNavTree('controller_8h_source.html',''); initResizable(true); }
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">class </span><a class="code hl_class" href="classFrameStore.html">FrameStore</a>; <span class="comment">// Forward declaration to minimize header inter-dependency</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="foldopen" id="foldopen00044" data-start="{" data-end="};">
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="classController.html">   44</a></span><span class="keyword">class </span><a class="code hl_class" href="classController.html">Controller</a> : <span class="keyword">public</span> <a class="code hl_class" href="classBaseStatusProvider.html">BaseStatusProvider</a></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>{</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <a class="code hl_class" href="classBaseTurret.html">BaseTurret</a>&amp; _turret;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a>&amp; _detection_module;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <a class="code hl_class" href="classJoystick.html">Joystick</a>&amp; _joystick;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <a class="code hl_class" href="classFrameStore.html">FrameStore</a>&amp; _frame_store;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <a class="code hl_class" href="classaiming_1_1ButtonClassifier.html">aiming::ButtonClassifier</a> _button;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <a class="code hl_class" href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a> _policy;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <a class="code hl_class" href="classaiming_1_1CalibrationSession.html">aiming::CalibrationSession</a> _session;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <a class="code hl_enumeration" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a">ControlMode</a> _mode = <a class="code hl_enumvalue" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1aa7ba5783f474c5aeb3a4f321d631b70bc">ControlMode::Ai</a>;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <a class="code hl_enumeration" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a">ControlMode</a> _mode_before_cal = <a class="code hl_enumvalue" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1aa7ba5783f474c5aeb3a4f321d631b70bc">ControlMode::Ai</a>;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">bool</span> _calibrated = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_struct" href="structControlStatus.html">ControlStatus</a> _status;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keyword">mutable</span> portMUX_TYPE _status_lock = portMUX_INITIALIZER_UNLOCKED;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    uint32_t _aims = 0;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordtype">bool</span> _prev_held = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <a class="code hl_struct" href="structaiming_1_1Angles.html">aiming::Angles</a> _cal_pose_at_press;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">bool</span> _cal_pose_captured = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> uint32_t kUserModePeriodMs = 40;</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    uint32_t _last_user_move_ms = 0;</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    uint32_t _last_sequence = 0;</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordtype">void</span> process_new_frame();</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordtype">void</span> jog_from_joystick(uint32_t now, <span class="keywordtype">bool</span> stick_neutral);</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordtype">void</span> on_long_press();</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    <span class="keywordtype">void</span> on_short_press();</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    <span class="keywordtype">void</span> publish_status();</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="keyword">public</span>:</div>
-<div class="foldopen" id="foldopen00133" data-start="{" data-end="}">
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno"><a class="line" href="classController.html#a13e85c7eef08c4163c955dea5ba3f8c7">  133</a></span>    <a class="code hl_function" href="classController.html#a13e85c7eef08c4163c955dea5ba3f8c7">Controller</a>(<a class="code hl_class" href="classBaseTurret.html">BaseTurret</a>&amp; turret, <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a>&amp; detection_module, <a class="code hl_class" href="classJoystick.html">Joystick</a>&amp; joystick, <a class="code hl_class" href="classFrameStore.html">FrameStore</a>&amp; frame_store)</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        : _turret(turret), _detection_module(detection_module), _joystick(joystick), _frame_store(frame_store),</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>          _policy(aiming::default_map())</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    {</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    }</div>
+<div class="foldopen" id="foldopen00042" data-start="{" data-end="};">
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classController.html">   42</a></span><span class="keyword">class </span><a class="code hl_class" href="classController.html">Controller</a> : <span class="keyword">public</span> <a class="code hl_class" href="classBaseStatusProvider.html">BaseStatusProvider</a></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>{</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <a class="code hl_class" href="classBaseTurret.html">BaseTurret</a>&amp; _turret;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a>&amp; _detection_module;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <a class="code hl_class" href="classJoystick.html">Joystick</a>&amp; _joystick;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <a class="code hl_class" href="classaiming_1_1ButtonClassifier.html">aiming::ButtonClassifier</a> _button;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_class" href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a> _policy;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <a class="code hl_class" href="classaiming_1_1CalibrationSession.html">aiming::CalibrationSession</a> _session;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <a class="code hl_enumeration" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a">ControlMode</a> _mode = <a class="code hl_enumvalue" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1aa7ba5783f474c5aeb3a4f321d631b70bc">ControlMode::Ai</a>;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <a class="code hl_enumeration" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1a">ControlMode</a> _mode_before_cal = <a class="code hl_enumvalue" href="system__control__types_8h.html#a3237b52509a609333eb71e747428eb1aa7ba5783f474c5aeb3a4f321d631b70bc">ControlMode::Ai</a>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordtype">bool</span> _calibrated = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <a class="code hl_struct" href="structControlStatus.html">ControlStatus</a> _status;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keyword">mutable</span> portMUX_TYPE _status_lock = portMUX_INITIALIZER_UNLOCKED;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    uint32_t _aims = 0;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="keywordtype">bool</span> _prev_held = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_struct" href="structaiming_1_1Angles.html">aiming::Angles</a> _cal_pose_at_press;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">bool</span> _cal_pose_captured = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">static</span> <span class="keyword">constexpr</span> uint32_t kUserModePeriodMs = 40;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    uint32_t _last_user_move_ms = 0;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordtype">void</span> jog_from_joystick(uint32_t now, <span class="keywordtype">bool</span> stick_neutral);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordtype">void</span> on_long_press();</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">void</span> on_short_press();</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordtype">void</span> publish_status();</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00121" data-start="{" data-end="}">
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno"><a class="line" href="classController.html#aabbbef71a4654b2c66118a54b72be086">  121</a></span>    <a class="code hl_function" href="classController.html#aabbbef71a4654b2c66118a54b72be086">Controller</a>(<a class="code hl_class" href="classBaseTurret.html">BaseTurret</a>&amp; turret, <a class="code hl_class" href="classBaseDetectionModule.html">BaseDetectionModule</a>&amp; detection_module, <a class="code hl_class" href="classJoystick.html">Joystick</a>&amp; joystick)</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        : _turret(turret), _detection_module(detection_module), _joystick(joystick), _policy(aiming::default_map())</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    {</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    }</div>
 </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno"><a class="line" href="classController.html#a8351d2a68600034af0dbd1834bb21374">  142</a></span>    <a class="code hl_function" href="classController.html#a8351d2a68600034af0dbd1834bb21374">~Controller</a>()<span class="keyword"> override </span>{}</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classController.html#a1cc0b87ab9e07d21ab47d294aa5bf607">begin</a>();</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classController.html#a692f0f5dc600cdcb79786a31cf283ce1">run</a>();</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    <a class="code hl_struct" href="structControlStatus.html">ControlStatus</a> <a class="code hl_function" href="classController.html#aa5eb09fdbf93930ec0fa2febce0d0597">control_status</a>() <span class="keyword">const override</span>;</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>};</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno"><a class="line" href="classController.html#a8351d2a68600034af0dbd1834bb21374">  129</a></span>    <a class="code hl_function" href="classController.html#a8351d2a68600034af0dbd1834bb21374">~Controller</a>()<span class="keyword"> override </span>{}</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classController.html#a1cc0b87ab9e07d21ab47d294aa5bf607">begin</a>();</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classController.html#a692f0f5dc600cdcb79786a31cf283ce1">run</a>();</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    <a class="code hl_struct" href="structControlStatus.html">ControlStatus</a> <a class="code hl_function" href="classController.html#aa5eb09fdbf93930ec0fa2febce0d0597">control_status</a>() <span class="keyword">const override</span>;</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>};</div>
 </div>
 <div class="ttc" id="aaim__policy_8h_html"><div class="ttname"><a href="aim__policy_8h.html">aim_policy.h</a></div><div class="ttdoc">Decides where the turret should point from the tracker state (pure C++17, natively tested).</div></div>
 <div class="ttc" id="abase__turret_8h_html"><div class="ttname"><a href="base__turret_8h.html">base_turret.h</a></div><div class="ttdoc">What the controller can ask of the pan/tilt turret. Thread-safe: called from loop(),...</div></div>
@@ -193,13 +184,12 @@ $(function(){initNavTree('controller_8h_source.html',''); initResizable(true); }
 <div class="ttc" id="aclassBaseDetectionModule_html"><div class="ttname"><a href="classBaseDetectionModule.html">BaseDetectionModule</a></div><div class="ttdoc">An abstract base class (Interface) that defines the contract for detection algorithms....</div><div class="ttdef"><b>Definition</b> base_detection_module.h:22</div></div>
 <div class="ttc" id="aclassBaseStatusProvider_html"><div class="ttname"><a href="classBaseStatusProvider.html">BaseStatusProvider</a></div><div class="ttdoc">Interface for anything that can report a ControlStatus (the Controller). Lets the network layer read ...</div><div class="ttdef"><b>Definition</b> control_status.h:33</div></div>
 <div class="ttc" id="aclassBaseTurret_html"><div class="ttname"><a href="classBaseTurret.html">BaseTurret</a></div><div class="ttdef"><b>Definition</b> base_turret.h:11</div></div>
-<div class="ttc" id="aclassController_html"><div class="ttname"><a href="classController.html">Controller</a></div><div class="ttdoc">Runs the control loop: button gestures, the three modes and the published status.</div><div class="ttdef"><b>Definition</b> controller.h:45</div></div>
-<div class="ttc" id="aclassController_html_a13e85c7eef08c4163c955dea5ba3f8c7"><div class="ttname"><a href="classController.html#a13e85c7eef08c4163c955dea5ba3f8c7">Controller::Controller</a></div><div class="ttdeci">Controller(BaseTurret &amp;turret, BaseDetectionModule &amp;detection_module, Joystick &amp;joystick, FrameStore &amp;frame_store)</div><div class="ttdoc">Construct a new Controller object.</div><div class="ttdef"><b>Definition</b> controller.h:133</div></div>
-<div class="ttc" id="aclassController_html_a1cc0b87ab9e07d21ab47d294aa5bf607"><div class="ttname"><a href="classController.html#a1cc0b87ab9e07d21ab47d294aa5bf607">Controller::begin</a></div><div class="ttdeci">void begin()</div><div class="ttdoc">Loads a saved calibration from NVS, if any. Call from setup() after the turret has started.</div><div class="ttdef"><b>Definition</b> controller.cpp:10</div></div>
-<div class="ttc" id="aclassController_html_a692f0f5dc600cdcb79786a31cf283ce1"><div class="ttname"><a href="classController.html#a692f0f5dc600cdcb79786a31cf283ce1">Controller::run</a></div><div class="ttdeci">void run()</div><div class="ttdoc">One pass of the control loop; call from the primary loop().</div><div class="ttdef"><b>Definition</b> controller.cpp:159</div></div>
-<div class="ttc" id="aclassController_html_a8351d2a68600034af0dbd1834bb21374"><div class="ttname"><a href="classController.html#a8351d2a68600034af0dbd1834bb21374">Controller::~Controller</a></div><div class="ttdeci">~Controller() override</div><div class="ttdoc">Destroy the Controller object.</div><div class="ttdef"><b>Definition</b> controller.h:142</div></div>
-<div class="ttc" id="aclassController_html_aa5eb09fdbf93930ec0fa2febce0d0597"><div class="ttname"><a href="classController.html#aa5eb09fdbf93930ec0fa2febce0d0597">Controller::control_status</a></div><div class="ttdeci">ControlStatus control_status() const override</div><div class="ttdoc">Latest published status. Safe to call from any task.</div><div class="ttdef"><b>Definition</b> controller.cpp:151</div></div>
-<div class="ttc" id="aclassFrameStore_html"><div class="ttname"><a href="classFrameStore.html">FrameStore</a></div><div class="ttdef"><b>Definition</b> frame_store.h:29</div></div>
+<div class="ttc" id="aclassController_html"><div class="ttname"><a href="classController.html">Controller</a></div><div class="ttdoc">Runs the control loop: button gestures, the three modes and the published status.</div><div class="ttdef"><b>Definition</b> controller.h:43</div></div>
+<div class="ttc" id="aclassController_html_a1cc0b87ab9e07d21ab47d294aa5bf607"><div class="ttname"><a href="classController.html#a1cc0b87ab9e07d21ab47d294aa5bf607">Controller::begin</a></div><div class="ttdeci">void begin()</div><div class="ttdoc">Loads a saved calibration from NVS, if any. Call from setup() after the turret has started.</div><div class="ttdef"><b>Definition</b> controller.cpp:9</div></div>
+<div class="ttc" id="aclassController_html_a692f0f5dc600cdcb79786a31cf283ce1"><div class="ttname"><a href="classController.html#a692f0f5dc600cdcb79786a31cf283ce1">Controller::run</a></div><div class="ttdeci">void run()</div><div class="ttdoc">One pass of the control loop; call from the primary loop().</div><div class="ttdef"><b>Definition</b> controller.cpp:143</div></div>
+<div class="ttc" id="aclassController_html_a8351d2a68600034af0dbd1834bb21374"><div class="ttname"><a href="classController.html#a8351d2a68600034af0dbd1834bb21374">Controller::~Controller</a></div><div class="ttdeci">~Controller() override</div><div class="ttdoc">Destroy the Controller object.</div><div class="ttdef"><b>Definition</b> controller.h:129</div></div>
+<div class="ttc" id="aclassController_html_aa5eb09fdbf93930ec0fa2febce0d0597"><div class="ttname"><a href="classController.html#aa5eb09fdbf93930ec0fa2febce0d0597">Controller::control_status</a></div><div class="ttdeci">ControlStatus control_status() const override</div><div class="ttdoc">Latest published status. Safe to call from any task.</div><div class="ttdef"><b>Definition</b> controller.cpp:135</div></div>
+<div class="ttc" id="aclassController_html_aabbbef71a4654b2c66118a54b72be086"><div class="ttname"><a href="classController.html#aabbbef71a4654b2c66118a54b72be086">Controller::Controller</a></div><div class="ttdeci">Controller(BaseTurret &amp;turret, BaseDetectionModule &amp;detection_module, Joystick &amp;joystick)</div><div class="ttdoc">Construct a new Controller object.</div><div class="ttdef"><b>Definition</b> controller.h:121</div></div>
 <div class="ttc" id="aclassJoystick_html"><div class="ttname"><a href="classJoystick.html">Joystick</a></div><div class="ttdoc">High-level interface for 12-bit analog joystick input.</div><div class="ttdef"><b>Definition</b> joystick.h:28</div></div>
 <div class="ttc" id="aclassaiming_1_1AimPolicy_html"><div class="ttname"><a href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a></div><div class="ttdef"><b>Definition</b> aim_policy.h:41</div></div>
 <div class="ttc" id="aclassaiming_1_1ButtonClassifier_html"><div class="ttname"><a href="classaiming_1_1ButtonClassifier.html">aiming::ButtonClassifier</a></div><div class="ttdef"><b>Definition</b> button_classifier.h:23</div></div>
