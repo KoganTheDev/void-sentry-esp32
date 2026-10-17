@@ -1,9 +1,10 @@
 /**
  * @file jpeg_gray.h
  * @brief Decodes a QVGA camera JPEG at 1/8 scale straight into the 40x30 gray grid the tracker uses.
- * @details Uses esp32-camera's esp_jpg_decode (TJpgDec). At 1/8 scale the ROM decoder keeps only each 8x8 block's
- * DC coefficient (the block average) and skips the IDCT entirely: measured ~7 ms per frame on this board versus
- * ~71 ms at 1/4 scale (1/2 and 1/4 run the full IDCT and then average). The block average also filters noise.
+ * @details Uses the vendored C TJpgDec (lib/tjpgd) on both cores. At 1/8 scale the decoder keeps only each 8x8
+ * block's DC coefficient (the block average) and skips the IDCT entirely (1/2 and 1/4 run the full IDCT and then
+ * average, ~71 ms at 1/4). The block average also filters noise. The ESP32 ROM has the same decoder, but it is ~40%
+ * slower (Stage 7: 14.1 ms vs 9.0 ms for one 4.1 KB frame on core 3), so it is not used.
  * No allocation; NOT re-entrant (the decoder's work buffer is static), so only the detection task may call it.
  */
 
