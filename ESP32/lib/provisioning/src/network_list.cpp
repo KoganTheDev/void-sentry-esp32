@@ -1,35 +1,13 @@
 #include "network_list.h"
 
+#include "form.h"
+
 #include <cstring>
 
 namespace prov
 {
 namespace
 {
-// Same rules as form.h: SSID 1-32 bytes; password empty or 8-63 printable ASCII bytes.
-bool ssid_ok(const char* s, size_t len) { return s != nullptr && len >= 1 && len <= kSsidMax; }
-
-bool pass_ok(const char* s, size_t len)
-{
-    if (len == 0)
-    {
-        return true;
-    }
-    if (s == nullptr || len < 8 || len > 63)
-    {
-        return false;
-    }
-    for (size_t i = 0; i < len; ++i)
-    {
-        const unsigned char c = static_cast<unsigned char>(s[i]);
-        if (c < 32 || c > 126)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 size_t bounded_len(const char* s, size_t cap)
 {
     size_t n = 0;
@@ -54,7 +32,7 @@ void fill(NetworkEntry& e, const char* ssid, size_t ssid_len, const char* pass, 
 
 NetworkList::AddResult NetworkList::add(const char* ssid, size_t ssid_len, const char* pass, size_t pass_len)
 {
-    if (!ssid_ok(ssid, ssid_len) || !pass_ok(pass, pass_len))
+    if (!valid_ssid(ssid, ssid_len) || !valid_password(pass, pass_len))
     {
         return AddResult::Invalid;
     }
@@ -133,8 +111,8 @@ bool NetworkList::restore(const NetworkEntry& e)
     }
     const size_t ssid_len = bounded_len(e.ssid, sizeof(e.ssid));
     const size_t pass_len = bounded_len(e.pass, sizeof(e.pass));
-    if (ssid_len == sizeof(e.ssid) || pass_len == sizeof(e.pass) || !ssid_ok(e.ssid, ssid_len) ||
-        !pass_ok(e.pass, pass_len))
+    if (ssid_len == sizeof(e.ssid) || pass_len == sizeof(e.pass) || !valid_ssid(e.ssid, ssid_len) ||
+        !valid_password(e.pass, pass_len))
     {
         return false;
     }
