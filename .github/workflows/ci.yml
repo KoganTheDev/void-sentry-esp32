@@ -49,8 +49,6 @@ jobs:
                   key: pio-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO
               run: pip install -U platformio
-            - name: Use placeholder WiFi credentials
-              run: cp ESP32/include/secrets.h.example ESP32/include/secrets.h
             - name: Build turret firmware
               working-directory: ESP32
               run: pio run -e freenove_esp32_wrover

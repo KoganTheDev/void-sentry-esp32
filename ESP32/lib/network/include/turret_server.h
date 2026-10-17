@@ -13,6 +13,8 @@
 #include "websockets.h"
 #include <esp_http_server.h>
 
+class WifiManager;
+
 /**
  * @class HttpServer
  * @brief Manages the ESP32-CAM web interface and control API.
@@ -45,10 +47,12 @@ public:
      * @param detection Optional pointer to detection module for motion visualization.
      * @param status Optional status provider (the Controller); when null the mode/calibration fields are omitted.
      * @param remote Optional sink for the HUD's /commands messages (the Controller); when null they are ignored.
+     * @param wifi Optional WiFi manager; when set, the setup page, its JSON API and the captive-portal catch-all are
+     * registered (after all other routes).
      * @return true if the server was created and handlers were registered.
      */
     bool start(FrameStore& store, BaseDetectionModule* detection = nullptr, const BaseStatusProvider* status = nullptr,
-               remote::BaseRemoteSink* remote = nullptr);
+               remote::BaseRemoteSink* remote = nullptr, WifiManager* wifi = nullptr);
 
     /** @brief Frames successfully sent to /stream viewers since boot. */
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }

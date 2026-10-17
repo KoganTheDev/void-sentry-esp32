@@ -7,6 +7,8 @@
 #include "esp_camera.h"
 #include "index_html.h"
 #include "websockets.h"
+#include "wifi_http.h"
+#include "wifi_manager.h"
 
 static const char* TAG_HTTP = "HTTP_SERVER";
 
@@ -27,7 +29,7 @@ HttpServer::~HttpServer()
 }
 
 bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const BaseStatusProvider* status,
-                       remote::BaseRemoteSink* remote)
+                       remote::BaseRemoteSink* remote, WifiManager* wifi)
 {
     this->_detection_instance = detection;
     this->_status_instance = status;
@@ -36,7 +38,8 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     // Keep network work on core 0 so it cannot preempt detection on core 1.
     config.core_id = 0;
     config.stack_size = 8192;                               // Increase stack for JSON/String handling
-    config.max_uri_handlers = 12;                           // Just to be safe
+    config.max_uri_handlers = 16;                           // 3 core routes + 6 WiFi routes + catch-all, with headroom
+    config.uri_match_fn = httpd_uri_match_wildcard;         // the WiFi catch-all "/*"; exact routes still match exactly
     config.send_wait_timeout = 2;                           // seconds; stalled viewers would block httpd 5 s
     config.lru_purge_enable = true;                         // Purge oldest connection if full
     config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
@@ -58,6 +61,11 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
         this->_commands_handler =
             new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status, remote);
         this->_commands_handler->register_endpoint();
+
+        if (wifi != nullptr)
+        {
+            register_wifi_routes(this->_server_handle, *wifi); // last: it registers the catch-all
+        }
 
         Serial.println("[HTTP] Server started successfully");
         return true;

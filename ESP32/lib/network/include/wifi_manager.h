@@ -1,45 +1,157 @@
 /**
- * @file WifiManager.h
- * @brief Static utility for managing non-blocking ESP32 WiFi connectivity.
+ * @file wifi_manager.h
+ * @brief Non-blocking WiFi provisioning: saved networks, setup hotspot, PIN-protected changes.
  */
 
 #pragma once
+
+#include "choose.h"
+#include "form.h"
+#include "network_list.h"
+#include "pin_guard.h"
+#include "prov_types.h"
+#include "wifi_plan.h"
+#include "wifi_store.h"
+#include <Arduino.h>
+#include <DNSServer.h>
 #include <WiFi.h>
+#include <atomic>
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
 
 /**
  * @class WifiManager
- * @brief Handles asynchronous WiFi connection and automated reconnection logic.
+ * @brief Glue between the pure prov::WifiPlan and the Arduino WiFi stack.
+ * @details Driven only from loop() through maintain(); nothing here blocks. WiFi events (arduino_events task) only
+ * set atomic flags; maintain() turns them into plan events. The httpd task (core 0) and maintain() (core 1) share the
+ * network list, PIN guard, scan cache and plan state under one FreeRTOS mutex. All WiFi API calls and plan calls
+ * happen in maintain()/begin(); the HTTP accessors only touch shared state and set request flags.
  */
 class WifiManager
 {
 public:
-    /**
-     * @brief Initiates an asynchronous connection to a WiFi access point.
-     * @details Sets mode to WIFI_STA and disables sleep modes for better hardware
-     * stability.
-     * @param ssid Service Set Identifier of the network.
-     * @param password key for the network.
-     */
-    static void connect(const String& ssid, const String& password);
+    /** @brief Snapshot for /api/wifi/status. */
+    struct Status {
+        const char* mode = "joining"; ///< "sta" | "setup" | "joining" | "lost" (string literal)
+        char ssid[prov::kSsidMax + 1] = {};
+        char ip[16] = {};
+        bool pin_set = false;
+        const char* failure = ""; ///< "wrong password" | "not found" | "timeout" | "failed" | "" (string literal)
+    };
+
+    /** @brief Result of add()/forget(); the HTTP layer maps it to 200 / 400 / 403 / 429. */
+    enum class Result { Ok, BadInput, WrongPin, LockedOut };
+
+    /** @brief Outcome with the lockout time for Result::LockedOut. */
+    struct Outcome {
+        Result result = Result::BadInput;
+        uint32_t seconds_left = 0;
+    };
+    using AddOutcome = Outcome;
+    using ForgetOutcome = Outcome;
+
+    /** @brief Capacity of the scan cache (strongest networks beyond it are not guaranteed to be kept). */
+    static constexpr size_t kScanCap = 24;
+
+    WifiManager() = default;
+    WifiManager(const WifiManager&) = delete;
+    WifiManager& operator=(const WifiManager&) = delete;
 
     /**
-     * @brief Polls the WiFi hardware for current connection status.
-     * @return true if currently connected to an AP with a valid IP.
+     * @brief Loads NVS, brings up the WiFi stack and starts the connection plan. Returns at once.
+     * @details Must run before the HTTP server starts (it sets up the TCP/IP stack).
      */
-    static bool is_connected();
+    void begin();
 
     /**
-     * @brief Returns the local IPv4 address as a string.
-     * @return String formatted IP (e.g. "192.168.1.50") or "0.0.0.0" if
-     * unavailable.
+     * @brief Call from loop(): WiFi events, scan polling, plan timers, hotspot DNS and the serial `wifi-reset`.
      */
-    static String get_ip();
+    void maintain();
+
+    /** @brief Thread-safe snapshot of mode, SSID, IP, whether a PIN is set and the last failure. */
+    Status status();
+
+    /** @brief Short mode name for logs ("sta" | "setup" | "joining" | "lost"). */
+    const char* mode_name();
+
+    /** @brief true while the setup hotspot is running (atomic, no lock). */
+    bool setup_mode() const { return this->_hotspot_flag.load(); }
+
+    /** @brief Current plan state (thread-safe; for tests and diagnostics). */
+    prov::PlanState plan_state();
 
     /**
-     * @brief Heartbeat function. Checks if WiFi has diconnected, if so, attempts
-     * to reconnect.
-     * @details Monitors connection health. If the connection is lost, it manages
-     * throttle-controlled reconnection attempts to avoid CPU spikes.
+     * @brief Copies the cached scan (strongest entry per SSID, hidden networks skipped).
+     * @details Requests a new async scan from maintain() if the cache is older than 10 s, so the first call after a
+     * long pause may return an old or empty list; call again after a few seconds.
+     * @return Number of entries written to out (at most cap).
      */
-    static void maintain();
+    size_t scan(prov::ScanResult* out, size_t cap);
+
+    /** @brief Copies the saved SSIDs. @return Number written (at most cap). */
+    size_t saved(char (*ssids)[prov::kSsidMax + 1], size_t cap);
+
+    /**
+     * @brief Adds (or replaces) a network after checking the PIN; the first add with no PIN set defines the PIN.
+     * @details Inputs are validated before any PIN attempt is counted. Persists the list (and the new PIN record) and
+     * asks maintain() to tell the plan; a full list evicts the oldest entry.
+     */
+    AddOutcome add(const char* ssid, size_t ssid_len, const char* pass, size_t pass_len, const char* pin,
+                   size_t pin_len, uint32_t now_ms);
+
+    /** @brief Forgets a saved network after checking the PIN (same PinGuard as add, so lockouts are shared). */
+    ForgetOutcome forget(const char* ssid, size_t ssid_len, const char* pin, size_t pin_len, uint32_t now_ms);
+
+private:
+    static void on_wifi_event(arduino_event_id_t event, arduino_event_info_t info);
+
+    void process_events(uint32_t now);
+    void poll_scan(uint32_t now);
+    void collect_scan(int count, uint32_t now);
+    void apply(prov::Action a, uint32_t now);
+    void do_join(const prov::NetworkEntry& e);
+    void start_hotspot();
+    void stop_hotspot();
+    void poll_serial();
+    void factory_reset();
+    const char* mode_name_locked() const;
+
+    static WifiManager* _instance;
+
+    SemaphoreHandle_t _mutex = nullptr;
+    WifiStore _store;
+    prov::NetworkList _list;
+    prov::PinGuard _pin;
+    prov::WifiPlan _plan;
+    DNSServer _dns;
+
+    // Event flags written by the arduino_events task.
+    std::atomic<bool> _ev_got_ip{false};
+    std::atomic<bool> _ev_disc{false};
+    std::atomic<uint8_t> _ev_reason{0};
+    std::atomic<bool> _hotspot_flag{false};
+
+    // Shared with the HTTP layer (guarded by _mutex).
+    prov::ScanResult _scan[kScanCap];
+    size_t _scan_n = 0;
+    bool _scan_valid = false;
+    uint32_t _scan_time_ms = 0;
+    bool _ui_scan_wanted = false;
+    bool _added_pending = false;
+    char _cur_ssid[prov::kSsidMax + 1] = {};
+    char _cur_ip[16] = {};
+    char _joining_ssid[prov::kSsidMax + 1] = {};
+
+    // Used by the loop() side only.
+    bool _scan_running = false;
+    bool _plan_scan_pending = false;
+    uint32_t _scan_start_ms = 0;
+    bool _sta_joining = false;
+    bool _hotspot_running = false;
+    bool _stop_pending = false;
+    uint32_t _stop_at_ms = 0;
+    char _hotspot_ssid[20] = {};
+    char _line[24] = {};
+    size_t _line_len = 0;
+    bool _line_overflow = false;
 };

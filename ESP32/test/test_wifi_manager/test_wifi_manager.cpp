@@ -1,100 +1,66 @@
-#include "secrets.h"
 #include "wifi_manager.h"
 #include <Arduino.h>
 #include <unity.h>
 
-// Set a timeout for the connection test (20 seconds)
-#define TEST_WIFI_TIMEOUT 20000
+// begin() must return at once; the plan must then reach Setup (no saved network in range) or Connected.
+#define TEST_BEGIN_MAX_MS 1000
+#define TEST_PLAN_TIMEOUT_MS 40000
 
-void setUp(void)
+static WifiManager wifi;
+
+void setUp(void) {}
+
+void tearDown(void) {}
+
+void test_begin_returns_at_once(void)
 {
-    // Standard Unity setup
+    const uint32_t start = millis();
+    wifi.begin();
+    TEST_ASSERT_LESS_THAN_UINT32(TEST_BEGIN_MAX_MS, millis() - start);
 }
 
-void tearDown(void)
+void test_plan_reaches_setup_or_connected(void)
 {
-    // Standard Unity teardown
-}
-
-void test_wifi_initial_state_disconnected(void)
-{
-    // Before we call connect, we shouldn't be connected
-    // Note: This assumes the ESP32 wasn't already connected from a previous boot
-    WiFi.disconnect(true);
-    delay(1000);
-    TEST_ASSERT_FALSE(WifiManager::is_connected());
-}
-
-void test_wifi_connect_logic(void)
-{
-    WifiManager::connect(WIFI_SSID, WIFI_PASSWORD);
-
-    unsigned long start_time = millis();
-    bool connected = false;
-
-    // We poll because connect() is non-blocking
-    while (millis() - start_time < TEST_WIFI_TIMEOUT)
+    const uint32_t start = millis();
+    bool settled = false;
+    while (millis() - start < TEST_PLAN_TIMEOUT_MS)
     {
-        if (WifiManager::is_connected())
+        wifi.maintain();
+        const prov::PlanState st = wifi.plan_state();
+        if (st == prov::PlanState::Setup || st == prov::PlanState::Connected)
         {
-            connected = true;
+            settled = true;
             break;
         }
-        delay(500);
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
-
-    TEST_ASSERT_TRUE_MESSAGE(connected, "WiFi failed to connect within timeout");
+    TEST_ASSERT_TRUE_MESSAGE(settled, "plan did not reach Setup or Connected within 40 s");
 }
 
-void test_wifi_get_ip_valid(void)
+void test_status_matches_mode(void)
 {
-    String ip = WifiManager::get_ip();
-    Serial.printf("[TEST] Captured IP: %s\n", ip.c_str());
-
-    // Check that IP is not the default 0.0.0.0
-    TEST_ASSERT(strcmp("0.0.0.0", WifiManager::get_ip().c_str()) != 0);
-}
-
-void test_wifi_maintain_reconnect(void)
-{
-    // 1. Ensure we are connected
-    TEST_ASSERT_TRUE(WifiManager::is_connected());
-
-    // 2. Force a disconnect
-    Serial.println("[TEST] Forcing disconnect to test maintain()...");
-    WiFi.disconnect();
-    delay(1000);
-    TEST_ASSERT_FALSE(WifiManager::is_connected());
-
-    // 3. Call maintain() - It should trigger WiFi.begin()
-    WifiManager::maintain();
-
-    // 4. Wait for auto-recovery
-    unsigned long start_time = millis();
-    bool recovered = false;
-    while (millis() - start_time < TEST_WIFI_TIMEOUT)
+    const WifiManager::Status s = wifi.status();
+    Serial.printf("[TEST] mode=%s ssid=%s ip=%s pin_set=%d\n", s.mode, s.ssid, s.ip, (int)s.pin_set);
+    if (wifi.plan_state() == prov::PlanState::Connected)
     {
-        if (WifiManager::is_connected())
-        {
-            recovered = true;
-            break;
-        }
-        delay(500);
+        TEST_ASSERT_EQUAL_STRING("sta", s.mode);
+        TEST_ASSERT_TRUE(strcmp("0.0.0.0", s.ip) != 0);
+    } else
+    {
+        TEST_ASSERT_EQUAL_STRING("setup", s.mode);
+        TEST_ASSERT_TRUE(wifi.setup_mode());
     }
-
-    TEST_ASSERT_TRUE_MESSAGE(recovered, "WifiManager::maintain() failed to reconnect");
 }
 
 void setup()
 {
-    // Wait for hardware to stabilize
     delay(2000);
+    Serial.begin(115200);
 
     UNITY_BEGIN();
-    RUN_TEST(test_wifi_initial_state_disconnected);
-    RUN_TEST(test_wifi_connect_logic);
-    RUN_TEST(test_wifi_get_ip_valid);
-    RUN_TEST(test_wifi_maintain_reconnect);
+    RUN_TEST(test_begin_returns_at_once);
+    RUN_TEST(test_plan_reaches_setup_or_connected);
+    RUN_TEST(test_status_matches_mode);
     UNITY_END();
 }
 

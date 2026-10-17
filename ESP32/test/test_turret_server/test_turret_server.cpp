@@ -1,7 +1,6 @@
 #include "camera.h" // Your Camera class
 #include "camera_task.h"
 #include "frame_store.h"
-#include "secrets.h" // For WIFI_SSID, WIFI_PASSWORD
 #include "turret_server.h"
 #include "wifi_manager.h" // Your Network class
 #include <Arduino.h>
@@ -10,6 +9,7 @@
 HttpServer* test_server;
 Camera* test_camera;
 FrameStore* test_store;
+WifiManager test_wifi;
 CameraTaskStats test_camera_stats;
 
 // Runs before every test
@@ -49,19 +49,27 @@ void test_live_interaction(void)
     TEST_ASSERT_TRUE_MESSAGE(test_store->begin(), "FrameStore failed to initialize");
     TEST_ASSERT_TRUE_MESSAGE(start_camera_task(*test_store, test_camera_stats), "Camera task failed to start");
 
-    while (WiFi.status() != WL_CONNECTED)
+    // Wait (up to 40 s) for the plan to reach Connected or Setup; maintain() drives it.
+    const uint32_t wait_start = millis();
+    while (millis() - wait_start < 40000)
     {
-        delay(500);
-        Serial.print(".");
+        test_wifi.maintain();
+        const prov::PlanState st = test_wifi.plan_state();
+        if (st == prov::PlanState::Connected || st == prov::PlanState::Setup)
+        {
+            break;
+        }
+        delay(5);
     }
 
     // Start Server
-    test_server->start(*test_store);
+    test_server->start(*test_store, nullptr, nullptr, nullptr, &test_wifi);
+    const WifiManager::Status wifi_status = test_wifi.status();
 
     Serial.println("\n==========================================");
     Serial.println("LIVE TEST ACTIVE FOR 60 SECONDS");
-    Serial.printf("STREAM: http://%s/stream\n", WifiManager::get_ip().c_str());
-    Serial.printf("MOVE:   http://%s/move?pan=90&tilt=45\n", WifiManager::get_ip().c_str());
+    Serial.printf("STREAM: http://%s/stream\n", wifi_status.ip);
+    Serial.printf("MOVE:   http://%s/move?pan=90&tilt=45\n", wifi_status.ip);
     Serial.println("==========================================\n");
 
     // Keep the test alive for 1 minute to allow manual browser check
@@ -73,8 +81,8 @@ void setup()
     delay(2000);
     Serial.begin(115200);
 
-    // This sets up the LwIP stack (the "mbox") so the server doesn't crash
-    WifiManager::connect(WIFI_SSID, WIFI_PASSWORD);
+    // This sets up the LwIP stack (the "mbox") so the server doesn't crash; returns at once
+    test_wifi.begin();
 
     UNITY_BEGIN();
 
