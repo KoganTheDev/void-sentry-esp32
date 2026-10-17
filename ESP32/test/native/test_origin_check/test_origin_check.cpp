@@ -64,11 +64,47 @@ static void test_empty_host_with_origin_rejected(void)
 static void test_lengths_respected(void)
 {
     // Not NUL-terminated and followed by junk: only the given lengths count.
-    const char origin[] = {'h', 't', 't', 'p', ':', '/', '/', 'a', 'b', 'X', 'X'};
-    const char host[] = {'a', 'b', 'Y', 'Y'};
-    TEST_ASSERT_TRUE(origin_allowed(origin, 9, host, 2));
-    TEST_ASSERT_FALSE(origin_allowed(origin, 10, host, 2)); // trailing byte is part of the origin
-    TEST_ASSERT_FALSE(origin_allowed(origin, 9, host, 3));  // host longer than the origin's host part
+    const char origin[] = {'h', 't', 't', 'p', ':', '/', '/', '1', '.', '2', '.', '3', '.', '4', 'X', 'X'};
+    const char host[] = {'1', '.', '2', '.', '3', '.', '4', 'Y', 'Y'};
+    TEST_ASSERT_TRUE(origin_allowed(origin, 14, host, 7));
+    TEST_ASSERT_FALSE(origin_allowed(origin, 15, host, 7)); // trailing byte is part of the origin
+    TEST_ASSERT_FALSE(origin_allowed(origin, 14, host, 8)); // host longer than the origin's host part
+}
+
+static void test_dns_rebinding_rejected(void)
+{
+    TEST_ASSERT_FALSE(allowed("http://evil.com", "evil.com"));
+    TEST_ASSERT_FALSE(allowed("http://localhost", "localhost"));
+    TEST_ASSERT_FALSE(allowed("http://localhost:80", "localhost:80"));
+}
+
+static void test_ipv4_host_with_matching_origin_allowed(void)
+{
+    TEST_ASSERT_TRUE(allowed("http://192.168.1.65", "192.168.1.65"));
+    TEST_ASSERT_TRUE(allowed("http://192.168.1.65:80", "192.168.1.65:80"));
+}
+
+static void test_malformed_ipv4_hosts_rejected(void)
+{
+    const char* bad[] = {"256.1.1.1", "1.2.3",    "1.2.3.4.", "1.2.3.4:",  "1.2.3.4:99999", "01234.1.1.1",
+                         "1..3.4",    "+1.2.3.4", "-1.2.3.4", "1.2.3.4:0", "[::1]",         "1.2.3.4:80a"};
+    for (const char* h : bad)
+    {
+        char origin[64] = "http://";
+        std::strcat(origin, h);
+        TEST_ASSERT_FALSE_MESSAGE(allowed(origin, h), h);
+    }
+    TEST_ASSERT_FALSE(is_ipv4_host(nullptr, 0));
+}
+
+static void test_is_ipv4_host_limits(void)
+{
+    TEST_ASSERT_TRUE(is_ipv4_host("0.0.0.0", 7));
+    TEST_ASSERT_TRUE(is_ipv4_host("255.255.255.255:65535", 21));
+    TEST_ASSERT_TRUE(is_ipv4_host("1.2.3.4:1", 9));
+    TEST_ASSERT_FALSE(is_ipv4_host("1.2.3.4:65536", 13));
+    TEST_ASSERT_TRUE(is_ipv4_host("1.2.3.4:5", 7));  // length respected: stops before ":5"
+    TEST_ASSERT_FALSE(is_ipv4_host("1.2.3.4:5", 8)); // ends at the colon
 }
 
 int main(int argc, char** argv)
@@ -82,5 +118,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_no_origin_allowed);
     RUN_TEST(test_empty_host_with_origin_rejected);
     RUN_TEST(test_lengths_respected);
+    RUN_TEST(test_dns_rebinding_rejected);
+    RUN_TEST(test_ipv4_host_with_matching_origin_allowed);
+    RUN_TEST(test_malformed_ipv4_hosts_rejected);
+    RUN_TEST(test_is_ipv4_host_limits);
     return UNITY_END();
 }
