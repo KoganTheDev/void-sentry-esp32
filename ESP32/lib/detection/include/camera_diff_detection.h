@@ -4,15 +4,22 @@
 #include "motion_detector.h"
 #include "tracker.h"
 
+#include <atomic>
+#include <cstdint>
+
 #include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+class FrameStore;
 
 /**
  * @class CameraDiffDetection
  * @brief Motion detection and persistent single-target tracking on camera frames.
  * @details Each frame: JPEG -> 40x30 gray (jpeg_gray), MotionDetector, Tracker. The pipeline state is
  * allocated once in internal RAM by begin() (~12.6 KB at 40x30; tracking measured 0.6 ms there versus 1.1 ms in PSRAM);
- * nothing is allocated per frame. detect_object() runs in loop(); the snapshot and stats getters may be called from
- * other tasks.
+ * nothing is allocated per frame. After start_task(), a dedicated "detect" task (core 1, priority 3) owns the pipeline
+ * and calls detect_object() on every new published frame; the snapshot and stats getters and reset() may be called
+ * from any task.
  */
 class CameraDiffDetection : public BaseDetectionModule
 {
@@ -28,7 +35,20 @@ public:
     /** @brief Analyse one frame; returns the direction toward the tracked target (None when there is none). */
     std::tuple<MoveX, MoveY> detect_object(camera_buffer_t frame) override;
 
-    /** @brief Reset detector and tracker and publish an Idle snapshot (loop task only). */
+    /**
+     * @brief Create the "detect" task (core 1, priority 3, 4096 B stack) and subscribe it to the store.
+     * @details The task sleeps until FrameStore::publish wakes it, then analyses the newest unseen frame. Idempotent.
+     * Call after begin() and after the frame pipeline is running; @p store must outlive this object.
+     * @return false if begin() has not succeeded, the task cannot be created or the store has no free subscriber slot.
+     */
+    bool start_task(FrameStore& store);
+
+    /**
+     * @brief Request a reset of detector and tracker plus an Idle snapshot.
+     * @details Sets a flag and wakes the detection task. Safe from any task. Called from loop() (core 1, priority 1)
+     * the higher-priority detect task preempts the caller, applies the reset and publishes Idle before reset()
+     * returns, so it is synchronous in practice. The task's 200 ms wait timeout remains a backstop.
+     */
     void reset() override;
 
     TrackSnapshot get_track_snapshot() const override;
@@ -41,10 +61,17 @@ private:
         tracking::Tracker tracker;
     };
 
+    static void task_entry(void* arg);
+    void task_loop();
+    /** @brief Detection task only: reset the pipeline and publish an Idle snapshot. */
+    void apply_reset();
+
     Pipeline* _pipeline = nullptr;
+    FrameStore* _store = nullptr;
+    TaskHandle_t _task = nullptr;
+    std::atomic<bool> _reset_requested{false};
+    uint32_t _last_sequence = 0; ///< detection task only
     mutable portMUX_TYPE _lock = portMUX_INITIALIZER_UNLOCKED;
     TrackSnapshot _snapshot;
     DetectionStats _stats;
-    uint64_t _decode_us_total = 0;
-    uint64_t _track_us_total = 0;
 };

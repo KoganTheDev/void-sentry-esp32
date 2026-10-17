@@ -78,9 +78,50 @@ void FrameStore::publish(size_t slot, const frames::FrameMeta& meta)
         Lock lock(mutex_);
         slots_.publish(slot, meta);
     }
-    if (subscriber_ != nullptr)
+    for (const std::atomic<TaskHandle_t>& slot : this->subscribers_)
     {
-        xTaskNotifyGive(subscriber_);
+        TaskHandle_t task = slot.load();
+        if (task != nullptr)
+        {
+            xTaskNotifyGive(task);
+        }
+    }
+}
+
+bool FrameStore::add_subscriber(TaskHandle_t task)
+{
+    if (task == nullptr)
+    {
+        return false;
+    }
+    for (const std::atomic<TaskHandle_t>& slot : this->subscribers_)
+    {
+        if (slot.load() == task)
+        {
+            return true; // already registered
+        }
+    }
+    for (std::atomic<TaskHandle_t>& slot : this->subscribers_)
+    {
+        TaskHandle_t expected = nullptr;
+        if (slot.compare_exchange_strong(expected, task))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void FrameStore::remove_subscriber(TaskHandle_t task)
+{
+    if (task == nullptr)
+    {
+        return;
+    }
+    for (std::atomic<TaskHandle_t>& slot : this->subscribers_)
+    {
+        TaskHandle_t expected = task;
+        slot.compare_exchange_strong(expected, nullptr);
     }
 }
 

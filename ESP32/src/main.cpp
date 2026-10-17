@@ -5,6 +5,8 @@
 #include "pins.h"
 #include "turret.h"
 #include <Arduino.h>
+#include <atomic>
+#include <esp_freertos_hooks.h>
 #include <esp_log.h>
 #include <esp_system.h>
 
@@ -18,6 +20,23 @@
 
 static const char* TAG_MAIN = "MAIN";
 
+// Per-core idle share, sampled: each core's 1 kHz tick hook checks whether the task it interrupted is that core's
+// IDLE task. FreeRTOS run-time stats are off in the precompiled SDK; this is how a saturated core 0 (IDLE0 starved
+// -> task watchdog) shows up in the stats line before it aborts. Tasks that wake on the tick and finish within it
+// (the motor task) are never sampled, so busy time is slightly under-counted.
+static std::atomic<uint32_t> tick_samples[portNUM_PROCESSORS];
+static std::atomic<uint32_t> idle_samples[portNUM_PROCESSORS];
+
+static void IRAM_ATTR idle_sample_hook()
+{
+    const BaseType_t core = xPortGetCoreID();
+    tick_samples[core].fetch_add(1, std::memory_order_relaxed);
+    if (xTaskGetCurrentTaskHandleForCPU(core) == xTaskGetIdleTaskHandleForCPU(core))
+    {
+        idle_samples[core].fetch_add(1, std::memory_order_relaxed);
+    }
+}
+
 Servo servo;
 Turret turret(servo);
 CameraDiffDetection detection_manager;
@@ -27,7 +46,7 @@ Camera camera;
 FrameStore frame_store;
 CameraTaskStats camera_stats;
 
-Controller controller(turret, detection_manager, joystick, frame_store);
+Controller controller(turret, detection_manager, joystick);
 
 // One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
 static void log_stream_stats()
@@ -53,6 +72,29 @@ static void log_stream_stats()
     const uint32_t jpeg_b_avg = d_copies ? (bytes - prev_bytes) / d_copies : 0;
     prev_copies = copies;
     prev_bytes = bytes;
+    // Per-window detection timings (since-boot averages hid the Stage 3 slowdown).
+    static uint32_t prev_det_frames = 0;
+    static uint64_t prev_decode_total = 0;
+    static uint64_t prev_track_total = 0;
+    const uint32_t det_frames = det.frames - prev_det_frames;
+    const uint32_t dec_win_us = det_frames ? (uint32_t)((det.decode_us_total - prev_decode_total) / det_frames) : 0;
+    const uint32_t trk_win_us = det_frames ? (uint32_t)((det.track_us_total - prev_track_total) / det_frames) : 0;
+    prev_det_frames = det.frames;
+    prev_decode_total = det.decode_us_total;
+    prev_track_total = det.track_us_total;
+    // Per-window idle % per core.
+    static uint32_t prev_ticks[portNUM_PROCESSORS] = {};
+    static uint32_t prev_idle[portNUM_PROCESSORS] = {};
+    unsigned idle_pct[portNUM_PROCESSORS];
+    for (int core = 0; core < portNUM_PROCESSORS; ++core)
+    {
+        const uint32_t ticks = tick_samples[core].load(std::memory_order_relaxed);
+        const uint32_t idle = idle_samples[core].load(std::memory_order_relaxed);
+        const uint32_t d_ticks = ticks - prev_ticks[core];
+        idle_pct[core] = d_ticks ? (unsigned)((uint64_t)(idle - prev_idle[core]) * 100 / d_ticks) : 0;
+        prev_ticks[core] = ticks;
+        prev_idle[core] = idle;
+    }
     const aiming::Angles pose = turret.position_deg();
     const ControlStatus ctl = controller.control_status();
     ESP_LOGI(
@@ -69,12 +111,18 @@ static void log_stream_stats()
         (unsigned)det.decode_failures, tracking::to_string(track.state), (unsigned)track.id, to_string(ctl.mode),
         (double)pose.pan, (double)pose.tilt, (double)turret.pan_speed(), (unsigned)turret.late_ticks(),
         (unsigned)turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
+    // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
+    ESP_LOGI(TAG_MAIN, "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d",
+             (unsigned)det_frames, (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free, idle_pct[0],
+             idle_pct[1], (int)WiFi.RSSI());
 }
 
 void setup()
 {
     Serial.begin(BAUDRATE);
     delay(100);
+    esp_register_freertos_tick_hook_for_cpu(idle_sample_hook, 0);
+    esp_register_freertos_tick_hook_for_cpu(idle_sample_hook, 1);
 
     ESP_LOGI(TAG_MAIN, "====================================");
     ESP_LOGI(TAG_MAIN, "==== SMART CAMERA TURRET SYSTEM ====");
@@ -103,9 +151,12 @@ void setup()
     if (!camera.begin())
     {
         ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Camera initialization failed - continuing without video");
-    } else if (!frame_store.begin() || !start_camera_task(frame_store, camera_stats))
+    } else if (!frame_store.begin())
     {
-        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame pipeline failed to start - continuing without video");
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: Frame store not ready (PSRAM slots) - continuing without video");
+    } else if (!start_camera_task(frame_store, camera_stats))
+    {
+        ESP_LOGE(TAG_MAIN, "CRITICAL ERROR: start_camera_task failed - continuing without video");
     } else
     {
         ESP_LOGI(TAG_MAIN, "Camera and frame pipeline running");
@@ -114,6 +165,9 @@ void setup()
     if (!detection_manager.begin())
     {
         ESP_LOGE(TAG_MAIN, "Tracking pipeline allocation failed - continuing without detection");
+    } else if (!frame_store.ready() || !detection_manager.start_task(frame_store))
+    {
+        ESP_LOGE(TAG_MAIN, "Detection task failed to start - continuing without detection");
     }
 
     // Connect WiFi

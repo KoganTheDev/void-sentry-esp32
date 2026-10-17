@@ -1,6 +1,7 @@
 #include "camera_diff_detection.h"
 
 #include "direction.h"
+#include "frame_store.h"
 #include "jpeg_gray.h"
 
 #include <algorithm>
@@ -110,21 +111,82 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
     {
         ++this->_stats.scene_changes;
     }
-    this->_decode_us_total += static_cast<uint64_t>(t1 - t0);
-    this->_track_us_total += static_cast<uint64_t>(t2 - t1);
-    this->_stats.decode_us_avg = static_cast<uint32_t>(this->_decode_us_total / this->_stats.frames);
-    this->_stats.track_us_avg = static_cast<uint32_t>(this->_track_us_total / this->_stats.frames);
+    this->_stats.decode_us_total += static_cast<uint64_t>(t1 - t0);
+    this->_stats.track_us_total += static_cast<uint64_t>(t2 - t1);
+    this->_stats.decode_us_avg = static_cast<uint32_t>(this->_stats.decode_us_total / this->_stats.frames);
+    this->_stats.track_us_avg = static_cast<uint32_t>(this->_stats.track_us_total / this->_stats.frames);
     portEXIT_CRITICAL(&this->_lock);
 
     return tracking::direction_for(track);
 }
 
-void CameraDiffDetection::reset()
+bool CameraDiffDetection::start_task(FrameStore& store)
 {
+    if (this->_task != nullptr)
+    {
+        return true;
+    }
     if (!this->_pipeline)
     {
-        return;
+        ESP_LOGE(TAG, "start_task() called before begin()");
+        return false;
     }
+    this->_store = &store;
+    TaskHandle_t task = nullptr;
+    if (xTaskCreatePinnedToCore(task_entry, "detect", 4096, this, 3, &task, 1) != pdPASS)
+    {
+        ESP_LOGE(TAG, "Failed to create the detection task");
+        return false;
+    }
+    if (!store.add_subscriber(task))
+    {
+        ESP_LOGE(TAG, "FrameStore subscriber slots are full");
+        vTaskDelete(task);
+        return false;
+    }
+    this->_task = task;
+    return true;
+}
+
+void CameraDiffDetection::task_entry(void* arg) { static_cast<CameraDiffDetection*>(arg)->task_loop(); }
+
+void CameraDiffDetection::task_loop()
+{
+    uint32_t processed = 0;
+    for (;;)
+    {
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(200)); // woken by FrameStore::publish; timeout serves reset requests
+
+        if (this->_reset_requested.exchange(false))
+        {
+            this->apply_reset();
+        }
+
+        std::optional<frames::FrameLease> lease = this->_store->acquire_latest();
+        if (!lease || lease->meta().sequence == this->_last_sequence)
+        {
+            continue;
+        }
+        this->_last_sequence = lease->meta().sequence;
+
+        camera_buffer_t fb{const_cast<uint8_t*>(this->_store->data(*lease)), lease->meta().length, lease->meta().width,
+                           lease->meta().height};
+        this->detect_object(fb); // the result is read back as a track snapshot
+        lease.reset();
+
+        if (++processed % 100 == 0)
+        {
+            // StackType_t is uint8_t on ESP-IDF, so the high-water mark is in bytes.
+            const uint32_t free_bytes = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr));
+            portENTER_CRITICAL(&this->_lock);
+            this->_stats.stack_free = free_bytes;
+            portEXIT_CRITICAL(&this->_lock);
+        }
+    }
+}
+
+void CameraDiffDetection::apply_reset()
+{
     this->_pipeline->detector.reset();
     this->_pipeline->tracker.reset();
     portENTER_CRITICAL(&this->_lock);
@@ -133,6 +195,17 @@ void CameraDiffDetection::reset()
     idle.frame_height = this->_snapshot.frame_height;
     this->_snapshot = idle;
     portEXIT_CRITICAL(&this->_lock);
+}
+
+void CameraDiffDetection::reset()
+{
+    this->_reset_requested.store(true);
+    // Wake the detect task (priority 3) so it preempts the caller on core 1, applies the reset and publishes Idle
+    // before this returns; otherwise a caller in the same loop() pass could still read a stale Locked snapshot.
+    if (this->_task)
+    {
+        xTaskNotifyGive(this->_task);
+    }
 }
 
 TrackSnapshot CameraDiffDetection::get_track_snapshot() const

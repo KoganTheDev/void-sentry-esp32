@@ -65,7 +65,8 @@ bool start_camera_task(FrameStore& store, CameraTaskStats& stats)
 {
     g_context.store = &store;
     g_context.stats = &stats;
-    if (xTaskCreatePinnedToCore(camera_task, "camera", 4096, nullptr, 2, nullptr, 1) != pdPASS)
+    // Priority 4: above the detection task (3) because the copy is short and returns the driver buffer.
+    if (xTaskCreatePinnedToCore(camera_task, "camera", 4096, nullptr, 4, nullptr, 1) != pdPASS)
     {
         ESP_LOGE(TAG_CAMERA_TASK, "Failed to create camera task");
         return false;

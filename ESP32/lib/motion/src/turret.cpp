@@ -60,7 +60,9 @@ bool Turret::begin()
     this->_servo.attach(pins::SERVO);
     this->_servo.write(this->_servo_written);
 
-    if (xTaskCreatePinnedToCore(task_entry, "motor", 3072, this, 3, &this->_task, 0) != pdPASS)
+    // Priority 7: above httpd (5) now that httpd shares core 0, below lwIP (18), esp_timer (22) and WiFi (23).
+    // One tick is ~10-20 us of work, so the higher priority is cheap.
+    if (xTaskCreatePinnedToCore(task_entry, "motor", 3072, this, 7, &this->_task, 0) != pdPASS)
     {
         this->_task = nullptr;
         ESP_LOGE(TAG, "motor task creation failed");

@@ -16,7 +16,7 @@
  * @brief Non-blocking turret: callers post commands, a 1 kHz motor task executes them.
  * @details Why a task: the Arduino stepper library blocks for the whole move (about 15 ms per command), which
  * stalled frame detection in loop(). Here loop() only writes a small command mailbox; the motor task (core 0,
- * priority 3) ticks an aiming::StepPlanner every millisecond, drives the four ULN2003 coil pins itself and moves the
+ * priority 7) ticks an aiming::StepPlanner every millisecond, drives the four ULN2003 coil pins itself and moves the
  * servo at 50 Hz with a rate limit.
  * Why the coils are released: a 28BYJ-48 held energized at standstill draws current continuously and heats up, so
  * all four pins go LOW 500 ms after the last step. Its gear train holds the position unpowered.

@@ -17,5 +17,8 @@ struct CameraTaskStats {
     std::atomic<uint32_t> bytes_total{0};   // JPEG bytes copied (wraps after ~4 GB; use per-window deltas)
 };
 
-/** @brief Start the camera task (core 1, priority 2, 4096-byte stack). Call after esp_camera init succeeded. */
+/**
+ * @brief Start the camera task (core 1, priority 4, 4096-byte stack). Call after esp_camera init succeeded.
+ * @details Priority 4 is above detection (3): the copy is short and returns the driver buffer.
+ */
 bool start_camera_task(FrameStore& store, CameraTaskStats& stats);
