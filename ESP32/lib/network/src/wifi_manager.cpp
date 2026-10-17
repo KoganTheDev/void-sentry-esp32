@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <esp_system.h>
+#include <esp_wifi.h>
 
 static const char* TAG = "WIFI_MANAGER";
 
@@ -9,6 +10,7 @@ namespace
 {
 constexpr uint32_t kScanTimeoutMs = 20000;
 constexpr uint32_t kScanCacheMs = 10000;
+constexpr uint32_t kHotspotRetryMs = 5000;  // retry delay after a refused hotspot start
 constexpr uint32_t kHotspotGraceMs = 10000; // keep the hotspot after a join so the phone's page can read the new IP
 
 /** @brief RAII holder for the manager mutex (tolerates a null handle if creation failed). */
@@ -35,6 +37,16 @@ public:
 private:
     SemaphoreHandle_t _m;
 };
+
+/** @brief Overwrites the heap buffer of a String holding a password (volatile writes the optimiser cannot drop). */
+void wipe_string(String& s)
+{
+    volatile char* p = const_cast<char*>(s.c_str());
+    for (size_t i = 0; i < s.length(); ++i)
+    {
+        p[i] = 0;
+    }
+}
 
 /** @brief Maps a disconnect reason seen while joining to a plan failure; false for reasons to ignore. */
 bool classify_reason(uint8_t reason, prov::JoinFail& out)
@@ -75,8 +87,16 @@ void WifiManager::on_wifi_event(arduino_event_id_t event, arduino_event_info_t i
         self->_ev_got_ip.store(true);
     } else if (event == ARDUINO_EVENT_WIFI_STA_DISCONNECTED)
     {
-        self->_ev_reason.store(info.wifi_sta_disconnected.reason);
-        self->_ev_disc.store(true);
+        if (info.wifi_sta_disconnected.reason == WIFI_REASON_ASSOC_LEAVE)
+        {
+            // Our own WiFi.begin()/disconnect() (or an AP leaving): never a join failure and it must not overwrite a
+            // meaningful reason. It only matters for detecting that a live connection dropped.
+            self->_ev_leave.store(true);
+        } else
+        {
+            self->_ev_reason.store(info.wifi_sta_disconnected.reason);
+            self->_ev_disc.store(true);
+        }
     }
 }
 
@@ -93,7 +113,7 @@ void WifiManager::begin()
     WiFi.onEvent(on_wifi_event);
     WiFi.mode(WIFI_STA);
     WiFi.setSleep(false); // modem power-save batches packets/ACKs to DTIM wakeups (~100 ms), ruining stream latency
-    WiFi.setAutoReconnect(true);
+    WiFi.setAutoReconnect(false); // only enabled while Connected/Lost (see maintain())
 
     uint8_t mac[6] = {};
     WiFi.macAddress(mac);
@@ -121,14 +141,23 @@ void WifiManager::maintain()
         this->poll_scan(now);
 
         const prov::PlanState st = this->_plan.state();
-        if (st == prov::PlanState::Connected)
+        if (st != this->_prev_state)
         {
-            this->_sta_joining = false;
-        } else if (st == prov::PlanState::Setup && this->_sta_joining)
+            // The core's auto-reconnect races with plan-driven joins, so it runs only while Connected/Lost.
+            WiFi.setAutoReconnect(st == prov::PlanState::Connected || st == prov::PlanState::Lost);
+            if (st == prov::PlanState::Setup)
+            {
+                // Every entry into Setup: stop the STA retrying (it would hop channels under the hotspot) and drop
+                // any half-open link, so only the plan's rescans try to connect while the hotspot is up.
+                WiFi.disconnect(false, false);
+            }
+            this->_prev_state = st;
+        }
+
+        if (this->_plan.hotspot_up() && !this->_hotspot_running && this->_hotspot_failed &&
+            (int32_t)(now - this->_hotspot_retry_ms) >= 0)
         {
-            // Gave up on a network: stop the STA retrying (it would hop channels under the hotspot).
-            WiFi.disconnect(false, false);
-            this->_sta_joining = false;
+            this->start_hotspot(); // an earlier start was refused (no password or softAP failure): keep trying
         }
 
         if (this->_stop_pending)
@@ -152,6 +181,11 @@ void WifiManager::maintain()
 
 void WifiManager::process_events(uint32_t now)
 {
+    if (this->_ev_leave.exchange(false) && this->_plan.state() == prov::PlanState::Connected)
+    {
+        ESP_LOGW(TAG, "WiFi connection lost (assoc leave)");
+        this->apply(this->_plan.on_disconnected(now), now);
+    }
     if (this->_ev_disc.exchange(false))
     {
         const uint8_t reason = this->_ev_reason.load();
@@ -182,7 +216,7 @@ void WifiManager::process_events(uint32_t now)
             strlcpy(this->_cur_ssid, ssid.c_str(), sizeof(this->_cur_ssid));
             strlcpy(this->_cur_ip, ip.c_str(), sizeof(this->_cur_ip));
             ESP_LOGI(TAG, "Connected to '%s', IP %s", this->_cur_ssid, this->_cur_ip);
-            if (before == prov::PlanState::Joining)
+            if (before == prov::PlanState::Joining || before == prov::PlanState::Setup)
             {
                 const int idx = this->_list.find(this->_cur_ssid, strlen(this->_cur_ssid));
                 if (idx >= 0)
@@ -233,6 +267,15 @@ void WifiManager::poll_scan(uint32_t now)
         }
         this->_scan_running = false;
         prov::Candidates cand;
+        // Remember which SSID each list index meant at scan time (see apply(): the list may change before a join).
+        for (size_t i = 0; i < prov::kMaxNetworks; ++i)
+        {
+            this->_cand_ssid[i][0] = '\0';
+            if (i < this->_list.size())
+            {
+                strlcpy(this->_cand_ssid[i], this->_list.at(i).ssid, sizeof(this->_cand_ssid[i]));
+            }
+        }
         if (n >= 0)
         {
             this->collect_scan(n, now);
@@ -269,7 +312,8 @@ void WifiManager::poll_scan(uint32_t now)
 
 void WifiManager::apply(prov::Action a, uint32_t now)
 {
-    // A stale candidate index (list edited since the scan) counts as a failed join; at most 3 candidates exist.
+    // A stale candidate (list edited since the scan: the index now holds another SSID or none) counts as a failed
+    // join; at most 3 candidates exist.
     for (int guard = 0; guard < 4; ++guard)
     {
         switch (a.kind)
@@ -280,7 +324,8 @@ void WifiManager::apply(prov::Action a, uint32_t now)
             this->_plan_scan_pending = true;
             return;
         case prov::ActionKind::Join:
-            if (a.network >= this->_list.size())
+            if (a.network >= this->_list.size() || a.network >= prov::kMaxNetworks ||
+                strcmp(this->_list.at(a.network).ssid, this->_cand_ssid[a.network]) != 0)
             {
                 a = this->_plan.on_join_failed(prov::JoinFail::Other, now);
                 continue;
@@ -303,9 +348,13 @@ void WifiManager::do_join(const prov::NetworkEntry& e)
     strlcpy(this->_joining_ssid, e.ssid, sizeof(this->_joining_ssid));
     this->_ev_disc.store(false);
     this->_ev_got_ip.store(false);
-    this->_sta_joining = true;
     ESP_LOGI(TAG, "Joining '%s'", e.ssid);
-    WiFi.begin(e.ssid, e.pass[0] != '\0' ? e.pass : nullptr);
+    const wl_status_t st = WiFi.begin(e.ssid, e.pass[0] != '\0' ? e.pass : nullptr);
+    if (st == WL_CONNECTED && WiFi.SSID().equals(e.ssid))
+    {
+        // Already connected to this network (e.g. by the core's auto-reconnect): begin() sends no new GOT_IP.
+        this->_ev_got_ip.store(true);
+    }
 }
 
 void WifiManager::start_hotspot()
@@ -315,14 +364,28 @@ void WifiManager::start_hotspot()
     {
         return;
     }
-    const String pw = this->_store.hotspot_password();
+    String pw = this->_store.hotspot_password();
+    if (pw.length() < 8) // WPA2 minimum; the store returns an empty string when NVS failed
+    {
+        // Never open an unprotected AP: anyone nearby could join and set the first PIN.
+        ESP_LOGE(TAG, "No hotspot password available, not starting the setup hotspot (will retry)");
+        wipe_string(pw);
+        this->_hotspot_failed = true;
+        this->_hotspot_retry_ms = millis() + kHotspotRetryMs;
+        return;
+    }
     WiFi.mode(WIFI_AP_STA); // AP+STA: background scans and test joins keep working while the hotspot is up
     WiFi.setSleep(false);
     if (!WiFi.softAP(this->_hotspot_ssid, pw.c_str()))
     {
-        ESP_LOGE(TAG, "Failed to start the setup hotspot");
+        ESP_LOGE(TAG, "Failed to start the setup hotspot (will retry)");
+        wipe_string(pw);
+        this->_hotspot_failed = true;
+        this->_hotspot_retry_ms = millis() + kHotspotRetryMs;
         return;
     }
+    this->_hotspot_failed = false;
+    this->_ui_scan_wanted = true; // first scan right away so the setup page has a list on its first requests
     this->_dns.setErrorReplyCode(DNSReplyCode::NoError);
     this->_dns.start(53, "*", WiFi.softAPIP());
     this->_hotspot_running = true;
@@ -330,6 +393,7 @@ void WifiManager::start_hotspot()
     // The hotspot password is printed here and nowhere else.
     Serial.printf("[WIFI] Setup mode. Hotspot SSID: %s  password: %s  page: http://192.168.4.1/wifi\n",
                   this->_hotspot_ssid, pw.c_str());
+    wipe_string(pw);
 }
 
 void WifiManager::stop_hotspot()
@@ -379,6 +443,7 @@ void WifiManager::factory_reset()
         Lock lock(this->_mutex);
         this->_store.erase_all();
     }
+    esp_wifi_restore(); // also drop the WiFi driver's own stored STA config (older firmware used persistent(true))
     Serial.println("[WIFI] wifi-reset: saved networks and PIN erased, restarting");
     Serial.flush();
     ESP.restart();
@@ -509,11 +574,24 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
     const bool had_pin = this->_pin.record().set;
     if (!had_pin)
     {
+        // A first PIN is accepted only while the hotspot is up (physical proximity) or nothing is saved yet;
+        // otherwise any LAN client could take over a board whose PIN record was lost.
+        if (!this->_hotspot_flag.load() && this->_list.size() > 0)
+        {
+            out.result = Result::WrongPin;
+            return out;
+        }
         uint8_t salt[prov::kSaltLen];
         esp_fill_random(salt, sizeof(salt));
         if (!this->_pin.set_pin(pin, pin_len, salt))
         {
             return out; // BadInput: the first add must carry a valid new PIN
+        }
+        if (!this->_store.save_pin(this->_pin.record()))
+        {
+            ESP_LOGE(TAG, "Could not persist the new PIN, not saving the network");
+            this->_pin = prov::PinGuard(prov::PinRecord{});
+            return out;
         }
     } else
     {
@@ -536,10 +614,6 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
         return out;
     }
     this->_store.save_nets(this->_list);
-    if (!had_pin)
-    {
-        this->_store.save_pin(this->_pin.record());
-    }
     this->_added_pending = true;
     ESP_LOGI(TAG, "Saved network '%.*s'", (int)ssid_len, ssid);
     out.result = Result::Ok;

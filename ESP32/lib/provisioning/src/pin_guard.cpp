@@ -17,7 +17,13 @@ std::array<uint8_t, kHashLen> salted_hash(const uint8_t (&salt)[kSaltLen], const
     {
         std::memcpy(buf + kSaltLen, pin, len);
     }
-    return sha256(buf, kSaltLen + len);
+    const auto h = sha256(buf, kSaltLen + len);
+    volatile uint8_t* w = buf; // the optimiser may not drop writes through a volatile pointer
+    for (size_t i = 0; i < sizeof(buf); ++i)
+    {
+        w[i] = 0;
+    }
+    return h;
 }
 } // namespace
 

@@ -729,10 +729,68 @@ void test_plan_inapplicable_events_do_nothing(void)
     expect_state(PlanState::Joining, j);
 
     WifiPlan s = setup_plan(0);
-    expect_action(ActionKind::None, s.on_joined(10));
     expect_action(ActionKind::None, s.on_join_failed(JoinFail::Other, 10));
     expect_action(ActionKind::None, s.on_disconnected(10));
     expect_state(PlanState::Setup, s);
+}
+
+void test_plan_joined_in_setup_connects_and_stops_hotspot(void)
+{
+    // Review finding 1: the core's auto-reconnect can succeed while the hotspot is up; that must leave Setup.
+    WifiPlan p = setup_plan(0);
+    TEST_ASSERT_TRUE(p.hotspot_up());
+    expect_action(ActionKind::StopHotspot, p.on_joined(10));
+    expect_state(PlanState::Connected, p);
+    TEST_ASSERT_FALSE(p.hotspot_up());
+    // Setup timers no longer fire once connected.
+    expect_action(ActionKind::None, p.tick(1000000));
+}
+
+void test_plan_added_network_clears_stale_failure(void)
+{
+    WifiPlan p = setup_plan(0);
+    p.on_scan_done(cands({0}), 1000);
+    p.on_join_failed(JoinFail::WrongPassword, 2000);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::WrongPassword), static_cast<int>(p.last_failure()));
+    expect_action(ActionKind::StartScan, p.on_network_added(3000));
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::None), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_added_network_not_found_after_empty_scan(void)
+{
+    WifiPlan p = setup_plan(0);
+    p.on_network_added(1000);
+    expect_action(ActionKind::None, p.on_scan_done(Candidates{}, 5000));
+    expect_state(PlanState::Setup, p);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::NotFound), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_periodic_empty_scan_records_no_failure(void)
+{
+    WifiPlan p = setup_plan(0);
+    expect_action(ActionKind::StartScan, p.tick(30000));
+    expect_action(ActionKind::None, p.on_scan_done(Candidates{}, 34000));
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::None), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_added_flag_is_consumed_by_one_scan(void)
+{
+    WifiPlan p = setup_plan(0);
+    p.on_network_added(1000);
+    expect_action(ActionKind::Join, p.on_scan_done(cands({1}), 5000));
+    p.on_join_failed(JoinFail::Other, 6000);
+    // A later periodic empty scan must not turn the real failure into NotFound.
+    expect_action(ActionKind::None, p.on_scan_done(Candidates{}, 40000));
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::Other), static_cast<int>(p.last_failure()));
+}
+
+void test_form_has_key_tells_missing_from_invalid(void)
+{
+    TEST_ASSERT_TRUE(form_has_key("ssid=a&password=", 16, "password"));
+    TEST_ASSERT_TRUE(form_has_key("ssid=a&password=%zz", 18, "password"));
+    TEST_ASSERT_FALSE(form_has_key("ssid=a&pin=1234", 15, "password"));
+    TEST_ASSERT_FALSE(form_has_key("ssid=a&xpassword=1", 18, "password"));
+    TEST_ASSERT_FALSE(form_has_key("password", 8, "password"));
 }
 
 int main(int, char**)
@@ -793,5 +851,11 @@ int main(int, char**)
     RUN_TEST(test_plan_failed_setup_join_keeps_hotspot);
     RUN_TEST(test_plan_failed_setup_join_by_timeout_keeps_hotspot);
     RUN_TEST(test_plan_inapplicable_events_do_nothing);
+    RUN_TEST(test_plan_joined_in_setup_connects_and_stops_hotspot);
+    RUN_TEST(test_plan_added_network_clears_stale_failure);
+    RUN_TEST(test_plan_added_network_not_found_after_empty_scan);
+    RUN_TEST(test_plan_periodic_empty_scan_records_no_failure);
+    RUN_TEST(test_plan_added_flag_is_consumed_by_one_scan);
+    RUN_TEST(test_form_has_key_tells_missing_from_invalid);
     return UNITY_END();
 }

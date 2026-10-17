@@ -47,7 +47,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
         // Define Root Route
-        httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = NULL};
+        httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = wifi};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
 
         if (!this->_broadcaster.start(this->_server_handle, store))
@@ -103,6 +103,15 @@ void HttpServer::stop()
  */
 esp_err_t HttpServer::index_handler(httpd_req_t* req)
 {
+    const WifiManager* wifi = static_cast<const WifiManager*>(req->user_ctx);
+    if (wifi != nullptr && wifi->setup_mode())
+    {
+        // Setup mode: whatever hostname a phone opened, the useful page is the WiFi setup page, not the HUD.
+        httpd_resp_set_status(req, "302 Found");
+        httpd_resp_set_hdr(req, "Location", "http://192.168.4.1/wifi");
+        httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+        return httpd_resp_send(req, nullptr, 0);
+    }
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
 

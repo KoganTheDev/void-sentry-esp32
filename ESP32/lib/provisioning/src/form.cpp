@@ -88,6 +88,30 @@ bool form_field(const char* body, size_t len, const char* key, char* out, size_t
     return false;
 }
 
+bool form_has_key(const char* body, size_t len, const char* key)
+{
+    if (body == nullptr || key == nullptr || len > kMaxFormBody)
+    {
+        return false;
+    }
+    const size_t key_len = std::strlen(key);
+    size_t pos = 0;
+    while (pos <= len)
+    {
+        size_t end = pos;
+        while (end < len && body[end] != '&')
+        {
+            ++end;
+        }
+        if (end - pos > key_len && std::memcmp(body + pos, key, key_len) == 0 && body[pos + key_len] == '=')
+        {
+            return true;
+        }
+        pos = end + 1;
+    }
+    return false;
+}
+
 bool valid_ssid(const char* s, size_t len) { return s != nullptr && len >= 1 && len <= 32; }
 
 bool valid_password(const char* s, size_t len)

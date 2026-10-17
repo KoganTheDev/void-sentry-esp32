@@ -33,13 +33,16 @@ public:
     Action start(bool have_saved, uint32_t now_ms);
     /** @brief Scan finished (Scanning, Setup or Lost). Candidates -> Joining; none -> Setup (Scanning only). */
     Action on_scan_done(const Candidates& c, uint32_t now_ms);
-    /** @brief Joining or Lost -> Connected; StopHotspot if the hotspot is up. */
+    /** @brief Joining, Lost or Setup -> Connected; StopHotspot if the hotspot is up. */
     Action on_joined(uint32_t now_ms);
     /** @brief Joining only: next remembered candidate, else Setup (+ StartHotspot if not up). */
     Action on_join_failed(JoinFail why, uint32_t now_ms);
     /** @brief Connected -> Lost (auto-reconnect retries; nothing issued). */
     Action on_disconnected(uint32_t now_ms);
-    /** @brief Setup or Lost -> StartScan; other states only store the network (None). */
+    /**
+     * @brief Setup or Lost -> StartScan (and the last failure is cleared; a scan that then finds no candidate records
+     * NotFound); other states only store the network (None).
+     */
     Action on_network_added(uint32_t now_ms);
     /** @brief Timers: join timeout, Lost -> Setup, Setup rescan. */
     Action tick(uint32_t now_ms);
@@ -55,6 +58,7 @@ private:
     PlanState _state = PlanState::Boot;
     bool _hotspot = false;
     JoinFail _last_fail = JoinFail::None;
+    bool _added_scan = false; // the pending scan was triggered by an added network
     Candidates _cand;
     size_t _next = 0;
     uint32_t _join_ms = 0;

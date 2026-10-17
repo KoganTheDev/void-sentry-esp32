@@ -43,11 +43,17 @@ Action WifiPlan::on_scan_done(const Candidates& c, uint32_t now_ms)
     {
         return Action{};
     }
+    const bool added = _added_scan;
+    _added_scan = false;
     if (c.count > 0)
     {
         _cand = c;
         _next = 0;
         return join_next(now_ms);
+    }
+    if (added && _state != PlanState::Scanning)
+    {
+        _last_fail = JoinFail::NotFound; // the added network is not in range (or the scan failed)
     }
     if (_state == PlanState::Scanning)
     {
@@ -64,11 +70,12 @@ Action WifiPlan::on_scan_done(const Candidates& c, uint32_t now_ms)
 
 Action WifiPlan::on_joined(uint32_t)
 {
-    if (_state != PlanState::Joining && _state != PlanState::Lost)
+    if (_state != PlanState::Joining && _state != PlanState::Lost && _state != PlanState::Setup)
     {
         return Action{};
     }
     _state = PlanState::Connected;
+    _added_scan = false;
     if (_hotspot)
     {
         _hotspot = false;
@@ -124,6 +131,8 @@ Action WifiPlan::on_network_added(uint32_t now_ms)
     {
         _scan_ms = now_ms;
     }
+    _last_fail = JoinFail::None;
+    _added_scan = true;
     return make(ActionKind::StartScan);
 }
 

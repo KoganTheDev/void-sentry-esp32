@@ -128,6 +128,7 @@ private:
     // Event flags written by the arduino_events task.
     std::atomic<bool> _ev_got_ip{false};
     std::atomic<bool> _ev_disc{false};
+    std::atomic<bool> _ev_leave{false}; // ASSOC_LEAVE: kept apart from _ev_reason, see on_wifi_event()
     std::atomic<uint8_t> _ev_reason{0};
     std::atomic<bool> _hotspot_flag{false};
 
@@ -146,7 +147,10 @@ private:
     bool _scan_running = false;
     bool _plan_scan_pending = false;
     uint32_t _scan_start_ms = 0;
-    bool _sta_joining = false;
+    prov::PlanState _prev_state = prov::PlanState::Boot;
+    char _cand_ssid[prov::kMaxNetworks][prov::kSsidMax + 1] = {}; // list SSIDs at the last scan, by list index
+    bool _hotspot_failed = false;
+    uint32_t _hotspot_retry_ms = 0;
     bool _hotspot_running = false;
     bool _stop_pending = false;
     uint32_t _stop_at_ms = 0;

@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <cstdio>
 #include <cstring>
+#include <esp_timer.h>
 
 static const char* TAG_WIFI_HTTP = "WIFI_HTTP";
 
@@ -186,28 +187,32 @@ bool read_form(httpd_req_t* req, char* buf, size_t* len)
         send_json(req, "400 Bad Request", "{\"error\":\"bad request size\"}");
         return false;
     }
-    // A slow client must not hold the single httpd task (it also serves /stream and /commands): allow at most
-    // kMaxRecvTimeouts receive timeouts (recv_wait_timeout each) for the whole body, then give up with 408.
-    constexpr int kMaxRecvTimeouts = 2;
-    int timeouts = 0;
+    // A slow client must not hold the single httpd task (it also serves /stream and /commands). The whole body has
+    // an overall deadline (checked before every receive, so a client trickling single bytes is cut off too); one
+    // receive can still block for recv_wait_timeout (5 s), so the worst case is about kBodyDeadlineUs + 5 s.
+    // A receive timeout, or hitting the deadline, ends the request with 408.
+    constexpr int64_t kBodyDeadlineUs = 3000000;
+    const int64_t deadline = esp_timer_get_time() + kBodyDeadlineUs;
     size_t got = 0;
     while (got < total)
     {
+        if (esp_timer_get_time() >= deadline)
+        {
+            httpd_resp_set_hdr(req, "Connection", "close");
+            send_json(req, "408 Request Timeout", "{\"error\":\"request timeout\"}");
+            return false;
+        }
         const int r = httpd_req_recv(req, buf + got, total - got);
         if (r <= 0)
         {
-            if (r == HTTPD_SOCK_ERR_TIMEOUT && ++timeouts <= kMaxRecvTimeouts)
-            {
-                continue;
-            }
+            httpd_resp_set_hdr(req, "Connection", "close");
             if (r == HTTPD_SOCK_ERR_TIMEOUT)
             {
-                httpd_resp_set_hdr(req, "Connection", "close");
                 send_json(req, "408 Request Timeout", "{\"error\":\"request timeout\"}");
-                return false;
+            } else
+            {
+                send_json(req, "400 Bad Request", "{\"error\":\"bad request\"}");
             }
-            httpd_resp_set_hdr(req, "Connection", "close");
-            send_json(req, "400 Bad Request", "{\"error\":\"bad request\"}");
             return false;
         }
         got += (size_t)r;
@@ -260,8 +265,14 @@ esp_err_t add_handler(httpd_req_t* req)
         err = send_json(req, "400 Bad Request", "{\"error\":\"missing or too long ssid\"}");
     } else
     {
+        // Only a missing password key means an open network; a present but oversized or malformed one is a 400.
+        bool pass_ok = true;
         if (!prov::form_field(body, body_len, "password", pass, sizeof(pass), &pass_len))
         {
+            if (prov::form_has_key(body, body_len, "password"))
+            {
+                pass_ok = false;
+            }
             pass[0] = '\0';
             pass_len = 0;
         }
@@ -270,8 +281,15 @@ esp_err_t add_handler(httpd_req_t* req)
             pin[0] = '\0'; // a missing or oversized PIN is just a wrong one
             pin_len = 0;
         }
-        const WifiManager::Outcome out = manager(req).add(ssid, ssid_len, pass, pass_len, pin, pin_len, millis());
-        err = send_outcome(req, out, "check ssid (1-32 chars), password (empty or 8-63 chars) and pin (4-8 digits)");
+        if (!pass_ok)
+        {
+            err = send_json(req, "400 Bad Request", "{\"error\":\"malformed or too long password\"}");
+        } else
+        {
+            const WifiManager::Outcome out = manager(req).add(ssid, ssid_len, pass, pass_len, pin, pin_len, millis());
+            err =
+                send_outcome(req, out, "check ssid (1-32 chars), password (empty or 8-63 chars) and pin (4-8 digits)");
+        }
     }
     wipe(body, sizeof(body));
     wipe(pass, sizeof(pass));

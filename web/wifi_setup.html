@@ -262,11 +262,24 @@
         });
     }
 
-    function refreshScan() {
+    // The board scans in the background; the first requests after boot may return an empty cache, so an empty
+    // result is retried every 3 s (up to 10 times). After that, scanning happens on demand (Refresh button).
+    var scanRetries = 0;
+    var scanTimer = null;
+
+    function refreshScan(auto) {
+        if (scanTimer) { clearTimeout(scanTimer); scanTimer = null; }
+        if (auto !== true) { scanRetries = 0; }
         $('scan-btn').disabled = true;
         getJson('/api/wifi/scan').then(function (j) {
             var nets = (j.networks || []).slice().sort(function (a, b) { return b.rssi - a.rssi; });
-            renderScan(nets);
+            if (!nets.length && scanRetries < 10) {
+                scanRetries++;
+                $('scan-list').textContent = 'scanning...';
+                scanTimer = setTimeout(function () { refreshScan(true); }, 3000);
+            } else {
+                renderScan(nets);
+            }
         }).catch(function () {
             $('scan-list').textContent = 'scan failed';
         }).then(function () {
@@ -347,18 +360,23 @@
     function pollJoin(ssid) {
         stopJoinPoll();
         var tries = 0;
+        var seenJoining = false;
+        var startedAt = Date.now();
         setMsg('Joining ' + ssid + '...', false);
         state.joinTimer = setInterval(function () {
             tries++;
             refreshStatus().then(function (s) {
                 if (!s) { return; }   // the link may drop while the radio switches channel
                 if (s.mode === 'joining') {
+                    seenJoining = true;
                     setMsg('Joining ' + ssid + '...', false);
                 } else if (s.mode === 'sta' && s.ssid === ssid) {
                     stopJoinPoll();
                     setMsg('Connected to ' + ssid + '. IP ' + s.ip + '. Open http://' + s.ip + '/ on that network.', false);
                     refreshSaved();
-                } else if (s.failure) {
+                } else if (s.failure && (seenJoining || Date.now() - startedAt >= 8000)) {
+                    // A failure reported before the board started joining may be left over from an earlier try;
+                    // after about 8 s with no join it is the scan result (for example "not found").
                     stopJoinPoll();
                     setMsg('Could not join ' + ssid + ': ' + s.failure + '.', true);
                     refreshSaved();
@@ -399,10 +417,10 @@
         $('pw-toggle').textContent = show ? 'Hide' : 'Show';
     });
 
-    $('scan-btn').addEventListener('click', refreshScan);
+    $('scan-btn').addEventListener('click', function () { refreshScan(false); });
 
     refreshStatus();
-    refreshScan();
+    refreshScan(false);
     refreshSaved();
     setInterval(function () { if (!state.joinTimer) { refreshStatus(); } }, 10000);
 })();
