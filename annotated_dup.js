@@ -22,6 +22,12 @@ var annotated_dup =
       [ "SlotReleaser", "classframes_1_1SlotReleaser.html", null ],
       [ "ViewerSet", "classframes_1_1ViewerSet.html", "classframes_1_1ViewerSet" ]
     ] ],
+    [ "remote", null, [
+      [ "BaseRemoteSink", "classremote_1_1BaseRemoteSink.html", "classremote_1_1BaseRemoteSink" ],
+      [ "Command", "structremote_1_1Command.html", "structremote_1_1Command" ],
+      [ "Jog", "structremote_1_1Jog.html", null ],
+      [ "RemoteInbox", "classremote_1_1RemoteInbox.html", "classremote_1_1RemoteInbox" ]
+    ] ],
     [ "test_html_header", "namespacetest__html__header.html", [
       [ "RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
       [ "WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ]
@@ -48,7 +54,7 @@ var annotated_dup =
     [ "camera_buffer_t", "structcamera__buffer__t.html", null ],
     [ "CameraDiffDetection", "classCameraDiffDetection.html", "classCameraDiffDetection" ],
     [ "CameraTaskStats", "structCameraTaskStats.html", null ],
-    [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
+    [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", "classCommandsWebSocketHandler" ],
     [ "Controller", "classController.html", "classController" ],
     [ "ControlStatus", "structControlStatus.html", "structControlStatus" ],
     [ "DetectionStats", "structDetectionStats.html", "structDetectionStats" ],
@@ -63,6 +69,5 @@ var annotated_dup =
     [ "TestDetection", "classTestDetection.html", null ],
     [ "TrackSnapshot", "structTrackSnapshot.html", "structTrackSnapshot" ],
     [ "Turret", "classTurret.html", "classTurret" ],
-    [ "WebsocketHandler", "classWebsocketHandler.html", "classWebsocketHandler" ],
     [ "WifiManager", "classWifiManager.html", null ]
 ];

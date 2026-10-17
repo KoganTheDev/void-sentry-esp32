@@ -8,6 +8,9 @@ var hierarchy =
       [ "CameraDiffDetection", "classCameraDiffDetection.html", null ],
       [ "TestDetection", "classTestDetection.html", null ]
     ] ],
+    [ "remote::BaseRemoteSink", "classremote_1_1BaseRemoteSink.html", [
+      [ "Controller", "classController.html", null ]
+    ] ],
     [ "BaseStatusProvider", "classBaseStatusProvider.html", [
       [ "Controller", "classController.html", null ]
     ] ],
@@ -23,6 +26,8 @@ var hierarchy =
     [ "Camera", "classCamera.html", null ],
     [ "camera_buffer_t", "structcamera__buffer__t.html", null ],
     [ "CameraTaskStats", "structCameraTaskStats.html", null ],
+    [ "remote::Command", "structremote_1_1Command.html", null ],
+    [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
     [ "ControlStatus", "structControlStatus.html", null ],
     [ "tracking::DetectionResult", "structtracking_1_1DetectionResult.html", null ],
     [ "DetectionStats", "structDetectionStats.html", null ],
@@ -31,6 +36,7 @@ var hierarchy =
     [ "frames::FrameMeta", "structframes_1_1FrameMeta.html", null ],
     [ "FrameStoreStats", "structFrameStoreStats.html", null ],
     [ "HttpServer", "classHttpServer.html", null ],
+    [ "remote::Jog", "structremote_1_1Jog.html", null ],
     [ "Joystick", "classJoystick.html", null ],
     [ "tracking::MotionDetector", "classtracking_1_1MotionDetector.html", null ],
     [ "MoveDirection< EnumType >", "classMoveDirection.html", null ],
@@ -43,6 +49,7 @@ var hierarchy =
     [ "aiming::PlannerConfig", "structaiming_1_1PlannerConfig.html", null ],
     [ "aiming::PolicyConfig", "structaiming_1_1PolicyConfig.html", null ],
     [ "frames::ReadyList", "structframes_1_1ReadyList.html", null ],
+    [ "remote::RemoteInbox", "classremote_1_1RemoteInbox.html", null ],
     [ "frames::SlotReleaser", "classframes_1_1SlotReleaser.html", [
       [ "FrameStore", "classFrameStore.html", null ],
       [ "frames::FrameSlots", "classframes_1_1FrameSlots.html", null ]
@@ -62,8 +69,5 @@ var hierarchy =
     [ "tracking::TrackState", "structtracking_1_1TrackState.html", null ],
     [ "aiming::TrackView", "structaiming_1_1TrackView.html", null ],
     [ "frames::ViewerSet", "classframes_1_1ViewerSet.html", null ],
-    [ "WebsocketHandler", "classWebsocketHandler.html", [
-      [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ]
-    ] ],
     [ "WifiManager", "classWifiManager.html", null ]
 ];

@@ -7,5 +7,6 @@ var dir_c9485d40cb2a7f6be6fcd9adbf7b9d21 =
     [ "frames", "dir_9ecfc42079cb7c0b6c3f35ac319a5c9a.html", "dir_9ecfc42079cb7c0b6c3f35ac319a5c9a" ],
     [ "motion", "dir_3e49ca0ca547538a48b20f06c26ecbec.html", "dir_3e49ca0ca547538a48b20f06c26ecbec" ],
     [ "network", "dir_8f7a2f469edb8a2b7c144e64cfcfa27c.html", "dir_8f7a2f469edb8a2b7c144e64cfcfa27c" ],
+    [ "remote", "dir_9d6c47cbd51ed166aa2ff2bac1e2ca3f.html", "dir_9d6c47cbd51ed166aa2ff2bac1e2ca3f" ],
     [ "tracking", "dir_84fb0dc103b224f5eff01674f7d288ab.html", "dir_84fb0dc103b224f5eff01674f7d288ab" ]
 ];

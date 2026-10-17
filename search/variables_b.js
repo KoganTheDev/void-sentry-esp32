@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['right_0',['Right',['../classMoveX.html#a4d3e536bfc254c176724fa4e9a51f6ea',1,'MoveX']]]
+  ['pan_0',['pan',['../structremote_1_1Command.html#afde5be43e459159775646042d01a0207',1,'remote::Command']]]
 ];

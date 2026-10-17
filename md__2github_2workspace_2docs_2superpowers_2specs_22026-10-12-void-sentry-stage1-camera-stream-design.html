@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 1: frame ownership and push streaming</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md95"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md103"></a></p>
 <ul>
 <li><b>Date:</b> 2026-10-12</li>
 <li><b>Status:</b> design approved, spec under review</li>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
 <li><b>Roadmap:</b> Stage 1 in <code>docs/superpowers/specs/2026-10-11-void-sentry-stage0-design.md</code></li>
 <li><b>Scope change from the roadmap:</b> on-device WiFi provisioning, originally part of Stage 1, has been <b>split out</b> into its own later design discussion. <code>secrets.h</code> stays in place for now.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md96"></a>
+<h1><a class="anchor" id="autotoc_md104"></a>
 Goal</h1>
 <p>Live video in the HUD with <b>low latency</b> (the user's priority over smoothness or image quality), at QVGA 320x240. <a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> frames have one clear owner, so the stream can never read freed memory, and no memory is allocated per frame.</p>
 <p><b>Success means:</b></p><ul>
@@ -118,7 +118,7 @@ Goal</h1>
 <li>Zero heap allocations per frame. All frame memory is allocated once at boot.</li>
 <li>The new logic (<code>FrameSlots</code>, <code>ViewerSet</code>) is unit-tested natively.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md97"></a>
+<h1><a class="anchor" id="autotoc_md105"></a>
 Problems this fixes</h1>
 <ol type="1">
 <li><b>Use-after-free race.</b><ul>
@@ -135,9 +135,9 @@ Problems this fixes</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md98"></a>
+<h1><a class="anchor" id="autotoc_md106"></a>
 Design</h1>
-<h2><a class="anchor" id="autotoc_md99"></a>
+<h2><a class="anchor" id="autotoc_md107"></a>
 1. <code>FrameSlots</code>: slot bookkeeping (pure C++17, native-tested)</h2>
 <p><b>Location:</b> <code><a class="el" href="frame__slots_8h.html" title="Slot bookkeeping for camera frames: who may write which slot, and RAII leases for readers.">ESP32/lib/frames/include/frame_slots.h</a></code>. It doesn't include Arduino or ESP-IDF headers.</p>
 <p><b>Slots:</b></p><ul>
@@ -166,7 +166,7 @@ Design</h1>
 <p><b>JPEG check (pure, native-tested):</b> <code>bool is_complete_jpeg(const uint8_t* data, size_t length)</code> returns true only if the data starts with the SOI marker <code>FF D8</code> and ends with the EOI marker <code>FF D9</code>. A frame cut off mid-transfer fails this check.</p>
 <p><b>Threading:</b> <code>FrameSlots</code> is <b>not</b> thread-safe on its own. <code><a class="el" href="classFrameStore.html">FrameStore</a></code> serializes every call.</p>
 <p><b>Why 4 slots:</b> one being written, one latest, and up to two readers holding older frames at once (detection plus a viewer, or two viewers). If all of them are held, the newest frame is dropped rather than overwriting a frame that's in use.</p>
-<h2><a class="anchor" id="autotoc_md100"></a>
+<h2><a class="anchor" id="autotoc_md108"></a>
 2. <code>FrameStore</code>: device wrapper</h2>
 <p><b>Location:</b> <code>ESP32/lib/frames/</code> (<code><a class="el" href="frame__store_8h.html" title="Thread-safe home for camera frames: FrameSlots bookkeeping + fixed PSRAM buffers, allocated once.">frame_store.h</a></code> / <code>.cpp</code>).</p>
 <ul>
@@ -175,7 +175,7 @@ Design</h1>
 <li><b>Data access:</b> <code>const uint8_t* data(const FrameLease&amp;)</code> gives access to a leased slot's bytes.</li>
 <li><b>New-frame signal:</b> <code>publish</code> notifies a registered task (the stream task) with a FreeRTOS task notification, so subscribers wake on new frames instead of polling.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md101"></a>
+<h2><a class="anchor" id="autotoc_md109"></a>
 3. Camera task</h2>
 <ul>
 <li><b>What <code><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a></code> keeps:</b> setup (<code>begin()</code>, the sensor config) only. <code>capture()</code>, <code>_buffer</code> and the per-frame <code>malloc</code>/<code>free</code> are removed.</li>
@@ -189,14 +189,14 @@ Design</h1>
 </li>
 <li>If the camera fails to initialize, the task isn't started, an error is logged, and the HTTP server still starts.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md102"></a>
+<h2><a class="anchor" id="autotoc_md110"></a>
 4. Controller integration</h2>
 <ul>
 <li><b><code>loop()</code></b> no longer captures. <code>controller.run()</code> calls <code>frame_store.acquire_latest()</code> and, if it gets a lease, passes a <code><a class="el" href="structcamera__buffer__t.html">camera_buffer_t</a></code> view of that slot to the detection module. The lease is released at the end of <code>run()</code>.</li>
 <li><b>Detection</b> stays the existing no-op until Stage 2.</li>
 <li><b><a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a></b> mode toggling is unchanged.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md103"></a>
+<h2><a class="anchor" id="autotoc_md111"></a>
 5. <code>ViewerSet</code>: viewer bookkeeping (pure C++17, native-tested)</h2>
 <p><b>Location:</b> <code><a class="el" href="viewer__set_8h.html" title="Which stream viewers should receive which frame (pure C++17, natively tested).">ESP32/lib/frames/include/viewer_set.h</a></code>. It doesn't include Arduino headers.</p>
 <p><b>What it tracks:</b> up to <code>kMaxViewers = 2</code> viewers, identified by socket fd. Each has a <code>busy</code> flag and <code>last_sequence_sent</code>.</p>
@@ -206,7 +206,7 @@ Design</h1>
 <li><code>ReadyList ready_for(uint32_t sequence) const</code> returns the fds that are not busy and have <code>last_sequence_sent &lt; sequence</code>. <code>ReadyList</code> is a fixed-capacity value type (<code>std::array&lt;int, kMaxViewers&gt;</code> plus a <code>count</code>), so the stream path allocates nothing per frame.</li>
 <li><code>void mark_sending(int fd, uint32_t sequence)</code> and <code>void mark_done(int fd)</code>.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md104"></a>
+<h2><a class="anchor" id="autotoc_md112"></a>
 6. Push streaming</h2>
 <ul>
 <li><b>Connecting:</b> on the <code>/stream</code> WebSocket handshake, the server adds the client's fd to the <code>ViewerSet</code>. Client messages on <code>/stream</code> are ignored, because the board pushes and the client no longer pulls.</li>
@@ -221,7 +221,7 @@ Design</h1>
 <li><b>Low latency comes from skipping:</b> a viewer that is still receiving is skipped, so it never builds a backlog and always gets the newest frame next.</li>
 <li><b><code>ViewerSet</code> thread safety:</b> it's touched by both the stream task and the HTTP server task, so the stream module protects it with a mutex.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md105"></a>
+<h2><a class="anchor" id="autotoc_md113"></a>
 7. Browser HUD (<code>web/web_ui.html</code>)</h2>
 <ul>
 <li><b><code>/stream</code> socket:</b><ul>
@@ -235,7 +235,7 @@ Design</h1>
 <li><b>FPS:</b> show the received fps in the HUD, computed client-side over a 1 s window.</li>
 <li><b>Decode errors:</b> count frames that fail to display (<code>img.onerror</code>) and show the count in the HUD. It should stay at 0.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md106"></a>
+<h2><a class="anchor" id="autotoc_md114"></a>
 8. Diagnostics</h2>
 <p>Every 5 seconds the firmware logs one line:</p>
 <p><code>[stream] up=Ss captured=N sent=N dropped_no_slot=N oversize=N corrupt=N viewers=N copy_us_avg=N heap=N heap_min=N psram=N psram_min=N</code></p>
@@ -245,7 +245,7 @@ Design</h1>
 <li><b>Why the lowest-ever values matter:</b> a leak or any per-frame allocation shows up as a downward drift that never recovers.</li>
 </ul>
 <p>It uses <code>ESP_LOGI</code> and never prints credentials.</p>
-<h1><a class="anchor" id="autotoc_md107"></a>
+<h1><a class="anchor" id="autotoc_md115"></a>
 Benchmarks: how each success criterion is measured</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -263,7 +263,7 @@ Benchmarks: how each success criterion is measured</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Logic correctness   </td><td class="markdownTableBodyNone">Native unit tests, also run under ASan and UBSan in CI (see CLAUDE.md, "Sanitizers and profiling")   </td><td class="markdownTableBodyNone">All pass, no sanitizer reports   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md108"></a>
+<h1><a class="anchor" id="autotoc_md116"></a>
 Testing</h1>
 <ul>
 <li><b>Native (<code>pio test -e native</code>), <code>is_complete_jpeg</code>:</b> valid frame; empty input; missing SOI; truncated (no EOI); length below 4.</li>
@@ -295,7 +295,7 @@ Testing</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md109"></a>
+<h1><a class="anchor" id="autotoc_md117"></a>
 Non-goals</h1>
 <ul>
 <li>WiFi provisioning (deferred to its own design)</li>

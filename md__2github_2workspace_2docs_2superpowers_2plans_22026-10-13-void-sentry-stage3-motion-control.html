@@ -1795,7 +1795,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li><code>_session.failure()</code></li>
 </ul>
 <p>**/commands JSON.**</p><ul>
-<li><code><a class="el" href="classHttpServer.html#acf596433262154717719adbfbbf4ebdd" title="Configures and launches the web server on port 80.">HttpServer::start</a>(<a class="el" href="classFrameStore.html">FrameStore</a>&amp;, BaseDetectionModule*, const BaseStatusProvider* status = nullptr)</code> stores the status provider like the detection instance.</li>
+<li><code><a class="el" href="classHttpServer.html#a6490b6b48dba748b0486d77b7bbd2994" title="Configures and launches the web server on port 80.">HttpServer::start</a>(<a class="el" href="classFrameStore.html">FrameStore</a>&amp;, BaseDetectionModule*, const BaseStatusProvider* status = nullptr)</code> stores the status provider like the detection instance.</li>
 <li>Raise the JSON buffer from 256 to 384 bytes (malloc size and both snprintf bounds).</li>
 <li>After <code>"vy"</code>, append: <code>,"mode":"%s","cal":u,"cal_state":"%s","calibrated":d,"pan":%.1f,"tilt":%.1f,"cal_error":"%s"</code></li>
 <li><code>cal_state</code> is one of <code>idle|point1|point2|done|failed</code>.</li>
@@ -1824,7 +1824,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li class="unchecked"><b>Step 1:</b> Make the mode type, <code>cal_store</code>, <code>control_status</code> and controller changes.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 2:</b> Update the <code>/commands</code> JSON and <code><a class="el" href="classHttpServer.html#acf596433262154717719adbfbbf4ebdd" title="Configures and launches the web server on port 80.">HttpServer::start</a></code>, and wire <code>main.cpp</code>: <code>http_server.start(frame_store, &amp;detection_manager, &amp;controller)</code> and <code>controller.begin()</code>.</li>
+<li class="unchecked"><b>Step 2:</b> Update the <code>/commands</code> JSON and <code><a class="el" href="classHttpServer.html#a6490b6b48dba748b0486d77b7bbd2994" title="Configures and launches the web server on port 80.">HttpServer::start</a></code>, and wire <code>main.cpp</code>: <code>http_server.start(frame_store, &amp;detection_manager, &amp;controller)</code> and <code>controller.begin()</code>.</li>
 </ul>
 <ul class="check">
 <li class="unchecked"><b>Step 3:</b> HUD changes.</li>

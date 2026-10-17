@@ -6,7 +6,8 @@ var searchData=
   ['camera_5fbuffer_5ft_3',['camera_buffer_t',['../structcamera__buffer__t.html',1,'']]],
   ['cameradiffdetection_4',['CameraDiffDetection',['../classCameraDiffDetection.html',1,'']]],
   ['camerataskstats_5',['CameraTaskStats',['../structCameraTaskStats.html',1,'']]],
-  ['commandswebsockethandler_6',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html',1,'']]],
-  ['controller_7',['Controller',['../classController.html',1,'']]],
-  ['controlstatus_8',['ControlStatus',['../structControlStatus.html',1,'']]]
+  ['command_6',['Command',['../structremote_1_1Command.html',1,'remote']]],
+  ['commandswebsockethandler_7',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html',1,'']]],
+  ['controller_8',['Controller',['../classController.html',1,'']]],
+  ['controlstatus_9',['ControlStatus',['../structControlStatus.html',1,'']]]
 ];

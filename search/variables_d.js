@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['track_5fus_5favg_0',['track_us_avg',['../structDetectionStats.html#acbcdb780dda55a9640c3554c0a050b33',1,'DetectionStats']]],
-  ['track_5fus_5ftotal_1',['track_us_total',['../structDetectionStats.html#afb59aafff76df8652e7e3ea763c7cc27',1,'DetectionStats']]]
+  ['scene_5fchange_0',['scene_change',['../structtracking_1_1DetectionResult.html#aec6c6e674c83bdf960ebcc8e38fdfe79',1,'tracking::DetectionResult']]],
+  ['scene_5fchange_5ffraction_1',['scene_change_fraction',['../structtracking_1_1DetectorConfig.html#ad2bb074db5e3133e28612c66f9dd7690',1,'tracking::DetectorConfig']]],
+  ['scene_5fchange_5fmean_5fshift_2',['scene_change_mean_shift',['../structtracking_1_1DetectorConfig.html#adfc2c2b5054bff8328825d0e14c2a914',1,'tracking::DetectorConfig']]],
+  ['stack_5ffree_3',['stack_free',['../structDetectionStats.html#a571d6378ebaa935afa419083ac9ec692',1,'DetectionStats']]]
 ];
