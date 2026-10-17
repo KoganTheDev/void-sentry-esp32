@@ -21,20 +21,48 @@ void Controller::begin()
     this->publish_status();
 }
 
-void Controller::jog_from_joystick(uint32_t now, bool stick_neutral)
+void Controller::submit(const remote::Command& cmd)
 {
-    if (now - this->_last_user_move_ms >= kUserModePeriodMs)
+    const uint32_t now = millis(); // outside the lock
+    portENTER_CRITICAL(&this->_remote_lock);
+    this->_remote_inbox.submit(cmd, now);
+    portEXIT_CRITICAL(&this->_remote_lock);
+}
+
+void Controller::jog_from_inputs(uint32_t now, bool calibrate_button_held)
+{
+    if (now - this->_last_user_move_ms < kUserModePeriodMs)
     {
-        this->_last_user_move_ms = now;
-        // Joystick y positive = Up = larger tilt angle.
-        if (stick_neutral)
-        {
-            this->_turret.jog(0.0f, 0.0f);
-        } else
-        {
-            this->_turret.jog(this->_joystick.get_speed_x() / 255.0f, this->_joystick.get_speed_y() / 255.0f);
-        }
+        return;
     }
+    this->_last_user_move_ms = now;
+
+    if (calibrate_button_held)
+    {
+        this->_turret.jog(0.0f, 0.0f);
+        return;
+    }
+    const int sx = this->_joystick.get_speed_x();
+    const int sy = this->_joystick.get_speed_y();
+    if (sx != 0 || sy != 0)
+    {
+        // Joystick y positive = Up = larger tilt angle. The stick overrides any HUD jog.
+        this->_turret.jog(sx / 255.0f, sy / 255.0f);
+        return;
+    }
+    portENTER_CRITICAL(&this->_remote_lock);
+    const remote::Jog jog = this->_remote_inbox.jog(now);
+    portEXIT_CRITICAL(&this->_remote_lock);
+    this->_turret.jog(jog.pan, jog.tilt); // (0,0) once the dead-man window has passed
+}
+
+void Controller::set_mode(ControlMode mode)
+{
+    this->_mode = mode;
+    this->_detection_module.reset(); // a request the detection task applies: no stale lock, fresh start
+    this->_policy.reset();
+    this->_turret.jog(0.0f, 0.0f);
+    ESP_LOGI(TAG, "Control mode changed to: %s", to_string(this->_mode));
 }
 
 void Controller::on_long_press()
@@ -107,12 +135,7 @@ void Controller::on_short_press()
         }
     } else
     {
-        this->_mode = (this->_mode == ControlMode::Ai) ? ControlMode::User : ControlMode::Ai;
-        this->_detection_module
-            .reset(); // a request the detection task applies: no stale lock in User mode, fresh start when Ai resumes
-        this->_policy.reset();
-        this->_turret.jog(0.0f, 0.0f);
-        ESP_LOGI(TAG, "Control mode changed to: %s", to_string(this->_mode));
+        this->set_mode(this->_mode == ControlMode::Ai ? ControlMode::User : ControlMode::Ai);
     }
 }
 
@@ -167,15 +190,28 @@ void Controller::run()
         this->on_short_press();
     }
 
+    // Take the HUD's mode request every pass so one made during Calibrate is dropped, not applied later.
+    portENTER_CRITICAL(&this->_remote_lock);
+    const std::optional<remote::RemoteMode> mode_req = this->_remote_inbox.take_mode_request();
+    portEXIT_CRITICAL(&this->_remote_lock);
+    if (mode_req.has_value() && this->_mode != ControlMode::Calibrate)
+    {
+        const ControlMode wanted = (*mode_req == remote::RemoteMode::Ai) ? ControlMode::Ai : ControlMode::User;
+        if (wanted != this->_mode)
+        {
+            this->set_mode(wanted);
+        }
+    }
+
     switch (this->_mode)
     {
     case ControlMode::User:
         // User mode needs no frame. Jog commands are cheap mailbox writes; keep the 25 Hz cadence.
-        this->jog_from_joystick(now, false);
+        this->jog_from_inputs(now, false);
         break;
 
     case ControlMode::Calibrate:
-        this->jog_from_joystick(now, held);
+        this->jog_from_inputs(now, held);
         // Detection runs in its own task, so the HUD box shows; no aim policy while calibrating.
         break;
 

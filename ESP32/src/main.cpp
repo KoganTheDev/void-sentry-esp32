@@ -177,7 +177,7 @@ void setup()
 
     // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
-    if (http_server.start(frame_store, &detection_manager, &controller))
+    if (http_server.start(frame_store, &detection_manager, &controller, &controller))
     {
         ESP_LOGI(TAG_MAIN, "HTTP Server started successfully");
     } else

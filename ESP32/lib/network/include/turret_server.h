@@ -8,6 +8,7 @@
 #include "base_detection_module.h"
 #include "control_status.h"
 #include "frame_store.h"
+#include "remote_command.h"
 #include "stream_broadcaster.h"
 #include "websockets.h"
 #include <esp_http_server.h>
@@ -43,9 +44,11 @@ public:
      * @param store FrameStore the /stream endpoint reads frames from. Must outlive the server.
      * @param detection Optional pointer to detection module for motion visualization.
      * @param status Optional status provider (the Controller); when null the mode/calibration fields are omitted.
+     * @param remote Optional sink for the HUD's /commands messages (the Controller); when null they are ignored.
      * @return true if the server was created and handlers were registered.
      */
-    bool start(FrameStore& store, BaseDetectionModule* detection = nullptr, const BaseStatusProvider* status = nullptr);
+    bool start(FrameStore& store, BaseDetectionModule* detection = nullptr, const BaseStatusProvider* status = nullptr,
+               remote::BaseRemoteSink* remote = nullptr);
 
     /** @brief Frames successfully sent to /stream viewers since boot. */
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }
