@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Void Sentry - WiFi setup</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #161616;
+            --accent: #ff6b00;
+            --text: #e0e0e0;
+            --terminal: #00ff41;
+            --error: #ff3e3e;
+            --border: #333;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 12px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+        }
+
+        main { max-width: 520px; margin: 0 auto; }
+
+        h1 { font-size: 18px; color: var(--accent); margin: 4px 0 12px; letter-spacing: 1px; }
+        h2 { font-size: 14px; color: var(--accent); margin: 0 0 8px; text-transform: uppercase; }
+
+        section {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        a { color: var(--accent); }
+
+        .row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .row .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .val { color: var(--terminal); }
+        .muted { color: #888; }
+        .err { color: var(--error); }
+
+        label { display: block; margin: 8px 0 3px; color: #aaa; font-size: 13px; }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #0d0d0d;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font: inherit;
+        }
+
+        input:focus { outline: none; border-color: var(--accent); }
+
+        .pw { display: flex; gap: 8px; }
+
+        button {
+            padding: 10px 14px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        button.small { padding: 6px 10px; font-size: 13px; }
+        button.primary { background: var(--accent); color: #000; margin-top: 12px; width: 100%; }
+
+        .net {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 4px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text);
+            width: 100%;
+            text-align: left;
+        }
+
+        .net:hover { border-color: var(--accent); }
+        .net .name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .net .meta { color: #888; font-size: 12px; white-space: nowrap; }
+
+        #msg { min-height: 1.4em; margin-top: 10px; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>VOID SENTRY // WIFI</h1>
+
+    <section>
+        <h2>Status</h2>
+        <div class="row"><span>MODE</span> <span class="val" id="st-mode">-</span></div>
+        <div class="row"><span>SSID</span> <span class="val grow" id="st-ssid">-</span></div>
+        <div class="row"><span>IP</span> <span class="val" id="st-ip">-</span></div>
+        <div class="row"><span>LAST FAILURE</span> <span class="err grow" id="st-fail">-</span></div>
+        <div class="row"><a href="/">Back to HUD</a></div>
+    </section>
+
+    <section>
+        <h2>Nearby networks</h2>
+        <button class="small" id="scan-btn" type="button">Refresh</button>
+        <div id="scan-list" style="margin-top: 8px"></div>
+    </section>
+
+    <section>
+        <h2>Saved networks</h2>
+        <div id="saved-list"><span class="muted">none</span></div>
+    </section>
+
+    <section>
+        <h2>Add network</h2>
+        <form id="add-form" autocomplete="off">
+            <label for="f-ssid">SSID</label>
+            <input id="f-ssid" name="ssid" maxlength="32" required autocapitalize="off" autocorrect="off" spellcheck="false">
+            <label for="f-pass">Password (empty for an open network)</label>
+            <div class="pw">
+                <input id="f-pass" name="password" type="password" maxlength="63" autocomplete="new-password">
+                <button type="button" id="pw-toggle">Show</button>
+            </div>
+            <label for="f-pin" id="pin-label">PIN</label>
+            <input id="f-pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" required autocomplete="off">
+            <button class="primary" type="submit" id="add-btn">Save and join</button>
+        </form>
+        <div id="msg" role="status"></div>
+    </section>
+</main>
+
+<script>
+/*
+ * WiFi setup page. Talks to the firmware (Task 4, wifi_http) over these endpoints. All JSON.
+ *
+ * GET  /api/wifi/status -> {"mode":"sta|setup|joining|lost","ssid":"...","ip":"...","pin_set":true|false,
+ *                           "failure":"wrong password|not found|timeout|"}
+ * GET  /api/wifi/scan   -> {"networks":[{"ssid":"...","rssi":-60,"secured":true}, ...]}
+ * GET  /api/wifi/saved  -> {"saved":["ssid1","ssid2"]}
+ * POST /api/wifi/add    (application/x-www-form-urlencoded: ssid, password, pin)
+ * POST /api/wifi/forget (application/x-www-form-urlencoded: ssid, pin)
+ *      -> 200 {"ok":true} | 400 {"error":"..."} | 403 {"error":"wrong pin"} | 429 {"locked_s":N}
+ *
+ * SSIDs may contain any characters: they are only ever inserted with textContent.
+ * The password and PIN are never stored (no localStorage) or logged.
+ */
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+    var state = { pinSet: false, mode: '', lockedUntil: 0, joinTimer: null, joinSsid: '' };
+
+    function setMsg(text, isErr) {
+        var m = $('msg');
+        m.textContent = text;
+        m.className = isErr ? 'err' : 'val';
+    }
+
+    function getJson(url) {
+        return fetch(url, { cache: 'no-store' }).then(function (r) {
+            if (!r.ok) { throw new Error('HTTP ' + r.status); }
+            return r.json();
+        });
+    }
+
+    function postForm(url, fields) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(fields).toString()
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (j) {
+                return { status: r.status, body: j };
+            });
+        });
+    }
+
+    // ---- lockout countdown ----
+    function locked() { return Date.now() < state.lockedUntil; }
+
+    function applyLock() {
+        var dis = locked();
+        $('add-btn').disabled = dis;
+        var btns = document.querySelectorAll('#saved-list button');
+        for (var i = 0; i < btns.length; i++) { btns[i].disabled = dis; }
+    }
+
+    function startLock(seconds) {
+        state.lockedUntil = Date.now() + seconds * 1000;
+        applyLock();
+        tickLock();
+    }
+
+    function tickLock() {
+        if (!locked()) {
+            setMsg('', false);
+            applyLock();
+            return;
+        }
+        var left = Math.ceil((state.lockedUntil - Date.now()) / 1000);
+        setMsg('Too many wrong PINs. Try again in ' + left + ' s.', true);
+        setTimeout(tickLock, 500);
+    }
+
+    // ---- status ----
+    function refreshStatus() {
+        return getJson('/api/wifi/status').then(function (s) {
+            state.mode = s.mode;
+            state.pinSet = !!s.pin_set;
+            $('st-mode').textContent = s.mode || '-';
+            $('st-ssid').textContent = s.ssid || '-';
+            $('st-ip').textContent = s.ip || '-';
+            $('st-fail').textContent = s.failure || '-';
+            $('pin-label').textContent = state.pinSet ? 'PIN' : 'Choose a PIN (4-8 digits)';
+            return s;
+        }).catch(function () {
+            $('st-mode').textContent = 'unreachable';
+            return null;
+        });
+    }
+
+    // ---- scan ----
+    function renderScan(list) {
+        var box = $('scan-list');
+        box.textContent = '';
+        if (!list.length) {
+            var none = document.createElement('span');
+            none.className = 'muted';
+            none.textContent = 'no networks found';
+            box.appendChild(none);
+            return;
+        }
+        list.forEach(function (n) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'net';
+            var name = document.createElement('span');
+            name.className = 'name';
+            name.textContent = n.ssid;
+            var meta = document.createElement('span');
+            meta.className = 'meta';
+            meta.textContent = (n.secured ? 'secured ' : 'open ') + n.rssi + ' dBm';
+            b.appendChild(name);
+            b.appendChild(meta);
+            b.addEventListener('click', function () {
+                $('f-ssid').value = n.ssid;
+                $('f-pass').focus();
+            });
+            box.appendChild(b);
+        });
+    }
+
+    function refreshScan() {
+        $('scan-btn').disabled = true;
+        getJson('/api/wifi/scan').then(function (j) {
+            var nets = (j.networks || []).slice().sort(function (a, b) { return b.rssi - a.rssi; });
+            renderScan(nets);
+        }).catch(function () {
+            $('scan-list').textContent = 'scan failed';
+        }).then(function () {
+            $('scan-btn').disabled = false;
+        });
+    }
+
+    // ---- saved ----
+    function renderSaved(list) {
+        var box = $('saved-list');
+        box.textContent = '';
+        if (!list.length) {
+            var none = document.createElement('span');
+            none.className = 'muted';
+            none.textContent = 'none';
+            box.appendChild(none);
+            return;
+        }
+        list.forEach(function (ssid) {
+            var row = document.createElement('div');
+            row.className = 'row';
+            var name = document.createElement('span');
+            name.className = 'grow';
+            name.textContent = ssid;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'small';
+            btn.textContent = 'Forget';
+            btn.addEventListener('click', function () { forget(ssid); });
+            row.appendChild(name);
+            row.appendChild(btn);
+            box.appendChild(row);
+        });
+        applyLock();
+    }
+
+    function refreshSaved() {
+        return getJson('/api/wifi/saved').then(function (j) {
+            renderSaved(j.saved || []);
+        }).catch(function () {
+            $('saved-list').textContent = 'could not load saved networks';
+        });
+    }
+
+    // ---- POST result handling ----
+    function handleReply(res) {
+        if (res.status === 200) { return true; }
+        if (res.status === 429) {
+            startLock(res.body.locked_s || 60);
+        } else if (res.status === 403) {
+            setMsg('Wrong PIN.', true);
+        } else {
+            setMsg(res.body.error || ('Error ' + res.status), true);
+        }
+        return false;
+    }
+
+    function pinValue() { return $('f-pin').value; }
+
+    function forget(ssid) {
+        if (locked()) { return; }
+        var pin = pinValue();
+        if (!pin) { setMsg('Enter the PIN in the form below to forget a network.', true); $('f-pin').focus(); return; }
+        postForm('/api/wifi/forget', { ssid: ssid, pin: pin }).then(function (res) {
+            if (handleReply(res)) {
+                setMsg('Forgot ' + ssid + '.', false);
+                refreshSaved();
+                refreshStatus();
+            }
+        }).catch(function () { setMsg('Request failed.', true); });
+    }
+
+    // ---- add + join progress ----
+    function stopJoinPoll() {
+        if (state.joinTimer) { clearInterval(state.joinTimer); state.joinTimer = null; }
+    }
+
+    function pollJoin(ssid) {
+        stopJoinPoll();
+        var tries = 0;
+        setMsg('Joining ' + ssid + '...', false);
+        state.joinTimer = setInterval(function () {
+            tries++;
+            refreshStatus().then(function (s) {
+                if (!s) { return; }   // the link may drop while the radio switches channel
+                if (s.mode === 'joining') {
+                    setMsg('Joining ' + ssid + '...', false);
+                } else if (s.mode === 'sta' && s.ssid === ssid) {
+                    stopJoinPoll();
+                    setMsg('Connected to ' + ssid + '. IP ' + s.ip + '. Open http://' + s.ip + '/ on that network.', false);
+                    refreshSaved();
+                } else if (s.failure) {
+                    stopJoinPoll();
+                    setMsg('Could not join ' + ssid + ': ' + s.failure + '.', true);
+                    refreshSaved();
+                }
+            });
+            if (tries > 40) { stopJoinPoll(); setMsg('Still no answer from ' + ssid + '.', true); }
+        }, 2000);
+    }
+
+    $('add-form').addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        if (locked()) { return; }
+        var ssid = $('f-ssid').value;
+        var wasSetup = state.mode === 'setup';
+        var fields = { ssid: ssid, password: $('f-pass').value, pin: pinValue() };
+        $('add-btn').disabled = true;
+        postForm('/api/wifi/add', fields).then(function (res) {
+            $('add-btn').disabled = locked();
+            if (!handleReply(res)) { return; }
+            $('f-pass').value = '';
+            refreshSaved();
+            if (wasSetup) {
+                pollJoin(ssid);
+            } else {
+                setMsg('Saved ' + ssid + '.', false);
+                refreshStatus();
+            }
+        }).catch(function () {
+            $('add-btn').disabled = locked();
+            setMsg('Request failed.', true);
+        });
+    });
+
+    $('pw-toggle').addEventListener('click', function () {
+        var f = $('f-pass');
+        var show = f.type === 'password';
+        f.type = show ? 'text' : 'password';
+        $('pw-toggle').textContent = show ? 'Hide' : 'Show';
+    });
+
+    $('scan-btn').addEventListener('click', refreshScan);
+
+    refreshStatus();
+    refreshScan();
+    refreshSaved();
+    setInterval(function () { if (!state.joinTimer) { refreshStatus(); } }, 10000);
+})();
+</script>
+</body>
+</html>

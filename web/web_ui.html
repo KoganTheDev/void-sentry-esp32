@@ -187,6 +187,11 @@
             color: var(--terminal);
         }
 
+        .wifi-link {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
         /* Locked Alert */
         @keyframes pulse-red {
             0% {
@@ -521,6 +526,7 @@
             <div class="stat-line uncal" id="metric-uncal" hidden>UNCALIBRATED</div>
             <div class="stat-line">TARGET <span class="stat-val" id="metric-lock">CLEAR</span></div>
             <div class="stat-line">COORD <span class="stat-val" id="metric-pos">0,0</span></div>
+            <div class="stat-line">WIFI <span class="stat-val"><span id="metric-ssid">-</span> <a href="/wifi" class="wifi-link">[setup]</a></span></div>
 
             <details class="advanced-stats">
                 <summary>ADVANCED</summary>
@@ -1065,6 +1071,20 @@
 
 
             App.init();
+        </script>
+        <script>
+            // WiFi link: show the connected SSID. Independent of the /commands code; read-only fetch.
+            (function () {
+                const el = document.getElementById('metric-ssid');
+                function refresh() {
+                    fetch('/api/wifi/status')
+                        .then(function (r) { return r.json(); })
+                        .then(function (s) { el.textContent = s.ssid ? s.ssid : (s.mode || '-'); })
+                        .catch(function () { el.textContent = '-'; });
+                }
+                refresh();
+                setInterval(refresh, 10000);
+            })();
         </script>
 </body>
 

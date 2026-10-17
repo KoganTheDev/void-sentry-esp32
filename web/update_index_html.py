@@ -1,9 +1,10 @@
 """
 @file update_index_html.py
-@brief PlatformIO pre-build script: generate ESP32/lib/network/include/index_html.h from web/web_ui.html.
+@brief PlatformIO pre-build script: generate index_html.h (from web/web_ui.html) and wifi_html.h (from web/wifi_setup.html)
+in ESP32/lib/network/include/.
 
 Runs when PlatformIO loads the script, before any source is compiled, so a fresh clone (which has no
-generated header) builds. The header is rewritten only when web_ui.html actually changed.
+generated header) builds. Each header is rewritten only when its source actually changed.
 """
 
 import os
@@ -17,17 +18,23 @@ sys.path.insert(0, web_dir)
 
 import html_header  # noqa: E402
 
-src_path = os.path.join(web_dir, "web_ui.html")
-dst_path = os.path.join(project_dir, "lib", "network", "include", "index_html.h")
+pages = [
+    ("web_ui.html", "index_html.h", html_header.render_header),
+    ("wifi_setup.html", "wifi_html.h", html_header.render_wifi_header),
+]
 
-if not os.path.exists(src_path):
-    sys.stderr.write(f"[web-ui] ERROR: {src_path} not found\n")
-    env.Exit(1)  # type: ignore  # noqa: F821
+for src_name, dst_name, render in pages:
+    src_path = os.path.join(web_dir, src_name)
+    dst_path = os.path.join(project_dir, "lib", "network", "include", dst_name)
 
-with open(src_path, "rb") as f:
-    header = html_header.render_header(f.read())
+    if not os.path.exists(src_path):
+        sys.stderr.write(f"[web-ui] ERROR: {src_path} not found\n")
+        env.Exit(1)  # type: ignore  # noqa: F821
 
-if html_header.write_if_changed(dst_path, header):
-    print(f"[web-ui] Generated {os.path.relpath(dst_path, project_dir)}")
-else:
-    print("[web-ui] index_html.h up to date")
+    with open(src_path, "rb") as f:
+        header = render(f.read())
+
+    if html_header.write_if_changed(dst_path, header):
+        print(f"[web-ui] Generated {os.path.relpath(dst_path, project_dir)}")
+    else:
+        print(f"[web-ui] {dst_name} up to date")
