@@ -360,6 +360,15 @@ void test_form_body_size_limit(void)
     TEST_ASSERT_FALSE(form_field({body, 257}, "k", out, sizeof(out), nullptr));
 }
 
+void test_form_has_key_rejects_oversized_body(void)
+{
+    char body[300];
+    std::memset(body, 'a', sizeof(body));
+    std::memcpy(body, "k=", 2);
+    TEST_ASSERT_TRUE(form_has_key({body, 256}, "k"));
+    TEST_ASSERT_FALSE(form_has_key({body, 257}, "k"));
+}
+
 void test_form_out_cap(void)
 {
     char out[6];
@@ -856,5 +865,6 @@ int main(int, char**)
     RUN_TEST(test_plan_periodic_empty_scan_records_no_failure);
     RUN_TEST(test_plan_added_flag_is_consumed_by_one_scan);
     RUN_TEST(test_form_has_key_tells_missing_from_invalid);
+    RUN_TEST(test_form_has_key_rejects_oversized_body);
     return UNITY_END();
 }

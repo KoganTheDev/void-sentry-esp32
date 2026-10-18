@@ -34,6 +34,8 @@ The mismatches (D1-D6) are wrong statements, so they are fixed whatever you tick
 
 ## 2. Tests
 
+**Result (8c):** native 226 -> 244 tests in 13 suites. T1: all five stale suites deleted (`test_joystick` only asserted trivia). T2: `lib/jpeg_gray` with 8 tests on generated QVGA fixtures. T3: two of the four uncovered blocks are provably unreachable and stay as documented defensive code: the label overflow (`motion_detector.cpp:193-195`; new labels are never 8-adjacent, so a 40x30 grid has at most 300 provisional labels against `kMaxLabels` = 600) and the planner hard stop (`step_planner.cpp:132-134`; the brake margin prevents it, and 600k random operations never entered it).
+
 | ID | Finding | Change | Keep |
 |---|---|---|---|
 | T1 | Stale on-device suites: `test_controller` and `test_detection` are `TEST_ASSERT_TRUE(true)` placeholders; `test_motion/test_servo.cpp` targets a deleted `Turret::Servo`; `test_joystick` passes 150 as a pin; `test/camera_diff_detection/` has no `test_` prefix (never runs) and calls a deleted function. | Delete the placeholders and dead suites. Keep the two live ones (`test_wifi_manager`, `test_turret_server`). Rewrite `test_joystick` with the real pin only if it tests something the native suite can't. | [x] keep |
