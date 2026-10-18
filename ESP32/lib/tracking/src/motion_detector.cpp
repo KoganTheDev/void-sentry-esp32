@@ -33,7 +33,7 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
         return result_;
     }
 
-    const int raw = build_mask(frame);
+    const int raw = mask_and_learn(frame);
     result_.foreground_cells = raw;
     // A scene change needs BOTH a large foreground area AND a shifted frame mean. A big object close to the camera
     // covers a lot of the grid, but auto-exposure holds the mean; a light switch or camera move shifts the mean.
@@ -58,8 +58,6 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
         return result_;
     }
 
-    // The mask was computed against the old background, so updating now does not affect this frame.
-    update_background(frame);
     label_blobs();
     return result_;
 }
@@ -80,47 +78,33 @@ void MotionDetector::seed_background(const GrayFrame& frame)
     warmup_left_ = config_.warmup_frames;
 }
 
-void MotionDetector::update_background(const GrayFrame& frame)
+int MotionDetector::mask_and_learn(const GrayFrame& frame)
 {
+    // One pass: the mask and both means use the OLD background value of each cell, read first; then the same cell
+    // learns the frame. The paths that return without using the learned background (scene change, warm-up) overwrite
+    // background_ and fg_age_ completely, so learning in place cannot change any output.
     const int bg_div = 1 << config_.bg_shift;
     const int fg_div = 1 << config_.fg_shift;
-    for (int i = 0; i < kCells; ++i)
-    {
-        const int target = frame[i] << 8;
-        const int bg = background_[i];
-        int div = bg_div;
-        if (mask_[i])
-        {
-            if (fg_age_[i] < 255)
-            {
-                ++fg_age_[i];
-            }
-            if (fg_age_[i] <= config_.fg_age_limit)
-            {
-                div = fg_div;
-            }
-        } else
-        {
-            fg_age_[i] = 0;
-        }
-        background_[i] = static_cast<uint16_t>(bg + (target - bg) / div); // stays within [0, 255 << 8]
-    }
-}
-
-int MotionDetector::build_mask(const GrayFrame& frame)
-{
     int count = 0;
     int frame_sum = 0;
     int bg_sum = 0;
     for (int i = 0; i < kCells; ++i)
     {
-        const int bg = (background_[i] + 128) >> 8;
+        const int old_q8 = background_[i];
+        const int bg = (old_q8 + 128) >> 8;
         frame_sum += frame[i];
         bg_sum += bg;
         const int diff = std::abs(static_cast<int>(frame[i]) - bg);
         const uint8_t fg = diff > config_.diff_threshold ? 1 : 0;
         mask_[i] = fg;
         count += fg;
+
+        // fg_age_ counts consecutive foreground frames (saturating); foreground cells learn slowly until the age limit.
+        const int age = fg ? std::min(fg_age_[i] + 1, 255) : 0;
+        fg_age_[i] = static_cast<uint8_t>(age);
+        const int div = (fg && age <= config_.fg_age_limit) ? fg_div : bg_div;
+        const int target = frame[i] << 8;
+        background_[i] = static_cast<uint16_t>(old_q8 + (target - old_q8) / div); // stays within [0, 255 << 8]
     }
     frame_mean_ = frame_sum / kCells;
     background_mean_ = bg_sum / kCells;

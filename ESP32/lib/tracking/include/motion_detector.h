@@ -43,8 +43,7 @@ private:
 
     void copy_background(const GrayFrame& frame);
     void seed_background(const GrayFrame& frame);
-    void update_background(const GrayFrame& frame);
-    int build_mask(const GrayFrame& frame);
+    int mask_and_learn(const GrayFrame& frame);
     void label_blobs();
     uint16_t find(uint16_t label);
     void unite(uint16_t a, uint16_t b);
@@ -52,7 +51,7 @@ private:
     DetectorConfig config_;
     bool seeded_ = false;
     int warmup_left_ = 0;
-    int frame_mean_ = 0;      ///< mean gray of the last frame passed to build_mask()
+    int frame_mean_ = 0;      ///< mean gray of the last frame passed to mask_and_learn()
     int background_mean_ = 0; ///< mean of the rounded background at that time
     DetectionResult result_;
     std::array<uint16_t, kCells> background_{}; ///< Q8 fixed point (gray << 8)
