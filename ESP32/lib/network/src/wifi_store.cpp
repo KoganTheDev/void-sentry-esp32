@@ -1,5 +1,7 @@
 #include "wifi_store.h"
 
+#include "nvs_blob.h"
+
 #include <Preferences.h>
 #include <esp_system.h>
 
@@ -23,13 +25,13 @@ bool WifiStore::load(prov::NetworkList& list, prov::PinRecord& pin)
     }
 
     bool nets_ok = false;
-    const size_t nets_len = prefs.getBytesLength(kKeyNets);
-    if (nets_len > 0)
+    std::array<uint8_t, prov::kNetsBlobSize> nets_buf{};
+    const auto nets_status = nvs_blob::read(prefs, kKeyNets, nets_buf);
+    if (nets_status != nvs_blob::ReadStatus::Absent)
     {
-        std::array<uint8_t, prov::kNetsBlobSize> buf{};
-        if (nets_len == buf.size() && prefs.getBytes(kKeyNets, buf.data(), buf.size()) == buf.size())
+        if (nets_status == nvs_blob::ReadStatus::Ok)
         {
-            const auto parsed = prov::deserialize_nets(buf);
+            const auto parsed = prov::deserialize_nets(nets_buf);
             if (parsed)
             {
                 list = *parsed;
@@ -42,14 +44,14 @@ bool WifiStore::load(prov::NetworkList& list, prov::PinRecord& pin)
         }
     }
 
-    const size_t pin_len = prefs.getBytesLength(kKeyPin);
-    if (pin_len > 0)
+    std::array<uint8_t, prov::kPinBlobSize> pin_buf{};
+    const auto pin_status = nvs_blob::read(prefs, kKeyPin, pin_buf);
+    if (pin_status != nvs_blob::ReadStatus::Absent)
     {
-        std::array<uint8_t, prov::kPinBlobSize> buf{};
         bool pin_ok = false;
-        if (pin_len == buf.size() && prefs.getBytes(kKeyPin, buf.data(), buf.size()) == buf.size())
+        if (pin_status == nvs_blob::ReadStatus::Ok)
         {
-            const auto parsed = prov::deserialize_pin(buf);
+            const auto parsed = prov::deserialize_pin(pin_buf);
             if (parsed)
             {
                 pin = *parsed;

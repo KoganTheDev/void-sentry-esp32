@@ -6,6 +6,7 @@
 #include <unity.h>
 
 #include "aim_map.h"
+#include "blob_frame.h"
 #include "blobs.h"
 #include "calibration_blob.h"
 #include "choose.h"
@@ -540,6 +541,31 @@ void test_golden_pin_blob(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(unset.data(), u.data(), kPinBlobSize);
 }
 
+void test_blob_frame_round_trip_and_rejections(void)
+{
+    std::array<uint8_t, 12> b{};
+    b[4] = 7;
+    b[7] = 9;
+    checksum::frame_blob(b, 0x11223344u);
+    TEST_ASSERT_EQUAL_HEX8(0x44, b[0]); // magic is little-endian
+    const auto body = checksum::unframe_blob(b, 0x11223344u);
+    TEST_ASSERT_TRUE(body.has_value());
+    TEST_ASSERT_EQUAL_UINT(4, body->size());
+    TEST_ASSERT_EQUAL_UINT8(7, (*body)[0]);
+    TEST_ASSERT_EQUAL_UINT8(9, (*body)[3]);
+    TEST_ASSERT_FALSE(checksum::unframe_blob(b, 0x11223345u).has_value()); // wrong magic
+    for (size_t i = 0; i < b.size(); ++i)
+    {
+        auto bad = b;
+        bad[i] ^= 0x01;
+        TEST_ASSERT_FALSE(checksum::unframe_blob(bad, 0x11223344u).has_value());
+    }
+    TEST_ASSERT_FALSE(checksum::unframe_blob(std::span<const uint8_t>(b).first(7), 0x11223344u).has_value());
+    std::array<uint8_t, 4> tiny{};
+    checksum::frame_blob(tiny, 1); // too short: left untouched
+    TEST_ASSERT_EQUAL_UINT8(0, tiny[0]);
+}
+
 int main(int, char**)
 {
     UNITY_BEGIN();
@@ -549,6 +575,7 @@ int main(int, char**)
     RUN_TEST(test_golden_calibration_blob);
     RUN_TEST(test_golden_nets_blob);
     RUN_TEST(test_golden_pin_blob);
+    RUN_TEST(test_blob_frame_round_trip_and_rejections);
     RUN_TEST(test_list_add_and_find);
     RUN_TEST(test_list_find_is_byte_exact);
     RUN_TEST(test_list_replace_in_place);
