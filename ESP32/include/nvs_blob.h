@@ -13,8 +13,7 @@
 namespace nvs_blob
 {
 /** @brief Outcome of read(). */
-enum class ReadStatus
-{
+enum class ReadStatus {
     Absent,   ///< the key does not exist (stored length 0)
     Mismatch, ///< stored with a different length than expected, or the read came back short
     Ok        ///< @p out holds exactly the stored bytes
