@@ -133,28 +133,27 @@ $(function(){initNavTree('motion__detector_8h_source.html',''); initResizable(tr
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordtype">void</span> copy_background(<span class="keyword">const</span> <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">GrayFrame</a>&amp; frame);</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">void</span> seed_background(<span class="keyword">const</span> <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">GrayFrame</a>&amp; frame);</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">void</span> update_background(<span class="keyword">const</span> <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">GrayFrame</a>&amp; frame);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">int</span> build_mask(<span class="keyword">const</span> <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">GrayFrame</a>&amp; frame);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordtype">void</span> label_blobs();</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    uint16_t find(uint16_t label);</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="keywordtype">void</span> unite(uint16_t a, uint16_t b);</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <a class="code hl_struct" href="structtracking_1_1DetectorConfig.html">DetectorConfig</a> config_;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordtype">bool</span> seeded_ = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">int</span> warmup_left_ = 0;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordtype">int</span> frame_mean_ = 0;      </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordtype">int</span> background_mean_ = 0; </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <a class="code hl_struct" href="structtracking_1_1DetectionResult.html">DetectionResult</a> result_;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    std::array&lt;uint16_t, kCells&gt; background_{}; </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    std::array&lt;uint8_t, kCells&gt; mask_{};</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    std::array&lt;uint8_t, kCells&gt; fg_age_{}; </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    std::array&lt;uint16_t, kCells&gt; labels_{};</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    std::array&lt;uint16_t, kMaxLabels + 1&gt; parent_{};</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    std::array&lt;uint8_t, kMaxLabels + 1&gt; component_of_{};</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    std::array&lt;Accum, kMaxComponents&gt; accum_{};</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>};</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">int</span> mask_and_learn(<span class="keyword">const</span> <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">GrayFrame</a>&amp; frame);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordtype">void</span> label_blobs();</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    uint16_t find(uint16_t label);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordtype">void</span> unite(uint16_t a, uint16_t b);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_struct" href="structtracking_1_1DetectorConfig.html">DetectorConfig</a> config_;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordtype">bool</span> seeded_ = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordtype">int</span> warmup_left_ = 0;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">int</span> frame_mean_ = 0;      </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordtype">int</span> background_mean_ = 0; </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <a class="code hl_struct" href="structtracking_1_1DetectionResult.html">DetectionResult</a> result_;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    std::array&lt;uint16_t, kCells&gt; background_{}; </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    std::array&lt;uint8_t, kCells&gt; mask_{};</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    std::array&lt;uint8_t, kCells&gt; fg_age_{}; </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    std::array&lt;uint16_t, kCells&gt; labels_{};</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    std::array&lt;uint16_t, kMaxLabels + 1&gt; parent_{};</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    std::array&lt;uint8_t, kMaxLabels + 1&gt; component_of_{};</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    std::array&lt;Accum, kMaxComponents&gt; accum_{};</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>};</div>
 </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>} <span class="comment">// namespace tracking</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>} <span class="comment">// namespace tracking</span></div>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html"><div class="ttname"><a href="classtracking_1_1MotionDetector.html">tracking::MotionDetector</a></div><div class="ttdef"><b>Definition</b> motion_detector.h:21</div></div>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html_a226ac9b8ea2af2e4716400a6472ad325"><div class="ttname"><a href="classtracking_1_1MotionDetector.html#a226ac9b8ea2af2e4716400a6472ad325">tracking::MotionDetector::reset</a></div><div class="ttdeci">void reset()</div><div class="ttdoc">Forget the background; the next frame re-seeds it and starts the warm-up.</div><div class="ttdef"><b>Definition</b> motion_detector.cpp:19</div></div>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html_aa2913289b3febeaee4a660bae29ce872"><div class="ttname"><a href="classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872">tracking::MotionDetector::process</a></div><div class="ttdeci">const DetectionResult &amp; process(const GrayFrame &amp;frame)</div><div class="ttdoc">Analyse one frame. The returned reference stays valid until the next call.</div><div class="ttdef"><b>Definition</b> motion_detector.cpp:26</div></div>

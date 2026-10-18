@@ -39,6 +39,12 @@ var annotated_dup =
       [ "Jog", "structremote_1_1Jog.html", null ],
       [ "RemoteInbox", "classremote_1_1RemoteInbox.html", "classremote_1_1RemoteInbox" ]
     ] ],
+    [ "stats", null, [
+      [ "WindowedCounter", "classstats_1_1WindowedCounter.html", "classstats_1_1WindowedCounter" ]
+    ] ],
+    [ "telemetry", null, [
+      [ "Sources", "structtelemetry_1_1Sources.html", null ]
+    ] ],
     [ "tracking", null, [
       [ "Blob", "structtracking_1_1Blob.html", "structtracking_1_1Blob" ],
       [ "Box", "structtracking_1_1Box.html", "structtracking_1_1Box" ],

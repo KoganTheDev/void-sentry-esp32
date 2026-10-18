@@ -64,6 +64,7 @@ var hierarchy =
       [ "FrameStore", "classFrameStore.html", null ],
       [ "frames::FrameSlots", "classframes_1_1FrameSlots.html", null ]
     ] ],
+    [ "telemetry::Sources", "structtelemetry_1_1Sources.html", null ],
     [ "vsync::SpinGuarded< T >", "classvsync_1_1SpinGuarded.html", null ],
     [ "vsync::SpinGuarded< Command >", "classvsync_1_1SpinGuarded.html", null ],
     [ "vsync::SpinGuarded< ControlStatus >", "classvsync_1_1SpinGuarded.html", null ],
@@ -80,5 +81,6 @@ var hierarchy =
     [ "frames::ViewerSet", "classframes_1_1ViewerSet.html", null ],
     [ "WifiManager", "classWifiManager.html", null ],
     [ "prov::WifiPlan", "classprov_1_1WifiPlan.html", null ],
-    [ "WifiStore", "classWifiStore.html", null ]
+    [ "WifiStore", "classWifiStore.html", null ],
+    [ "stats::WindowedCounter< T >", "classstats_1_1WindowedCounter.html", null ]
 ];

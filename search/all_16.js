@@ -11,5 +11,9 @@ var searchData=
   ['wifimanager_8',['WifiManager',['../classWifiManager.html',1,'']]],
   ['wifiplan_9',['WifiPlan',['../classprov_1_1WifiPlan.html',1,'prov']]],
   ['wifistore_10',['WifiStore',['../classWifiStore.html',1,'']]],
-  ['wiring_11',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]]
+  ['window_5favg_11',['window_avg',['../windowed__counter_8h.html#a8f6e1ae9fd980382a6b5dea146525681',1,'stats']]],
+  ['window_5fpercent_12',['window_percent',['../windowed__counter_8h.html#a669ca2351d34e46df4eb34e6299632ed',1,'stats']]],
+  ['windowed_5fcounter_2eh_13',['windowed_counter.h',['../windowed__counter_8h.html',1,'']]],
+  ['windowedcounter_14',['WindowedCounter',['../classstats_1_1WindowedCounter.html',1,'stats']]],
+  ['wiring_15',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]]
 ];

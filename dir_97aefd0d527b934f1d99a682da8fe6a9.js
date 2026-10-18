@@ -11,5 +11,6 @@ var dir_97aefd0d527b934f1d99a682da8fe6a9 =
     [ "network", "dir_87c455253015a1fa318026e74068ec9c.html", "dir_87c455253015a1fa318026e74068ec9c" ],
     [ "provisioning", "dir_6ea17c967b5c2ea8bc4cec2485108e61.html", "dir_6ea17c967b5c2ea8bc4cec2485108e61" ],
     [ "remote", "dir_911b8852677d2d92543cefe2da2ab8c5.html", "dir_911b8852677d2d92543cefe2da2ab8c5" ],
+    [ "stats", "dir_99b9bfd03cf01ce45c7d0e9ff284312f.html", "dir_99b9bfd03cf01ce45c7d0e9ff284312f" ],
     [ "tracking", "dir_58e0d21dd1e28c88897bcddd301a60e0.html", "dir_58e0d21dd1e28c88897bcddd301a60e0" ]
 ];
