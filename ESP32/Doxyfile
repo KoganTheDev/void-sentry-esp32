@@ -1130,7 +1130,11 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                = lib/tjpgd \n                         lib/network/include/index_html.h \n                         lib/network/include/wifi_html.h \n                         .pio \n                         managed_components
+EXCLUDE                = lib/tjpgd \
+                         lib/network/include/index_html.h \
+                         lib/network/include/wifi_html.h \
+                         .pio \
+                         managed_components
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
