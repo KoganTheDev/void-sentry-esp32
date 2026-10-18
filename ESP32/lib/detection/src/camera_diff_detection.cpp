@@ -133,20 +133,8 @@ bool CameraDiffDetection::start_task(FrameStore& store)
         return false;
     }
     this->_store = &store;
-    TaskHandle_t task = nullptr;
-    if (xTaskCreatePinnedToCore(task_entry, "detect", 4096, this, 3, &task, 1) != pdPASS)
-    {
-        ESP_LOGE(TAG, "Failed to create the detection task");
-        return false;
-    }
-    if (!store.add_subscriber(task))
-    {
-        ESP_LOGE(TAG, "FrameStore subscriber slots are full");
-        vTaskDelete(task);
-        return false;
-    }
-    this->_task = task;
-    return true;
+    this->_task = store.start_subscriber_task(task_entry, "detect", 4096, 3, 1, this);
+    return this->_task != nullptr;
 }
 
 void CameraDiffDetection::task_entry(void* arg) { static_cast<CameraDiffDetection*>(arg)->task_loop(); }

@@ -57,6 +57,15 @@ public:
     /** @brief Unregister a task. Unknown or null handles are ignored. Remove before deleting the task. */
     void remove_subscriber(TaskHandle_t task);
 
+    /**
+     * @brief Creates a task pinned to @p core and registers it as a subscriber, so it is woken on every publish.
+     * @details Shared by the stream and detection tasks. If the subscriber slots are full the new task is deleted
+     * again, so the caller never owns a task that is not subscribed.
+     * @return The task handle, or nullptr if creation or registration failed (already logged).
+     */
+    TaskHandle_t start_subscriber_task(TaskFunction_t entry, const char* name, uint32_t stack_bytes,
+                                       UBaseType_t priority, BaseType_t core, void* arg);
+
     FrameStoreStats stats();
 
     /** @brief True only after a fully successful begin(). Every other call is a safe no-op before that. */

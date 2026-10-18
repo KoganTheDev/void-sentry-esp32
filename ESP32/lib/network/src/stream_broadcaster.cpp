@@ -42,19 +42,11 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
         return false;
     }
 
-    TaskHandle_t task = nullptr;
     // Priority 4: the work per wake is tens of microseconds (lease + queue the send). At priority 1 it would wait
     // behind a whole detection (priority 3) on every frame, adding video latency.
-    if (xTaskCreatePinnedToCore(stream_task, "stream", 4096, this, 4, &task, 1) != pdPASS)
+    task_ = store_->start_subscriber_task(stream_task, "stream", 4096, 4, 1, this);
+    if (task_ == nullptr)
     {
-        ESP_LOGE(TAG_STREAM, "Failed to create stream task");
-        stop();
-        return false;
-    }
-    task_ = task;
-    if (!store_->add_subscriber(task))
-    {
-        ESP_LOGE(TAG_STREAM, "FrameStore subscriber slots are full");
         stop();
         return false;
     }

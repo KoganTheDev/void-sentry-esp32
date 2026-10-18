@@ -141,6 +141,24 @@ void FrameStore::release_slot(size_t slot)
     slots_.release_slot(slot);
 }
 
+TaskHandle_t FrameStore::start_subscriber_task(TaskFunction_t entry, const char* name, uint32_t stack_bytes,
+                                               UBaseType_t priority, BaseType_t core, void* arg)
+{
+    TaskHandle_t task = nullptr;
+    if (xTaskCreatePinnedToCore(entry, name, stack_bytes, arg, priority, &task, core) != pdPASS)
+    {
+        ESP_LOGE(TAG_STORE, "Failed to create the %s task", name);
+        return nullptr;
+    }
+    if (!this->add_subscriber(task))
+    {
+        ESP_LOGE(TAG_STORE, "FrameStore subscriber slots are full");
+        vTaskDelete(task);
+        return nullptr;
+    }
+    return task;
+}
+
 FrameStoreStats FrameStore::stats()
 {
     if (!ready_)
