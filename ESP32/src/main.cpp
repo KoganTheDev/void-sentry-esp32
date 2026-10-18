@@ -43,7 +43,6 @@ void setup()
     heap_caps_monitor_local_minimum_free_size_start();
     Serial.begin(BAUDRATE);
     delay(100);
-    telemetry::begin();
 
     ESP_LOGI(TAG_MAIN, "====================================");
     ESP_LOGI(TAG_MAIN, "==== SMART CAMERA TURRET SYSTEM ====");

@@ -1,6 +1,6 @@
 /**
  * @file telemetry.h
- * @brief Periodic benchmark stats lines and the per-core idle sampling tick hook.
+ * @brief Periodic benchmark stats lines (every 5 s, from loop()).
  * @details Split out of main.cpp. The objects it reads stay globals in main.cpp and are passed by reference. The
  * lines are the Stage 1 benchmark format (see CLAUDE.md); never prints credentials.
  */
@@ -27,9 +27,6 @@ struct Sources {
     Controller& controller;
     WifiManager& wifi;
 };
-
-/** @brief Register the 1 kHz tick hooks on both cores that sample whether each core runs its IDLE task. */
-void begin();
 
 /** @brief Log the two stats lines if 5 s passed since the last call; cheap otherwise. Call from loop(). */
 void log_stats(const Sources& src);

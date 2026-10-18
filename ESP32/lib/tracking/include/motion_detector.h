@@ -43,7 +43,7 @@ private:
 
     void copy_background(const GrayFrame& frame);
     void seed_background(const GrayFrame& frame);
-    int mask_and_learn(const GrayFrame& frame);
+    template <bool Learn> int mask_and_learn(const GrayFrame& frame);
     void label_blobs();
     uint16_t find(uint16_t label);
     void unite(uint16_t a, uint16_t b);

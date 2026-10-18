@@ -33,7 +33,8 @@ const DetectionResult& MotionDetector::process(const GrayFrame& frame)
         return result_;
     }
 
-    const int raw = mask_and_learn(frame);
+    // Warm-up frames overwrite the background anyway, so they skip the learning half of the pass.
+    const int raw = warmup_left_ > 0 ? mask_and_learn<false>(frame) : mask_and_learn<true>(frame);
     result_.foreground_cells = raw;
     // A scene change needs BOTH a large foreground area AND a shifted frame mean. A big object close to the camera
     // covers a lot of the grid, but auto-exposure holds the mean; a light switch or camera move shifts the mean.
@@ -78,7 +79,7 @@ void MotionDetector::seed_background(const GrayFrame& frame)
     warmup_left_ = config_.warmup_frames;
 }
 
-int MotionDetector::mask_and_learn(const GrayFrame& frame)
+template <bool Learn> int MotionDetector::mask_and_learn(const GrayFrame& frame)
 {
     // One pass: the mask and both means use the OLD background value of each cell, read first; then the same cell
     // learns the frame. The paths that return without using the learned background (scene change, warm-up) overwrite
@@ -99,12 +100,16 @@ int MotionDetector::mask_and_learn(const GrayFrame& frame)
         mask_[i] = fg;
         count += fg;
 
-        // fg_age_ counts consecutive foreground frames (saturating); foreground cells learn slowly until the age limit.
-        const int age = fg ? std::min(fg_age_[i] + 1, 255) : 0;
-        fg_age_[i] = static_cast<uint8_t>(age);
-        const int div = (fg && age <= config_.fg_age_limit) ? fg_div : bg_div;
-        const int target = frame[i] << 8;
-        background_[i] = static_cast<uint16_t>(old_q8 + (target - old_q8) / div); // stays within [0, 255 << 8]
+        if constexpr (Learn)
+        {
+            // fg_age_ counts consecutive foreground frames (saturating); foreground cells learn slowly until the age
+            // limit.
+            const int age = fg ? std::min(fg_age_[i] + 1, 255) : 0;
+            fg_age_[i] = static_cast<uint8_t>(age);
+            const int div = (fg && age <= config_.fg_age_limit) ? fg_div : bg_div;
+            const int target = frame[i] << 8;
+            background_[i] = static_cast<uint16_t>(old_q8 + (target - old_q8) / div); // stays within [0, 255 << 8]
+        }
     }
     frame_mean_ = frame_sum / kCells;
     background_mean_ = bg_sum / kCells;
