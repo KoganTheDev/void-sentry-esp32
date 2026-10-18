@@ -12,7 +12,9 @@
 #include "crc32.h"
 #include "network_list.h"
 
+#include <array>
 #include <cstring>
+#include <span>
 
 using namespace prov;
 
@@ -475,12 +477,78 @@ void test_pin_rejections(void)
     TEST_ASSERT_FALSE(deserialize_pin(b).has_value());
 }
 
+// ---- golden bytes: the NVS blob layouts are frozen; saved data must load after any refactor ----
+
+void test_golden_calibration_blob(void)
+{
+    const uint8_t want[aiming::kBlobSize] = {0x41, 0x49, 0x4D, 0x31, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                             0x20, 0x41, 0x00, 0x00, 0x00, 0x3F, 0x00, 0x00, 0x40, 0xC0,
+                                             0x00, 0x00, 0x80, 0x3E, 0x39, 0xC0, 0x75, 0xC4};
+    const aiming::Blob b = aiming::serialize({.pan_a = 10.0f, .pan_b = 0.5f, .tilt_a = -3.0f, .tilt_b = 0.25f});
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(want, b.data(), sizeof(want));
+    TEST_ASSERT_TRUE(aiming::deserialize(std::span<const uint8_t>(want)).has_value());
+}
+
+void test_golden_nets_blob(void)
+{
+    // Entry stride 102: ssid[33], pass[65], last_ok_seq (u32 LE). Unused entries and padding are zero.
+    NetworkList l;
+    add(l, "home", "password1");
+    add(l, "lab", "");
+    l.mark_joined(0);
+    std::array<uint8_t, kNetsBlobSize> want{};
+    const uint8_t head[6] = {0x56, 0x53, 0x57, 0x4E, 0x01, 0x02};
+    std::memcpy(want.data(), head, 6);
+    std::memcpy(want.data() + 6, "home", 4);
+    std::memcpy(want.data() + 6 + 33, "password1", 9);
+    want[6 + 98] = 3;
+    std::memcpy(want.data() + 6 + 102, "lab", 3);
+    want[6 + 102 + 98] = 2;
+    const uint8_t crc[4] = {0x39, 0x40, 0xC3, 0x33};
+    std::memcpy(want.data() + kNetsBlobSize - 4, crc, 4);
+    const auto b = serialize_nets(l);
+    TEST_ASSERT_EQUAL_UINT(316, kNetsBlobSize);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(want.data(), b.data(), kNetsBlobSize);
+    TEST_ASSERT_TRUE(deserialize_nets(want).has_value());
+}
+
+void test_golden_pin_blob(void)
+{
+    PinRecord r;
+    r.set = true;
+    for (size_t i = 0; i < kSaltLen; ++i)
+    {
+        r.salt[i] = static_cast<uint8_t>(i + 1);
+    }
+    for (size_t i = 0; i < kHashLen; ++i)
+    {
+        r.hash[i] = static_cast<uint8_t>(0xA0 + i);
+    }
+    std::array<uint8_t, kPinBlobSize> want{0x56, 0x53, 0x57, 0x50, 0x01, 0x01};
+    std::memcpy(want.data() + 6, r.salt, kSaltLen);
+    std::memcpy(want.data() + 6 + kSaltLen, r.hash, kHashLen);
+    const uint8_t crc[4] = {0x3F, 0x9F, 0x12, 0x2A};
+    std::memcpy(want.data() + kPinBlobSize - 4, crc, 4);
+    const auto b = serialize_pin(r);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(want.data(), b.data(), kPinBlobSize);
+    TEST_ASSERT_TRUE(deserialize_pin(want).has_value());
+
+    std::array<uint8_t, kPinBlobSize> unset{0x56, 0x53, 0x57, 0x50, 0x01, 0x00};
+    const uint8_t crc0[4] = {0xA8, 0x91, 0x54, 0xAF};
+    std::memcpy(unset.data() + kPinBlobSize - 4, crc0, 4);
+    const auto u = serialize_pin(PinRecord{});
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(unset.data(), u.data(), kPinBlobSize);
+}
+
 int main(int, char**)
 {
     UNITY_BEGIN();
     RUN_TEST(test_crc32_known_value);
     RUN_TEST(test_aiming_crc32_alias_matches);
     RUN_TEST(test_calibration_blob_still_round_trips);
+    RUN_TEST(test_golden_calibration_blob);
+    RUN_TEST(test_golden_nets_blob);
+    RUN_TEST(test_golden_pin_blob);
     RUN_TEST(test_list_add_and_find);
     RUN_TEST(test_list_find_is_byte_exact);
     RUN_TEST(test_list_replace_in_place);
