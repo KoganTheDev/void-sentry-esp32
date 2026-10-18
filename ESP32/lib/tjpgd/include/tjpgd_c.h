@@ -19,6 +19,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,9 +41,12 @@ typedef unsigned short	WORD;
 typedef unsigned short	WCHAR;
 
 /* These types must be 32-bit integer */
-typedef long			LONG;
-typedef unsigned long	ULONG;
-typedef unsigned long	DWORD;
+/* Void Sentry: fixed width instead of long/unsigned long, which are 64-bit on LP64 hosts (Linux CI) and made the
+   pool tables twice as big (decode failed with JDR_MEM1). Same types as before on the ESP32. Later TJpgDec releases
+   do the same. */
+typedef int32_t			LONG;
+typedef uint32_t		ULONG;
+typedef uint32_t		DWORD;
 
 
 /* Error code */
