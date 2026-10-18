@@ -94,6 +94,53 @@ jobs:
               working-directory: ESP32
               run: pio test -e native_sanitize
 
+    # Line/branch coverage of the native suite. Each suite runs on its own and its counters are captured and zeroed
+    # before the next, because pio rebuilds the shared library objects per suite (which resets their .gcda files).
+    coverage:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - uses: actions/cache@v4
+              with:
+                  path: ~/.platformio
+                  key: pio-native-coverage-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
+            - name: Install PlatformIO and lcov
+              run: |
+                  pip install -U platformio
+                  sudo apt-get update -qq && sudo apt-get install -y -qq lcov
+            - name: Gate script tests
+              run: python -m unittest discover -s tools/coverage -p "test_*.py" -v
+            - name: Run each native suite with coverage
+              working-directory: ESP32
+              run: |
+                  mkdir -p ../coverage/parts
+                  LCOV="--ignore-errors mismatch,unused,negative,inconsistent,empty --rc branch_coverage=1"
+                  for suite in test/native/test_*; do
+                      name=$(basename "$suite")
+                      lcov $LCOV --zerocounters --directory .pio/build/native_coverage 2>/dev/null || true
+                      pio test -e native_coverage -f "native/$name"
+                      lcov $LCOV --capture --directory .pio/build/native_coverage --output-file "../coverage/parts/$name.info"
+                  done
+                  lcov $LCOV $(for f in ../coverage/parts/*.info; do echo "--add-tracefile $f"; done) \
+                      --output-file ../coverage/all.info
+                  lcov $LCOV --remove ../coverage/all.info '/usr/*' '*/test/*' '*/.pio/*' \
+                      --output-file ../coverage/coverage.info
+            - name: Per-library summary and floor
+              run: python tools/coverage/coverage_gate.py coverage/coverage.info --floor 0
+            - name: HTML report
+              if: always()
+              run: genhtml --ignore-errors inconsistent,corrupt,unmapped,source --branch-coverage coverage/coverage.info --output-directory coverage/html || true
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: native-coverage
+                  path: |
+                      coverage/coverage.info
+                      coverage/html
+
     tracking-bench:
         runs-on: ubuntu-latest
         steps:
