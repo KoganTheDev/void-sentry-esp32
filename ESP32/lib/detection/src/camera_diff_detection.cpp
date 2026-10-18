@@ -91,10 +91,10 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
         // A frame we cannot read counts as a miss, so the track decays instead of freezing the old snapshot.
         const tracking::TrackState& missed = this->_pipeline->tracker.update(tracking::DetectionResult{});
         const TrackSnapshot snapshot = make_snapshot(missed, frame.width, frame.height);
-        portENTER_CRITICAL(&this->_lock);
-        ++this->_stats.decode_failures;
-        this->_snapshot = snapshot;
-        portEXIT_CRITICAL(&this->_lock);
+        this->_published.update([&](Published& p) {
+            ++p.stats.decode_failures;
+            p.snapshot = snapshot;
+        });
         ESP_LOGD(TAG, "JPEG decode failed (%u bytes)", (unsigned)frame.length);
         return tracking::direction_for(missed);
     }
@@ -104,18 +104,19 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
     const int64_t t2 = esp_timer_get_time();
 
     const TrackSnapshot snapshot = make_snapshot(track, frame.width, frame.height);
-    portENTER_CRITICAL(&this->_lock);
-    this->_snapshot = snapshot;
-    ++this->_stats.frames;
-    if (detection.scene_change)
-    {
-        ++this->_stats.scene_changes;
-    }
-    this->_stats.decode_us_total += static_cast<uint64_t>(t1 - t0);
-    this->_stats.track_us_total += static_cast<uint64_t>(t2 - t1);
-    this->_stats.decode_us_avg = static_cast<uint32_t>(this->_stats.decode_us_total / this->_stats.frames);
-    this->_stats.track_us_avg = static_cast<uint32_t>(this->_stats.track_us_total / this->_stats.frames);
-    portEXIT_CRITICAL(&this->_lock);
+    this->_published.update([&](Published& p) {
+        DetectionStats& stats = p.stats;
+        p.snapshot = snapshot;
+        ++stats.frames;
+        if (detection.scene_change)
+        {
+            ++stats.scene_changes;
+        }
+        stats.decode_us_total += static_cast<uint64_t>(t1 - t0);
+        stats.track_us_total += static_cast<uint64_t>(t2 - t1);
+        stats.decode_us_avg = static_cast<uint32_t>(stats.decode_us_total / stats.frames);
+        stats.track_us_avg = static_cast<uint32_t>(stats.track_us_total / stats.frames);
+    });
 
     return tracking::direction_for(track);
 }
@@ -178,9 +179,7 @@ void CameraDiffDetection::task_loop()
         {
             // StackType_t is uint8_t on ESP-IDF, so the high-water mark is in bytes.
             const uint32_t free_bytes = static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr));
-            portENTER_CRITICAL(&this->_lock);
-            this->_stats.stack_free = free_bytes;
-            portEXIT_CRITICAL(&this->_lock);
+            this->_published.update([&](Published& p) { p.stats.stack_free = free_bytes; });
         }
     }
 }
@@ -189,12 +188,12 @@ void CameraDiffDetection::apply_reset()
 {
     this->_pipeline->detector.reset();
     this->_pipeline->tracker.reset();
-    portENTER_CRITICAL(&this->_lock);
-    TrackSnapshot idle;
-    idle.frame_width = this->_snapshot.frame_width;
-    idle.frame_height = this->_snapshot.frame_height;
-    this->_snapshot = idle;
-    portEXIT_CRITICAL(&this->_lock);
+    this->_published.update([](Published& p) {
+        TrackSnapshot idle;
+        idle.frame_width = p.snapshot.frame_width;
+        idle.frame_height = p.snapshot.frame_height;
+        p.snapshot = idle;
+    });
 }
 
 void CameraDiffDetection::reset()
@@ -210,16 +209,10 @@ void CameraDiffDetection::reset()
 
 TrackSnapshot CameraDiffDetection::get_track_snapshot() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const TrackSnapshot copy = this->_snapshot;
-    portEXIT_CRITICAL(&this->_lock);
-    return copy;
+    return this->_published.inspect([](const Published& p) { return p.snapshot; });
 }
 
 DetectionStats CameraDiffDetection::get_stats() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const DetectionStats copy = this->_stats;
-    portEXIT_CRITICAL(&this->_lock);
-    return copy;
+    return this->_published.inspect([](const Published& p) { return p.stats; });
 }

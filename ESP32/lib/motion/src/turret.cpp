@@ -39,7 +39,7 @@ float clamp_unit(float v)
 
 Turret::Turret(Servo& servo) : _servo(servo)
 {
-    this->_published.tilt = aiming::kTiltHomeDeg;
+    this->_published.update([](Published& p) { p.position.tilt = aiming::kTiltHomeDeg; });
     this->_tilt_target = aiming::kTiltHomeDeg;
     this->_tilt_current = aiming::kTiltHomeDeg;
     this->_servo_written = static_cast<int>(aiming::kTiltHomeDeg);
@@ -73,63 +73,51 @@ bool Turret::begin()
 
 void Turret::set_target_deg(const aiming::Angles& target)
 {
-    portENTER_CRITICAL(&this->_lock);
-    this->_command.kind = CommandKind::Target;
-    this->_command.target = target;
-    ++this->_command.sequence;
-    portEXIT_CRITICAL(&this->_lock);
+    this->_command.update([&](Command& c) {
+        c.kind = CommandKind::Target;
+        c.target = target;
+        ++c.sequence;
+    });
 }
 
 void Turret::jog(float pan, float tilt)
 {
     pan = clamp_unit(pan);
     tilt = clamp_unit(tilt);
-    portENTER_CRITICAL(&this->_lock);
-    this->_command.kind = CommandKind::Jog;
-    this->_command.jog_pan = pan;
-    this->_command.jog_tilt = tilt;
-    ++this->_command.sequence;
-    portEXIT_CRITICAL(&this->_lock);
+    this->_command.update([&](Command& c) {
+        c.kind = CommandKind::Jog;
+        c.jog_pan = pan;
+        c.jog_tilt = tilt;
+        ++c.sequence;
+    });
 }
 
 void Turret::home()
 {
-    portENTER_CRITICAL(&this->_lock);
-    this->_command.kind = CommandKind::Home;
-    ++this->_command.sequence;
-    portEXIT_CRITICAL(&this->_lock);
+    this->_command.update([](Command& c) {
+        c.kind = CommandKind::Home;
+        ++c.sequence;
+    });
 }
 
 aiming::Angles Turret::position_deg() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const aiming::Angles a = this->_published;
-    portEXIT_CRITICAL(&this->_lock);
-    return a;
+    return this->_published.inspect([](const Published& p) { return p.position; });
 }
 
 uint32_t Turret::late_ticks() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const uint32_t n = this->_late_ticks;
-    portEXIT_CRITICAL(&this->_lock);
-    return n;
+    return this->_published.inspect([](const Published& p) { return p.late_ticks; });
 }
 
 uint32_t Turret::stack_free() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const uint32_t n = this->_stack_free;
-    portEXIT_CRITICAL(&this->_lock);
-    return n;
+    return this->_published.inspect([](const Published& p) { return p.stack_free; });
 }
 
 float Turret::pan_speed() const
 {
-    portENTER_CRITICAL(&this->_lock);
-    const float s = this->_published_speed;
-    portEXIT_CRITICAL(&this->_lock);
-    return s;
+    return this->_published.inspect([](const Published& p) { return p.speed; });
 }
 
 void Turret::task_entry(void* arg) { static_cast<Turret*>(arg)->run(); }
@@ -184,13 +172,13 @@ void Turret::run()
         // Commands: copy under the lock, apply outside it.
         Command cmd;
         bool fresh = false;
-        portENTER_CRITICAL(&this->_lock);
-        if (this->_command.sequence != handled_seq)
-        {
-            cmd = this->_command;
-            fresh = true;
-        }
-        portEXIT_CRITICAL(&this->_lock);
+        this->_command.update([&](const Command& c) {
+            if (c.sequence != handled_seq)
+            {
+                cmd = c;
+                fresh = true;
+            }
+        });
 
         if (fresh)
         {
@@ -265,12 +253,12 @@ void Turret::run()
         const float pan = aiming::pan_steps_to_deg(this->_planner.position());
         const float tilt = this->_tilt_current;
         const float speed = this->_planner.speed();
-        portENTER_CRITICAL(&this->_lock);
-        this->_published.pan = pan;
-        this->_published.tilt = tilt;
-        this->_published_speed = speed;
-        this->_late_ticks = late;
-        this->_stack_free = stack_free;
-        portEXIT_CRITICAL(&this->_lock);
+        this->_published.update([&](Published& p) {
+            p.position.pan = pan;
+            p.position.tilt = tilt;
+            p.speed = speed;
+            p.late_ticks = late;
+            p.stack_free = stack_free;
+        });
     }
 }

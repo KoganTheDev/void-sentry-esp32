@@ -24,9 +24,7 @@ void Controller::begin()
 void Controller::submit(const remote::Command& cmd)
 {
     const uint32_t now = millis(); // outside the lock
-    portENTER_CRITICAL(&this->_remote_lock);
-    this->_remote_inbox.submit(cmd, now);
-    portEXIT_CRITICAL(&this->_remote_lock);
+    this->_remote_inbox.update([&](remote::RemoteInbox& inbox) { inbox.submit(cmd, now); });
 }
 
 void Controller::jog_from_inputs(uint32_t now, bool calibrate_button_held)
@@ -50,9 +48,7 @@ void Controller::jog_from_inputs(uint32_t now, bool calibrate_button_held)
         this->_turret.jog(sx / 255.0f, sy / 255.0f);
         return;
     }
-    portENTER_CRITICAL(&this->_remote_lock);
-    const remote::Jog jog = this->_remote_inbox.jog(now);
-    portEXIT_CRITICAL(&this->_remote_lock);
+    const remote::Jog jog = this->_remote_inbox.update([now](remote::RemoteInbox& inbox) { return inbox.jog(now); });
     this->_turret.jog(jog.pan, jog.tilt); // (0,0) once the dead-man window has passed
 }
 
@@ -150,18 +146,10 @@ void Controller::publish_status()
     st.cal_failure = this->_session.failure();
     st.aims = this->_aims;
 
-    portENTER_CRITICAL(&this->_status_lock);
-    this->_status = st;
-    portEXIT_CRITICAL(&this->_status_lock);
+    this->_status.store(st);
 }
 
-ControlStatus Controller::control_status() const
-{
-    portENTER_CRITICAL(&this->_status_lock);
-    const ControlStatus st = this->_status;
-    portEXIT_CRITICAL(&this->_status_lock);
-    return st;
-}
+ControlStatus Controller::control_status() const { return this->_status.load(); }
 
 void Controller::run()
 {
@@ -193,9 +181,8 @@ void Controller::run()
     }
 
     // Take the HUD's mode request every pass so one made during Calibrate is dropped, not applied later.
-    portENTER_CRITICAL(&this->_remote_lock);
-    const std::optional<remote::RemoteMode> mode_req = this->_remote_inbox.take_mode_request();
-    portEXIT_CRITICAL(&this->_remote_lock);
+    const std::optional<remote::RemoteMode> mode_req =
+        this->_remote_inbox.update([](remote::RemoteInbox& inbox) { return inbox.take_mode_request(); });
     if (mode_req.has_value() && !was_calibrating && this->_mode != ControlMode::Calibrate)
     {
         const ControlMode wanted = (*mode_req == remote::RemoteMode::Ai) ? ControlMode::Ai : ControlMode::User;

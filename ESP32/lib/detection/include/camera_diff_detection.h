@@ -2,6 +2,7 @@
 
 #include "base_detection_module.h"
 #include "motion_detector.h"
+#include "sync.h"
 #include "tracker.h"
 
 #include <atomic>
@@ -71,7 +72,10 @@ private:
     TaskHandle_t _task = nullptr;
     std::atomic<bool> _reset_requested{false};
     uint32_t _last_sequence = 0; ///< detection task only
-    mutable portMUX_TYPE _lock = portMUX_INITIALIZER_UNLOCKED;
-    TrackSnapshot _snapshot;
-    DetectionStats _stats;
+    /** @brief Snapshot and counters published together under one lock by the detection task. */
+    struct Published {
+        TrackSnapshot snapshot;
+        DetectionStats stats;
+    };
+    vsync::SpinGuarded<Published> _published;
 };

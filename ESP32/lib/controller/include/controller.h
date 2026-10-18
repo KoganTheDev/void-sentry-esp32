@@ -18,6 +18,7 @@
 #include "control_status.h"
 #include "joystick.h"
 #include "remote_inbox.h"
+#include "sync.h"
 #include "system_control_types.h"
 #include <cstdint>
 #include <stdlib.h>
@@ -72,10 +73,7 @@ private:
     bool _calibrated = false;
 
     /** @brief Status published at the end of each run() pass; read from the httpd task. */
-    ControlStatus _status;
-
-    /** @brief Guards _status (copies only; no blocking calls inside). */
-    mutable portMUX_TYPE _status_lock = portMUX_INITIALIZER_UNLOCKED;
+    vsync::SpinGuarded<ControlStatus> _status;
 
     /** @brief Aim commands issued to the turret since boot (telemetry). */
     uint32_t _aims = 0;
@@ -95,11 +93,9 @@ private:
     /** @brief Timestamp (millis) of the last joystick move. */
     uint32_t _last_user_move_ms = 0;
 
-    /** @brief Latest HUD command state (dead-man jog, pending mode request); guarded by _remote_lock. */
-    remote::RemoteInbox _remote_inbox;
-
-    /** @brief Guards _remote_inbox: submit() runs on the httpd task, run() on the loop task (copies only). */
-    mutable portMUX_TYPE _remote_lock = portMUX_INITIALIZER_UNLOCKED;
+    /** @brief Latest HUD command state (dead-man jog, pending mode request): submit() runs on the httpd task, run() on
+     * the loop task. */
+    vsync::SpinGuarded<remote::RemoteInbox> _remote_inbox;
 
     /**
      * @brief Jog arbiter for User/Calibrate, at most once per kUserModePeriodMs (25 Hz).
