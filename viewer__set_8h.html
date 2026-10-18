@@ -105,7 +105,7 @@ $(function(){initNavTree('viewer__set_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Which stream viewers should receive which frame (pure C++17, natively tested).  
+<p>Which stream viewers should receive which frame (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;array&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
@@ -129,7 +129,7 @@ constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames::k
 <tr class="separator:a8cb11fe0ddeb31c42c894a86d84412b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Which stream viewers should receive which frame (pure C++17, natively tested). </p>
+<div class="textblock"><p>Which stream viewers should receive which frame (pure C++20, natively tested). </p>
 <p>A viewer that is still receiving (busy) is skipped, so it never builds a backlog and always gets the newest frame next - this is what keeps stream latency low. NOT thread-safe; <a class="el" href="classStreamBroadcaster.html">StreamBroadcaster</a> locks around it. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

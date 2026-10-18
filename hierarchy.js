@@ -38,8 +38,10 @@ var hierarchy =
     [ "frames::FrameMeta", "structframes_1_1FrameMeta.html", null ],
     [ "FrameStoreStats", "structFrameStoreStats.html", null ],
     [ "HttpServer", "classHttpServer.html", null ],
+    [ "JDEC", "structJDEC.html", null ],
     [ "remote::Jog", "structremote_1_1Jog.html", null ],
     [ "Joystick", "classJoystick.html", null ],
+    [ "JRECT", "structJRECT.html", null ],
     [ "tracking::MotionDetector", "classtracking_1_1MotionDetector.html", null ],
     [ "MoveDirection< EnumType >", "classMoveDirection.html", null ],
     [ "MoveDirection< MoveXValue >", "classMoveDirection.html", [

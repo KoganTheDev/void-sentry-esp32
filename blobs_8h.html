@@ -105,11 +105,12 @@ $(function(){initNavTree('blobs_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Versioned, CRC-checked byte layouts for the saved networks and the PIN record (pure C++17, no heap).  
+<p>Versioned, CRC-checked byte layouts for the saved networks and the PIN record (pure C++20, no heap).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="network__list_8h_source.html">network_list.h</a>&quot;</code><br />
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;span&gt;</code><br />
 </div>
 <p><a href="blobs_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -119,18 +120,18 @@ Functions</h2></td></tr>
 std::array&lt; uint8_t, kNetsBlobSize &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::serialize_nets</b> (const <a class="el" href="classprov_1_1NetworkList.html">NetworkList</a> &amp;list)</td></tr>
 <tr class="memdesc:a9205897de7f9291ef791a70135b378ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packs the list into the nets blob. <br /></td></tr>
 <tr class="separator:a9205897de7f9291ef791a70135b378ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a279b32f927d62b7c695b5dec648d2358" id="r_a279b32f927d62b7c695b5dec648d2358"><td class="memItemLeft" align="right" valign="top"><a id="a279b32f927d62b7c695b5dec648d2358" name="a279b32f927d62b7c695b5dec648d2358"></a>
-std::optional&lt; <a class="el" href="classprov_1_1NetworkList.html">NetworkList</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::deserialize_nets</b> (const uint8_t *data, size_t len)</td></tr>
-<tr class="memdesc:a279b32f927d62b7c695b5dec648d2358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a nets blob; empty on wrong length, magic, version, CRC, count, unterminated or invalid fields. <br /></td></tr>
-<tr class="separator:a279b32f927d62b7c695b5dec648d2358"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0659233bae7ac11c10123b816a006eb1" id="r_a0659233bae7ac11c10123b816a006eb1"><td class="memItemLeft" align="right" valign="top"><a id="a0659233bae7ac11c10123b816a006eb1" name="a0659233bae7ac11c10123b816a006eb1"></a>
+std::optional&lt; <a class="el" href="classprov_1_1NetworkList.html">NetworkList</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::deserialize_nets</b> (std::span&lt; const uint8_t &gt; blob)</td></tr>
+<tr class="memdesc:a0659233bae7ac11c10123b816a006eb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a nets blob; empty on wrong length, magic, version, CRC, count, unterminated or invalid fields. <br /></td></tr>
+<tr class="separator:a0659233bae7ac11c10123b816a006eb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa54a228556b6071e3aac02b8e3e20c8a" id="r_aa54a228556b6071e3aac02b8e3e20c8a"><td class="memItemLeft" align="right" valign="top"><a id="aa54a228556b6071e3aac02b8e3e20c8a" name="aa54a228556b6071e3aac02b8e3e20c8a"></a>
 std::array&lt; uint8_t, kPinBlobSize &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::serialize_pin</b> (const <a class="el" href="structprov_1_1PinRecord.html">PinRecord</a> &amp;rec)</td></tr>
 <tr class="memdesc:aa54a228556b6071e3aac02b8e3e20c8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packs the PIN record into the pin blob. <br /></td></tr>
 <tr class="separator:aa54a228556b6071e3aac02b8e3e20c8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2f5f7de99dd1e0abf4487657828d5aa5" id="r_a2f5f7de99dd1e0abf4487657828d5aa5"><td class="memItemLeft" align="right" valign="top"><a id="a2f5f7de99dd1e0abf4487657828d5aa5" name="a2f5f7de99dd1e0abf4487657828d5aa5"></a>
-std::optional&lt; <a class="el" href="structprov_1_1PinRecord.html">PinRecord</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::deserialize_pin</b> (const uint8_t *data, size_t len)</td></tr>
-<tr class="memdesc:a2f5f7de99dd1e0abf4487657828d5aa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a pin blob; empty on wrong length, magic, version, CRC or set byte. <br /></td></tr>
-<tr class="separator:a2f5f7de99dd1e0abf4487657828d5aa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d974be5cecf8c17d1853583964183d0" id="r_a0d974be5cecf8c17d1853583964183d0"><td class="memItemLeft" align="right" valign="top"><a id="a0d974be5cecf8c17d1853583964183d0" name="a0d974be5cecf8c17d1853583964183d0"></a>
+std::optional&lt; <a class="el" href="structprov_1_1PinRecord.html">PinRecord</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::deserialize_pin</b> (std::span&lt; const uint8_t &gt; blob)</td></tr>
+<tr class="memdesc:a0d974be5cecf8c17d1853583964183d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a pin blob; empty on wrong length, magic, version, CRC or set byte. <br /></td></tr>
+<tr class="separator:a0d974be5cecf8c17d1853583964183d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -142,7 +143,7 @@ constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>prov::kPi
 <tr class="separator:ace96fa7fc1e78c1b99e1a57423535d7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Versioned, CRC-checked byte layouts for the saved networks and the PIN record (pure C++17, no heap). </p>
+<div class="textblock"><p>Versioned, CRC-checked byte layouts for the saved networks and the PIN record (pure C++20, no heap). </p>
 <p>Little-endian: magic (u32; "VSWN" nets, "VSWP" pin), version (u8 = 1), count (nets) or set (pin) (u8), fixed-size fields with unused entries zeroed, then CRC-32 of everything before it. Anything that fails a check deserializes to nothing. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

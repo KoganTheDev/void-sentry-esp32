@@ -104,7 +104,7 @@ $(function(){initNavTree('step__planner_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).  
+<p>Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
 </div>
@@ -118,7 +118,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested). </p>
+<div class="textblock"><p>Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested). </p>
 <p>Target mode moves to an absolute step count: accelerate, cruise, brake so it stops exactly on the target (no overshoot); a new target mid-move is reached by braking first, never by an instant reversal. Jog mode follows a commanded velocity with the same acceleration limit. Both modes brake into the soft limits and never step past them. tick() returns the step to emit this tick (-1, 0, +1); at most one per tick (max 400 steps/s &lt; 1 kHz). NOT thread-safe: the motor task owns it. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

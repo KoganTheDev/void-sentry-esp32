@@ -105,7 +105,7 @@ $(function(){initNavTree('remote__inbox_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Holds the latest remote command state with a dead-man jog timeout (pure C++17, natively tested).  
+<p>Holds the latest remote command state with a dead-man jog timeout (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="remote__command_8h_source.html">remote_command.h</a>&quot;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -133,7 +133,7 @@ constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>remote::kJ
 <tr class="separator:aec8cbea47a4b17e76eaf5ca72043a15f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Holds the latest remote command state with a dead-man jog timeout (pure C++17, natively tested). </p>
+<div class="textblock"><p>Holds the latest remote command state with a dead-man jog timeout (pure C++20, natively tested). </p>
 <p>Not thread-safe by itself; the owner (<a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>) guards it with a spinlock. Time is millis()-style uint32 and wraparound-safe. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

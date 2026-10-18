@@ -107,12 +107,13 @@ $(function(){initNavTree('sha256_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;array&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>prov</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>{</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>std::array&lt;uint8_t, 32&gt; <a class="code hl_function" href="sha256_8h.html#af45c1b59a4784be82e1792b7d6951232">sha256</a>(<span class="keyword">const</span> uint8_t* data, <span class="keywordtype">size_t</span> len);</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>} <span class="comment">// namespace prov</span></div>
-<div class="ttc" id="asha256_8h_html_af45c1b59a4784be82e1792b7d6951232"><div class="ttname"><a href="sha256_8h.html#af45c1b59a4784be82e1792b7d6951232">prov::sha256</a></div><div class="ttdeci">std::array&lt; uint8_t, 32 &gt; sha256(const uint8_t *data, size_t len)</div><div class="ttdoc">SHA-256 digest of a buffer. data may be null only when len is 0.</div><div class="ttdef"><b>Definition</b> sha256.cpp:64</div></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;span&gt;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>prov</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>{</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>std::array&lt;uint8_t, 32&gt; <a class="code hl_function" href="sha256_8h.html#a8199389c97f89121554e822042d63c8e">sha256</a>(std::span&lt;const uint8_t&gt; data);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>} <span class="comment">// namespace prov</span></div>
+<div class="ttc" id="asha256_8h_html_a8199389c97f89121554e822042d63c8e"><div class="ttname"><a href="sha256_8h.html#a8199389c97f89121554e822042d63c8e">prov::sha256</a></div><div class="ttdeci">std::array&lt; uint8_t, 32 &gt; sha256(std::span&lt; const uint8_t &gt; data)</div><div class="ttdoc">SHA-256 digest of a buffer. An empty span hashes the empty message.</div><div class="ttdef"><b>Definition</b> sha256.cpp:64</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

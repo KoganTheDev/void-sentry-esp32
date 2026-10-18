@@ -127,9 +127,17 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>unregister_endpoint</
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
+<tr class="memitem:aac61379fab821d71e09c058afdcf0577" id="r_aac61379fab821d71e09c058afdcf0577"><td class="memItemLeft" align="right" valign="top"><a id="aac61379fab821d71e09c058afdcf0577" name="aac61379fab821d71e09c058afdcf0577"></a>
+static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>pre_handshake</b> (httpd_req_t *req)</td></tr>
+<tr class="memdesc:aac61379fab821d71e09c058afdcf0577"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). <br /></td></tr>
+<tr class="separator:aac61379fab821d71e09c058afdcf0577"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae4dfc8224ca1c7c7062e2b65c9c7033" id="r_aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="memItemLeft" align="right" valign="top"><a id="aae4dfc8224ca1c7c7062e2b65c9c7033" name="aae4dfc8224ca1c7c7062e2b65c9c7033"></a>
+static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>post_handshake</b> (httpd_req_t *req)</td></tr>
+<tr class="memdesc:aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_post_handshake_cb: logs the new session once it is a WebSocket. <br /></td></tr>
+<tr class="separator:aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbf5b28823707d7a8b85b18dc5e0005d" id="r_acbf5b28823707d7a8b85b18dc5e0005d"><td class="memItemLeft" align="right" valign="top"><a id="acbf5b28823707d7a8b85b18dc5e0005d" name="acbf5b28823707d7a8b85b18dc5e0005d"></a>
 static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>websocket_handler</b> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:acbf5b28823707d7a8b85b18dc5e0005d"><td class="mdescLeft">&#160;</td><td class="mdescRight">httpd callback for /commands: completes the handshake, or parses one text frame and sends the JSON reply. <br /></td></tr>
+<tr class="memdesc:acbf5b28823707d7a8b85b18dc5e0005d"><td class="mdescLeft">&#160;</td><td class="mdescRight">httpd callback for /commands: parses one text frame and sends the JSON reply (the handshake goes to the pre/post hooks, never here). <br /></td></tr>
 <tr class="separator:acbf5b28823707d7a8b85b18dc5e0005d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>

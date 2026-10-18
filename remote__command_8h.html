@@ -106,10 +106,10 @@ $(function(){initNavTree('remote__command_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Parses the HUD's /commands text messages into typed commands (pure C++17, natively tested).  
+<p>Parses the HUD's /commands text messages into typed commands (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;cstddef&gt;</code><br />
-<code>#include &lt;cstdint&gt;</code><br />
+<div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
 </div>
 <p><a href="remote__command_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -143,16 +143,16 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a428dc2a9a274a3bad42cb3e519be87b9" id="r_a428dc2a9a274a3bad42cb3e519be87b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structremote_1_1Command.html">Command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a428dc2a9a274a3bad42cb3e519be87b9">remote::parse</a> (const char *data, size_t len)</td></tr>
-<tr class="memdesc:a428dc2a9a274a3bad42cb3e519be87b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses one message.  <br /></td></tr>
-<tr class="separator:a428dc2a9a274a3bad42cb3e519be87b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae55779093517f1d80741ed9628ec70ca" id="r_ae55779093517f1d80741ed9628ec70ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structremote_1_1Command.html">Command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae55779093517f1d80741ed9628ec70ca">remote::parse</a> (std::string_view message)</td></tr>
+<tr class="memdesc:ae55779093517f1d80741ed9628ec70ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses one message.  <br /></td></tr>
+<tr class="separator:ae55779093517f1d80741ed9628ec70ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Parses the HUD's /commands text messages into typed commands (pure C++17, natively tested). </p>
+<div class="textblock"><p>Parses the HUD's /commands text messages into typed commands (pure C++20, natively tested). </p>
 <p>No Arduino or ESP-IDF headers and no heap use, so the parser runs on the host and in the httpd handler. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a428dc2a9a274a3bad42cb3e519be87b9" name="a428dc2a9a274a3bad42cb3e519be87b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a428dc2a9a274a3bad42cb3e519be87b9">&#9670;&#160;</a></span>parse()</h2>
+<a id="ae55779093517f1d80741ed9628ec70ca" name="ae55779093517f1d80741ed9628ec70ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae55779093517f1d80741ed9628ec70ca">&#9670;&#160;</a></span>parse()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -160,18 +160,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">Command remote::parse </td>
           <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>message</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>len</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Parses one message. </p>
-<p>Exact, case-sensitive match on the whole buffer (not NUL-terminated; len bytes). Reads at most len bytes. Anything unrecognised (empty, nullptr, unknown text, trailing bytes) yields a Poll command. </p>
+<p>Exact, case-sensitive match on the whole view (it need not be NUL-terminated, and the receive buffer is not). Anything unrecognised (empty, unknown text, trailing bytes) yields a Poll command. </p>
 
 </div>
 </div>

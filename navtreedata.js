@@ -26,17 +26,17 @@ var NAVTREE =
 [
   [ "Void Sentry", "index.html", [
     [ "CLAUDE.md", "md__2github_2workspace_2CLAUDE.html", [
-      [ "What it does", "index.html#autotoc_md196", null ],
-      [ "Highlights", "index.html#autotoc_md197", null ],
-      [ "Architecture", "index.html#autotoc_md198", null ],
-      [ "Performance", "index.html#autotoc_md199", null ],
-      [ "Hardware and wiring", "index.html#autotoc_md200", null ],
-      [ "Getting started", "index.html#autotoc_md201", null ],
-      [ "Using it", "index.html#autotoc_md202", null ],
-      [ "Testing and CI", "index.html#autotoc_md203", null ],
-      [ "Project layout", "index.html#autotoc_md204", null ],
-      [ "Roadmap status", "index.html#autotoc_md205", null ],
-      [ "License", "index.html#autotoc_md206", null ],
+      [ "What it does", "index.html#autotoc_md213", null ],
+      [ "Highlights", "index.html#autotoc_md214", null ],
+      [ "Architecture", "index.html#autotoc_md215", null ],
+      [ "Performance", "index.html#autotoc_md216", null ],
+      [ "Hardware and wiring", "index.html#autotoc_md217", null ],
+      [ "Getting started", "index.html#autotoc_md218", null ],
+      [ "Using it", "index.html#autotoc_md219", null ],
+      [ "Testing and CI", "index.html#autotoc_md220", null ],
+      [ "Project layout", "index.html#autotoc_md221", null ],
+      [ "Roadmap status", "index.html#autotoc_md222", null ],
+      [ "License", "index.html#autotoc_md223", null ],
       [ "Commands", "md__2github_2workspace_2CLAUDE.html#autotoc_md1", null ],
       [ "Sanitizers and profiling", "md__2github_2workspace_2CLAUDE.html#autotoc_md2", null ],
       [ "Required local setup", "md__2github_2workspace_2CLAUDE.html#autotoc_md3", null ],
@@ -143,96 +143,116 @@ var NAVTREE =
         [ "Task 5 (controller + user): hardware verification and cleanup", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage6-wifi-provisioning.html#autotoc_md117", null ]
       ] ]
     ] ],
+    [ "Stage 7 Toolchain Upgrade Implementation Plan", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html", [
+      [ "Global Constraints", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md119", null ],
+      [ "Review Focus", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md120", [
+        [ "Task 1: core 3 env side by side", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md121", null ],
+        [ "Task 2 (controller): A/B on the board", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md122", null ],
+        [ "Task 3: cut-over to one env and C++20", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md123", null ],
+        [ "Task 4: targeted C++20 adoption (pure libs; after Task 3)", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md124", null ],
+        [ "Task 5 (controller + user): final board check and PR", "md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html#autotoc_md125", null ]
+      ] ]
+    ] ],
     [ "Void Sentry rebuild: roadmap and Stage 0 design", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html", [
-      [ "Context", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md119", null ],
-      [ "Roadmap", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md120", null ],
-      [ "Stage 0 design", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md121", [
-        [ "Hardware and pin map (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md122", null ],
-        [ "Language and toolchain (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md123", null ],
-        [ "WiFi credentials (done for now)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md124", null ],
-        [ "Native tests (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md125", null ],
-        [ "Formatting (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md126", null ],
-        [ "CI (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md127", null ],
-        [ "Generated web UI header (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md128", null ],
-        [ "Removed", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md129", null ],
-        [ "Definition of done", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md130", null ]
+      [ "Context", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md127", null ],
+      [ "Roadmap", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md128", null ],
+      [ "Stage 0 design", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md129", [
+        [ "Hardware and pin map (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md130", null ],
+        [ "Language and toolchain (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md131", null ],
+        [ "WiFi credentials (done for now)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md132", null ],
+        [ "Native tests (done)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md133", null ],
+        [ "Formatting (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md134", null ],
+        [ "CI (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md135", null ],
+        [ "Generated web UI header (to do)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md136", null ],
+        [ "Removed", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md137", null ],
+        [ "Definition of done", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md138", null ]
       ] ],
-      [ "Non-goals for Stage 0", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md131", null ]
+      [ "Non-goals for Stage 0", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html#autotoc_md139", null ]
     ] ],
     [ "Void Sentry Stage 1: frame ownership and push streaming", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html", [
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md133", null ],
-      [ "Problems this fixes", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md134", null ],
-      [ "Design", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md135", [
-        [ "FrameSlots: slot bookkeeping (pure C++17, native-tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md136", null ],
-        [ "FrameStore: device wrapper", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md137", null ],
-        [ "Camera task", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md138", null ],
-        [ "Controller integration", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md139", null ],
-        [ "ViewerSet: viewer bookkeeping (pure C++17, native-tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md140", null ],
-        [ "Push streaming", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md141", null ],
-        [ "Browser HUD (web/web_ui.html)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md142", null ],
-        [ "Diagnostics", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md143", null ]
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md141", null ],
+      [ "Problems this fixes", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md142", null ],
+      [ "Design", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md143", [
+        [ "FrameSlots: slot bookkeeping (pure C++17, native-tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md144", null ],
+        [ "FrameStore: device wrapper", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md145", null ],
+        [ "Camera task", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md146", null ],
+        [ "Controller integration", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md147", null ],
+        [ "ViewerSet: viewer bookkeeping (pure C++17, native-tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md148", null ],
+        [ "Push streaming", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md149", null ],
+        [ "Browser HUD (web/web_ui.html)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md150", null ],
+        [ "Diagnostics", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md151", null ]
       ] ],
-      [ "Benchmarks: how each success criterion is measured", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md144", null ],
-      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md145", null ],
-      [ "Non-goals", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md146", null ]
+      [ "Benchmarks: how each success criterion is measured", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md152", null ],
+      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md153", null ],
+      [ "Non-goals", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md154", null ]
     ] ],
     [ "Void Sentry Stage 2: Motion Detection and Persistent Tracking", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html", [
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md148", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md149", null ],
-      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md150", [
-        [ "Pure library lib/tracking (namespace tracking, no Arduino/ESP-IDF headers, native + sanitizer tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md151", null ],
-        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md152", null ]
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md156", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md157", null ],
+      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md158", [
+        [ "Pure library lib/tracking (namespace tracking, no Arduino/ESP-IDF headers, native + sanitizer tested)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md159", null ],
+        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md160", null ]
       ] ],
-      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md153", null ],
-      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md154", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md155", null ]
+      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md161", null ],
+      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md162", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html#autotoc_md163", null ]
     ] ],
     [ "Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html", [
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md157", null ],
-      [ "Why absolute aiming (not visual servoing)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md158", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md159", null ],
-      [ "Coordinates and limits", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md160", null ],
-      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md161", [
-        [ "Pure library lib/aiming (namespace aiming; no Arduino/ESP-IDF headers, no heap; native + ASan/UBSan t...", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md162", null ],
-        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md163", null ]
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md165", null ],
+      [ "Why absolute aiming (not visual servoing)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md166", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md167", null ],
+      [ "Coordinates and limits", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md168", null ],
+      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md169", [
+        [ "Pure library lib/aiming (namespace aiming; no Arduino/ESP-IDF headers, no heap; native + ASan/UBSan t...", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md170", null ],
+        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md171", null ]
       ] ],
-      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md164", null ],
-      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md165", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md166", null ]
+      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md172", null ],
+      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md173", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html#autotoc_md174", null ]
     ] ],
     [ "Void Sentry Stage 4: Dual-Core Task Layout", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html", [
-      [ "Problem (measured in Stage 3)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md168", null ],
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md169", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md170", null ],
-      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md171", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md172", null ]
+      [ "Problem (measured in Stage 3)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md176", null ],
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md177", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md178", null ],
+      [ "Success criteria (on hardware)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md179", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html#autotoc_md180", null ]
     ] ],
     [ "Void Sentry Stage 4b: HUD Remote Control", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html", [
-      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md174", null ],
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md175", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md176", null ],
-      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md177", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md178", null ]
+      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md182", null ],
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md183", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md184", null ],
+      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md185", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html#autotoc_md186", null ]
     ] ],
     [ "Void Sentry Stage 5: Portfolio Polish", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html", [
-      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md180", null ],
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md181", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md182", null ],
-      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md183", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md184", null ]
+      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md188", null ],
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md189", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md190", null ],
+      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md191", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage5-portfolio-design.html#autotoc_md192", null ]
     ] ],
     [ "Void Sentry Stage 6: On-Device WiFi Provisioning", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html", [
-      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md186", null ],
-      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md187", null ],
-      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md188", null ],
-      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md189", [
-        [ "Pure library lib/provisioning (namespace prov; no Arduino/ESP-IDF headers, no heap; native + ASan/UBS...", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md190", null ],
-        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md191", null ]
+      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md194", null ],
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md195", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md196", null ],
+      [ "Architecture", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md197", [
+        [ "Pure library lib/provisioning (namespace prov; no Arduino/ESP-IDF headers, no heap; native + ASan/UBS...", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md198", null ],
+        [ "Device side", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md199", null ]
       ] ],
-      [ "Error handling", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md192", null ],
-      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md193", null ],
-      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md194", null ],
-      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md195", null ]
+      [ "Error handling", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md200", null ],
+      [ "Testing", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md201", null ],
+      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md202", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html#autotoc_md203", null ]
+    ] ],
+    [ "Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html", [
+      [ "Problem", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md205", null ],
+      [ "Goal", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md206", null ],
+      [ "Decisions", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md207", null ],
+      [ "Expected changes (to check during porting)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md208", null ],
+      [ "C++20 adoption (after cut-over; behaviour identical, existing native tests are the proof)", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md209", null ],
+      [ "Verification", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md210", null ],
+      [ "Success criteria", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md211", null ],
+      [ "Out of scope", "md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html#autotoc_md212", null ]
     ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
@@ -266,8 +286,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "aim__map_8h.html",
-"dir_c9485d40cb2a7f6be6fcd9adbf7b9d21.html",
-"remote__command_8h.html"
+"dir_b0f55966ea5b18827ce45954f03d236d.html",
+"namespacemembers.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -105,7 +105,7 @@ $(function(){initNavTree('aim__policy_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Decides where the turret should point from the tracker state (pure C++17, natively tested).  
+<p>Decides where the turret should point from the tracker state (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="aim__map_8h_source.html">aim_map.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tracking__types_8h_source.html">tracking_types.h</a>&quot;</code><br />
@@ -134,7 +134,7 @@ Enumerations</h2></td></tr>
 <tr class="separator:a5a005097b8b3140b31d0bea5a4d80754"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Decides where the turret should point from the tracker state (pure C++17, natively tested). </p>
+<div class="textblock"><p>Decides where the turret should point from the tracker state (pure C++20, natively tested). </p>
 <p>Locked/Coasting: aim at the mapped target position, changing the setpoint only when the new aim is more than deadband_deg away on either axis (no jitter). Tentative: hold. Idle: hold, and home_delay_ms after the target was last seen, return Home exactly once. Time is millis()-style uint32 and wraparound-safe. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

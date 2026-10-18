@@ -104,7 +104,7 @@ $(function(){initNavTree('motion__detector_8h.html',''); initResizable(true); })
 </div><!--header-->
 <div class="contents">
 
-<p>Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).  
+<p>Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="tracking__types_8h_source.html">tracking_types.h</a>&quot;</code><br />
 </div>
@@ -116,7 +116,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested). </p>
+<div class="textblock"><p>Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested). </p>
 <p>Per frame: foreground mask against an exponential-moving-average background, a scene-change guard, and 8-connected blobs via two-pass union-find labelling. There is no morphological opening: each cell is already an 8x8 block average (1/8 DC decode), so an opening would erase hand-sized targets; isolated noise cells are rejected by DetectorConfig::min_blob_cells instead. Background cells learn fast (1/16) and foreground cells slowly (1/128), so moving objects leave no trail while a stopped object is still absorbed eventually. A cell that stays foreground for more than fg_age_limit frames goes back to the fast rate, so ghosts (cells that differ because the background itself was wrong) clear in a few seconds instead of ~14 s. All state is fixed-size (~12 KB): no heap. NOT thread-safe. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

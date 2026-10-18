@@ -105,7 +105,7 @@ $(function(){initNavTree('calibration__session_8h.html',''); initResizable(true)
 </div><!--header-->
 <div class="contents">
 
-<p>Two-point joystick calibration as a state machine (pure C++17, natively tested).  
+<p>Two-point joystick calibration as a state machine (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="aim__map_8h_source.html">aim_map.h</a>&quot;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
@@ -132,7 +132,7 @@ Enumerations</h2></td></tr>
 <tr class="separator:afa7de8e294e471d286083c02d350fa24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Two-point joystick calibration as a state machine (pure C++17, natively tested). </p>
+<div class="textblock"><p>Two-point joystick calibration as a state machine (pure C++20, natively tested). </p>
 <p>start() -&gt; WaitPoint1 -&gt; WaitPoint2 -&gt; Done (result() holds the fitted map) or Failed (failure() says why). record() ignores presses while no target is visible (the point is meaningless) and while Idle; in Failed the next record() restarts at point 1 without recording. cancel() returns to Idle from any state. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

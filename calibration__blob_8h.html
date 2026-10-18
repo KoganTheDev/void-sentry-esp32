@@ -106,7 +106,7 @@ $(function(){initNavTree('calibration__blob_8h.html',''); initResizable(true); }
 </div><!--header-->
 <div class="contents">
 
-<p>Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).  
+<p>Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="aim__map_8h_source.html">aim_map.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="crc32_8h_source.html">crc32.h</a>&quot;</code><br />
@@ -114,6 +114,7 @@ $(function(){initNavTree('calibration__blob_8h.html',''); initResizable(true); }
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;span&gt;</code><br />
 </div>
 <p><a href="calibration__blob_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -129,10 +130,10 @@ Functions</h2></td></tr>
 Blob&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::serialize</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;map)</td></tr>
 <tr class="memdesc:a4fae5066724bbf2344d13794a92fc894"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes. <br /></td></tr>
 <tr class="separator:a4fae5066724bbf2344d13794a92fc894"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b68e39bc03da70a56b14a67f9f336b8" id="r_a3b68e39bc03da70a56b14a67f9f336b8"><td class="memItemLeft" align="right" valign="top"><a id="a3b68e39bc03da70a56b14a67f9f336b8" name="a3b68e39bc03da70a56b14a67f9f336b8"></a>
-std::optional&lt; <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::deserialize</b> (const uint8_t *data, size_t len)</td></tr>
-<tr class="memdesc:a3b68e39bc03da70a56b14a67f9f336b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a blob; empty if the length, magic, version, CRC or float values are invalid. <br /></td></tr>
-<tr class="separator:a3b68e39bc03da70a56b14a67f9f336b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa3bc1373e083c8dab34fa35135c5584" id="r_afa3bc1373e083c8dab34fa35135c5584"><td class="memItemLeft" align="right" valign="top"><a id="afa3bc1373e083c8dab34fa35135c5584" name="afa3bc1373e083c8dab34fa35135c5584"></a>
+std::optional&lt; <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::deserialize</b> (std::span&lt; const uint8_t &gt; blob)</td></tr>
+<tr class="memdesc:afa3bc1373e083c8dab34fa35135c5584"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a blob; empty if the length, magic, version, CRC or float values are invalid. <br /></td></tr>
+<tr class="separator:afa3bc1373e083c8dab34fa35135c5584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -141,8 +142,8 @@ constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::k
 <tr class="separator:acb4bb5e7e61b1176e0b18413c1e87331"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested). </p>
-<p>Layout (little-endian, 28 bytes): magic "AIM1" (u32), version (u16, = 1), reserved (u16, 0), pan_a, pan_b, tilt_a, tilt_b (4 x f32), CRC-32 of the first 24 bytes (u32). Both the ESP32 and x86 are little-endian, so fields are copied with memcpy. Anything that fails a check deserializes to nothing, and the caller falls back to default_map(). </p>
+<div class="textblock"><p>Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested). </p>
+<p>Layout (little-endian, 28 bytes): magic "AIM1" (u32), version (u16, = 1), reserved (u16, 0), pan_a, pan_b, tilt_a, tilt_b (4 x f32), CRC-32 of the first 24 bytes (u32). Both the ESP32 and x86 are little-endian, so fields are copied with std::bit_cast. Anything that fails a check deserializes to nothing, and the caller falls back to default_map(). </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

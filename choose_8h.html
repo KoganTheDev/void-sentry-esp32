@@ -104,23 +104,24 @@ $(function(){initNavTree('choose_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Picks which saved networks to try, given a scan (pure C++17, no heap).  
+<p>Picks which saved networks to try, given a scan (pure C++20, no heap).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="network__list_8h_source.html">network_list.h</a>&quot;</code><br />
+<code>#include &lt;span&gt;</code><br />
 </div>
 <p><a href="choose_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a201ea44d839b9b0a3c5d5736e3b05a26" id="r_a201ea44d839b9b0a3c5d5736e3b05a26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structprov_1_1Candidates.html">Candidates</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a201ea44d839b9b0a3c5d5736e3b05a26">prov::choose_networks</a> (const <a class="el" href="structprov_1_1ScanResult.html">ScanResult</a> *scan, size_t scan_count, const <a class="el" href="classprov_1_1NetworkList.html">NetworkList</a> &amp;list)</td></tr>
-<tr class="memdesc:a201ea44d839b9b0a3c5d5736e3b05a26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saved networks present in the scan (byte-exact SSID), strongest RSSI first.  <br /></td></tr>
-<tr class="separator:a201ea44d839b9b0a3c5d5736e3b05a26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a936252a3f23cf692cea6f0e2d07dd0cf" id="r_a936252a3f23cf692cea6f0e2d07dd0cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structprov_1_1Candidates.html">Candidates</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a936252a3f23cf692cea6f0e2d07dd0cf">prov::choose_networks</a> (std::span&lt; const <a class="el" href="structprov_1_1ScanResult.html">ScanResult</a> &gt; scan, const <a class="el" href="classprov_1_1NetworkList.html">NetworkList</a> &amp;list)</td></tr>
+<tr class="memdesc:a936252a3f23cf692cea6f0e2d07dd0cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saved networks present in the scan (byte-exact SSID), strongest RSSI first.  <br /></td></tr>
+<tr class="separator:a936252a3f23cf692cea6f0e2d07dd0cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Picks which saved networks to try, given a scan (pure C++17, no heap). </p>
+<div class="textblock"><p>Picks which saved networks to try, given a scan (pure C++20, no heap). </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a201ea44d839b9b0a3c5d5736e3b05a26" name="a201ea44d839b9b0a3c5d5736e3b05a26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a201ea44d839b9b0a3c5d5736e3b05a26">&#9670;&#160;</a></span>choose_networks()</h2>
+<a id="a936252a3f23cf692cea6f0e2d07dd0cf" name="a936252a3f23cf692cea6f0e2d07dd0cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a936252a3f23cf692cea6f0e2d07dd0cf">&#9670;&#160;</a></span>choose_networks()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -128,12 +129,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">Candidates prov::choose_networks </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structprov_1_1ScanResult.html">ScanResult</a> *</td>          <td class="paramname"><span class="paramname"><em>scan</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>scan_count</em></span>, </td>
+          <td class="paramtype">std::span&lt; const <a class="el" href="structprov_1_1ScanResult.html">ScanResult</a> &gt;</td>          <td class="paramname"><span class="paramname"><em>scan</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

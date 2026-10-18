@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['wifi_20provisioning_0',['Void Sentry Stage 6: On-Device WiFi Provisioning',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html',1,'']]],
-  ['wifi_20provisioning_20implementation_20plan_1',['Stage 6 On-Device WiFi Provisioning Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage6-wifi-provisioning.html',1,'']]]
+  ['upgrade_20arduino_20core_203_203_2012_20c_2020_0',['Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html',1,'']]],
+  ['upgrade_20implementation_20plan_1',['Stage 7 Toolchain Upgrade Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html',1,'']]]
 ];

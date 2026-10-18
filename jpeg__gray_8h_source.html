@@ -102,19 +102,19 @@ $(function(){initNavTree('jpeg__gray_8h_source.html',''); initResizable(true); }
 </div><!--header-->
 <div class="contents">
 <a href="jpeg__gray_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#pragma once</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="tracking__types_8h.html">tracking_types.h</a>&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">namespace </span>jpeg_gray</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>{</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keywordtype">bool</span> <a class="code hl_function" href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">decode</a>(<span class="keyword">const</span> uint8_t* jpeg, <span class="keywordtype">size_t</span> len, <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a>&amp; out);</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>} <span class="comment">// namespace jpeg_gray</span></div>
-<div class="ttc" id="ajpeg__gray_8h_html_af371915d020ec49ede7f937a430f7646"><div class="ttname"><a href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">jpeg_gray::decode</a></div><div class="ttdeci">bool decode(const uint8_t *jpeg, size_t len, tracking::GrayFrame &amp;out)</div><div class="ttdoc">false if the JPEG is corrupt or its 1/8-scale size is not 40x30 (frame size must be QVGA).</div><div class="ttdef"><b>Definition</b> jpeg_gray.cpp:69</div></div>
-<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++17, natively tested).</div></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="tracking__types_8h.html">tracking_types.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">namespace </span>jpeg_gray</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>{</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keywordtype">bool</span> <a class="code hl_function" href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">decode</a>(<span class="keyword">const</span> uint8_t* jpeg, <span class="keywordtype">size_t</span> len, <a class="code hl_typedef" href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a>&amp; out);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>} <span class="comment">// namespace jpeg_gray</span></div>
+<div class="ttc" id="ajpeg__gray_8h_html_af371915d020ec49ede7f937a430f7646"><div class="ttname"><a href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">jpeg_gray::decode</a></div><div class="ttdeci">bool decode(const uint8_t *jpeg, size_t len, tracking::GrayFrame &amp;out)</div><div class="ttdoc">false if the JPEG is corrupt or its 1/8-scale size is not 40x30 (frame size must be QVGA).</div><div class="ttdef"><b>Definition</b> jpeg_gray.cpp:54</div></div>
+<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++20, natively tested).</div></div>
 <div class="ttc" id="atracking__types_8h_html_a211b8754850e23b96a6293769fffc32f"><div class="ttname"><a href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a></div><div class="ttdeci">std::array&lt; uint8_t, kCells &gt; GrayFrame</div><div class="ttdoc">One 40x30 luma frame, row-major (index = y * kGridW + x).</div><div class="ttdef"><b>Definition</b> tracking_types.h:21</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

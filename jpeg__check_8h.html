@@ -104,24 +104,24 @@ $(function(){initNavTree('jpeg__check_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Cheap integrity check for camera JPEG frames (pure C++, no platform headers).  
+<p>Cheap integrity check for camera JPEG frames (pure C++20, no platform headers).  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;cstddef&gt;</code><br />
-<code>#include &lt;cstdint&gt;</code><br />
+<div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;span&gt;</code><br />
 </div>
 <p><a href="jpeg__check_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a3914fd05246b522decbcb5a1cf448fc6" id="r_a3914fd05246b522decbcb5a1cf448fc6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3914fd05246b522decbcb5a1cf448fc6">frames::is_complete_jpeg</a> (const uint8_t *data, size_t length)</td></tr>
-<tr class="memdesc:a3914fd05246b522decbcb5a1cf448fc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">True if the buffer starts with the JPEG SOI marker (FF D8) and ends with the EOI marker (FF D9).  <br /></td></tr>
-<tr class="separator:a3914fd05246b522decbcb5a1cf448fc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af12c8250017e636e3409c5b76486af67" id="r_af12c8250017e636e3409c5b76486af67"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af12c8250017e636e3409c5b76486af67">frames::is_complete_jpeg</a> (std::span&lt; const uint8_t &gt; data)</td></tr>
+<tr class="memdesc:af12c8250017e636e3409c5b76486af67"><td class="mdescLeft">&#160;</td><td class="mdescRight">True if the buffer starts with the JPEG SOI marker (FF D8) and ends with the EOI marker (FF D9).  <br /></td></tr>
+<tr class="separator:af12c8250017e636e3409c5b76486af67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Cheap integrity check for camera JPEG frames (pure C++, no platform headers). </p>
+<div class="textblock"><p>Cheap integrity check for camera JPEG frames (pure C++20, no platform headers). </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a3914fd05246b522decbcb5a1cf448fc6" name="a3914fd05246b522decbcb5a1cf448fc6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3914fd05246b522decbcb5a1cf448fc6">&#9670;&#160;</a></span>is_complete_jpeg()</h2>
+<a id="af12c8250017e636e3409c5b76486af67" name="af12c8250017e636e3409c5b76486af67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af12c8250017e636e3409c5b76486af67">&#9670;&#160;</a></span>is_complete_jpeg()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -132,12 +132,8 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">bool frames::is_complete_jpeg </td>
           <td>(</td>
-          <td class="paramtype">const uint8_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::span&lt; const uint8_t &gt;</td>          <td class="paramname"><span class="paramname"><em>data</em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>length</em></span>&#160;)</td>
         </tr>
       </table>
   </td>

@@ -121,7 +121,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 Global Constraints</h1>
 <ul>
 <li><b>Language:</b> C++17 everywhere; no C++20.</li>
-<li><b><code>lib/aiming</code> purity:</b> no Arduino, ESP-IDF or FreeRTOS headers, and no heap allocation. It may include <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">tracking_types.h</a></code> from <code>lib/tracking</code>, which is pure.</li>
+<li><b><code>lib/aiming</code> purity:</b> no Arduino, ESP-IDF or FreeRTOS headers, and no heap allocation. It may include <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">tracking_types.h</a></code> from <code>lib/tracking</code>, which is pure.</li>
 <li><b>Stepper geometry:</b> 2048 full steps per revolution. Pan 0 = home = the boot position, positive = right. Pan soft limits ±90° (±512 steps).</li>
 <li><b>Tilt:</b> servo degrees, home 90, soft limits [20, 160], Up = larger angle.</li>
 <li><b>Image:</b> QVGA, 320x240 px.</li>
@@ -177,21 +177,21 @@ File map</h1>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">File   </th><th class="markdownTableHeadNone">Task   </th><th class="markdownTableHeadNone">Responsibility    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++17, natively tested).">ESP32/lib/aiming/include/aim_map.h</a></code>, <code>src/aim_map.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone"><code>Angles</code>, <code>CalPoint</code>, <code>AimMap</code>, <code>default_map</code>, <code>fit</code>, clamping, deg&lt;-&gt;steps    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_map.h</a></code>, <code>src/aim_map.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone"><code>Angles</code>, <code>CalPoint</code>, <code>AimMap</code>, <code>default_map</code>, <code>fit</code>, clamping, deg&lt;-&gt;steps    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).">ESP32/lib/aiming/include/calibration_blob.h</a></code>, <code>src/calibration_blob.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">28-byte versioned, CRC-32 blob    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).">ESP32/lib/aiming/include/calibration_blob.h</a></code>, <code>src/calibration_blob.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">28-byte versioned, CRC-32 blob    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code><a class="el" href="test__aim__map_8cpp.html" title="Host-side tests for the image-to-angle map, its 2-point fit, and the NVS calibration blob.">ESP32/test/native/test_aim_map/test_aim_map.cpp</a></code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Tests for the map and the blob    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).">ESP32/lib/aiming/include/step_planner.h</a></code>, <code>src/step_planner.cpp</code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Trapezoidal 1 kHz planner (target + jog)    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).">ESP32/lib/aiming/include/step_planner.h</a></code>, <code>src/step_planner.cpp</code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Trapezoidal 1 kHz planner (target + jog)    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code><a class="el" href="test__step__planner_8cpp.html" title="Host-side tests for the trapezoidal 1 kHz stepper planner (target and jog modes).">ESP32/test/native/test_step_planner/test_step_planner.cpp</a></code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Planner tests    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++17, natively tested).">ESP32/lib/aiming/include/aim_policy.h</a></code>, <code>src/aim_policy.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Hold / Aim / Home policy    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_policy.h</a></code>, <code>src/aim_policy.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Hold / Aim / Home policy    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++17, natively tested).">ESP32/lib/aiming/include/button_classifier.h</a></code>, <code>src/button_classifier.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Short/long press    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++20, natively tested).">ESP32/lib/aiming/include/button_classifier.h</a></code>, <code>src/button_classifier.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Short/long press    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++17, natively tested).">ESP32/lib/aiming/include/calibration_session.h</a></code>, <code>src/calibration_session.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">2-point calibration state machine    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++20, natively tested).">ESP32/lib/aiming/include/calibration_session.h</a></code>, <code>src/calibration_session.cpp</code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">2-point calibration state machine    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code><a class="el" href="test__aim__policy_8cpp.html" title="Host-side tests for the aim policy, the button classifier, the calibration session,...">ESP32/test/native/test_aim_policy/test_aim_policy.cpp</a></code>   </td><td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Policy, button, session and pipeline tests    </td></tr>
 <tr class="markdownTableRowEven">
@@ -211,9 +211,9 @@ File map</h1>
 <h2><a class="anchor" id="autotoc_md77"></a>
 Task 1: AimMap and calibration blob</h2>
 <p><b>Files:</b></p><ul>
-<li>Create: <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++17, natively tested).">ESP32/lib/aiming/include/aim_map.h</a></code></li>
+<li>Create: <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_map.h</a></code></li>
 <li>Create: <code>ESP32/lib/aiming/src/aim_map.cpp</code></li>
-<li>Create: <code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).">ESP32/lib/aiming/include/calibration_blob.h</a></code></li>
+<li>Create: <code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).">ESP32/lib/aiming/include/calibration_blob.h</a></code></li>
 <li>Create: <code>ESP32/lib/aiming/src/calibration_blob.cpp</code></li>
 <li>Test: <code><a class="el" href="test__aim__map_8cpp.html" title="Host-side tests for the image-to-angle map, its 2-point fit, and the NVS calibration blob.">ESP32/test/native/test_aim_map/test_aim_map.cpp</a></code></li>
 </ul>
@@ -317,7 +317,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">{</div>
 <div class="line">    <span class="keyword">const</span> <a class="code hl_struct" href="structaiming_1_1AimMap.html">AimMap</a> m{0.25f, -40.0f, -0.2f, 112.0f};</div>
 <div class="line">    <span class="keyword">const</span> Blob b = <a class="code hl_function" href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">serialize</a>(m);</div>
-<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> back = <a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(b.data(), b.size());</div>
+<div class="line">    <span class="keyword">const</span> <span class="keyword">auto</span> back = <a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(b.data(), b.size());</div>
 <div class="line">    TEST_ASSERT_TRUE(back.has_value());</div>
 <div class="line">    TEST_ASSERT_EQUAL_FLOAT(m.pan_a, back-&gt;pan_a);</div>
 <div class="line">    TEST_ASSERT_EQUAL_FLOAT(m.pan_b, back-&gt;pan_b);</div>
@@ -328,8 +328,8 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line"><span class="keywordtype">void</span> test_blob_rejects_wrong_length(<span class="keywordtype">void</span>)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keyword">const</span> Blob b = <a class="code hl_function" href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">serialize</a>(<a class="code hl_function" href="aim__map_8h.html#ad045b32c88ad60c2c9538164d8c45c59">default_map</a>());</div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(b.data(), b.size() - 1).has_value());</div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(<span class="keyword">nullptr</span>, kBlobSize).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(b.data(), b.size() - 1).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(<span class="keyword">nullptr</span>, kBlobSize).has_value());</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">void</span> test_blob_rejects_bad_magic_version_and_crc(<span class="keywordtype">void</span>)</div>
@@ -337,15 +337,15 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    Blob b = <a class="code hl_function" href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">serialize</a>(<a class="code hl_function" href="aim__map_8h.html#ad045b32c88ad60c2c9538164d8c45c59">default_map</a>());</div>
 <div class="line">    Blob bad_magic = b;</div>
 <div class="line">    bad_magic[0] ^= 0xFF;</div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(bad_magic.data(), bad_magic.size()).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(bad_magic.data(), bad_magic.size()).has_value());</div>
 <div class="line"> </div>
 <div class="line">    Blob bad_version = b;</div>
 <div class="line">    bad_version[4] = 9; <span class="comment">// version field (little-endian uint16 at offset 4)</span></div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(bad_version.data(), bad_version.size()).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(bad_version.data(), bad_version.size()).has_value());</div>
 <div class="line"> </div>
 <div class="line">    Blob bad_payload = b;</div>
 <div class="line">    bad_payload[10] ^= 0x01; <span class="comment">// inside the floats: CRC must catch it</span></div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(bad_payload.data(), bad_payload.size()).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(bad_payload.data(), bad_payload.size()).has_value());</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">void</span> test_blob_rejects_non_finite_values(<span class="keywordtype">void</span>)</div>
@@ -353,7 +353,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    <a class="code hl_struct" href="structaiming_1_1AimMap.html">AimMap</a> m = <a class="code hl_function" href="aim__map_8h.html#ad045b32c88ad60c2c9538164d8c45c59">default_map</a>();</div>
 <div class="line">    m.tilt_b = std::numeric_limits&lt;float&gt;::infinity();</div>
 <div class="line">    <span class="keyword">const</span> Blob b = <a class="code hl_function" href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">serialize</a>(m); <span class="comment">// CRC is valid, value is not</span></div>
-<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(b.data(), b.size()).has_value());</div>
+<div class="line">    TEST_ASSERT_FALSE(<a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(b.data(), b.size()).has_value());</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>** argv)</div>
@@ -373,14 +373,14 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    RUN_TEST(test_blob_rejects_non_finite_values);</div>
 <div class="line">    <span class="keywordflow">return</span> UNITY_END();</div>
 <div class="line">}</div>
-<div class="ttc" id="aaim__map_8h_html"><div class="ttname"><a href="aim__map_8h.html">aim_map.h</a></div><div class="ttdoc">Maps a target's image position to turret angles (pure C++17, natively tested).</div></div>
+<div class="ttc" id="aaim__map_8h_html"><div class="ttname"><a href="aim__map_8h.html">aim_map.h</a></div><div class="ttdoc">Maps a target's image position to turret angles (pure C++20, natively tested).</div></div>
 <div class="ttc" id="aaim__map_8h_html_a29510865ab2fb4b1db34025dac5aa1f1"><div class="ttname"><a href="aim__map_8h.html#a29510865ab2fb4b1db34025dac5aa1f1">aiming::fit</a></div><div class="ttdeci">std::optional&lt; AimMap &gt; fit(const CalPoint &amp;p1, const CalPoint &amp;p2)</div><div class="ttdoc">Per-axis line through two calibration points; empty if they are too close or not finite.</div><div class="ttdef"><b>Definition</b> aim_map.cpp:43</div></div>
 <div class="ttc" id="aaim__map_8h_html_a813645c39ac80d64efe49d906113c9fe"><div class="ttname"><a href="aim__map_8h.html#a813645c39ac80d64efe49d906113c9fe">aiming::pan_deg_to_steps</a></div><div class="ttdeci">int32_t pan_deg_to_steps(float deg)</div><div class="ttdoc">Converts pan degrees to 28BYJ-48 full steps (rounded). Non-finite input gives 0; the degrees are clam...</div><div class="ttdef"><b>Definition</b> aim_map.cpp:71</div></div>
 <div class="ttc" id="aaim__map_8h_html_ad045b32c88ad60c2c9538164d8c45c59"><div class="ttname"><a href="aim__map_8h.html#ad045b32c88ad60c2c9538164d8c45c59">aiming::default_map</a></div><div class="ttdeci">AimMap default_map()</div><div class="ttdoc">Camera next to the turret, 66 x 50 degree field of view, image centre = home.</div><div class="ttdef"><b>Definition</b> aim_map.cpp:33</div></div>
 <div class="ttc" id="aaim__map_8h_html_ad0bee5ec0b09f39ee004cd19a972e2b6"><div class="ttname"><a href="aim__map_8h.html#ad0bee5ec0b09f39ee004cd19a972e2b6">aiming::pan_steps_to_deg</a></div><div class="ttdeci">float pan_steps_to_deg(int32_t steps)</div><div class="ttdoc">Converts a pan step count (28BYJ-48 full steps from home) to degrees; the inverse of pan_deg_to_steps...</div><div class="ttdef"><b>Definition</b> aim_map.cpp:81</div></div>
-<div class="ttc" id="acalibration__blob_8h_html"><div class="ttname"><a href="calibration__blob_8h.html">calibration_blob.h</a></div><div class="ttdoc">Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).</div></div>
-<div class="ttc" id="acalibration__blob_8h_html_a3b68e39bc03da70a56b14a67f9f336b8"><div class="ttname"><a href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">aiming::deserialize</a></div><div class="ttdeci">std::optional&lt; AimMap &gt; deserialize(const uint8_t *data, size_t len)</div><div class="ttdoc">Parses a blob; empty if the length, magic, version, CRC or float values are invalid.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:29</div></div>
-<div class="ttc" id="acalibration__blob_8h_html_a4fae5066724bbf2344d13794a92fc894"><div class="ttname"><a href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">aiming::serialize</a></div><div class="ttdeci">Blob serialize(const AimMap &amp;map)</div><div class="ttdoc">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:15</div></div>
+<div class="ttc" id="acalibration__blob_8h_html"><div class="ttname"><a href="calibration__blob_8h.html">calibration_blob.h</a></div><div class="ttdoc">Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).</div></div>
+<div class="ttc" id="acalibration__blob_8h_html_a4fae5066724bbf2344d13794a92fc894"><div class="ttname"><a href="calibration__blob_8h.html#a4fae5066724bbf2344d13794a92fc894">aiming::serialize</a></div><div class="ttdeci">Blob serialize(const AimMap &amp;map)</div><div class="ttdoc">Packs a map into the 28-byte versioned layout, with the CRC-32 in the last four bytes.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:31</div></div>
+<div class="ttc" id="acalibration__blob_8h_html_afa3bc1373e083c8dab34fa35135c5584"><div class="ttname"><a href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">aiming::deserialize</a></div><div class="ttdeci">std::optional&lt; AimMap &gt; deserialize(std::span&lt; const uint8_t &gt; blob)</div><div class="ttdoc">Parses a blob; empty if the length, magic, version, CRC or float values are invalid.</div><div class="ttdef"><b>Definition</b> calibration_blob.cpp:45</div></div>
 <div class="ttc" id="astructaiming_1_1AimMap_html"><div class="ttname"><a href="structaiming_1_1AimMap.html">aiming::AimMap</a></div><div class="ttdoc">pan = pan_a * x + pan_b, tilt = tilt_a * y + tilt_b.</div><div class="ttdef"><b>Definition</b> aim_map.h:43</div></div>
 <div class="ttc" id="astructaiming_1_1AimMap_html_a72e368e744c014f5668c380cbb49bade"><div class="ttname"><a href="structaiming_1_1AimMap.html#a72e368e744c014f5668c380cbb49bade">aiming::AimMap::aim</a></div><div class="ttdeci">Angles aim(float x, float y) const</div><div class="ttdoc">Angles for an image position, clamped to the soft limits.</div><div class="ttdef"><b>Definition</b> aim_map.cpp:31</div></div>
 <div class="ttc" id="astructaiming_1_1Angles_html"><div class="ttname"><a href="structaiming_1_1Angles.html">aiming::Angles</a></div><div class="ttdoc">Turret pose: pan degrees from home (positive = right), tilt servo degrees (larger = up).</div><div class="ttdef"><b>Definition</b> aim_map.h:29</div></div>
@@ -390,10 +390,10 @@ Task 1: AimMap and calibration blob</h2>
 <li><code>tilt_a = -40/150</code>, so tilt at y = 125 is <code>110 - 75 * 40/150 = 90</code>.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 2: Run to confirm it fails.</b> From <code>ESP32/</code>: <code>pio test -e native -f native/test_aim_map &gt; &lt;scratch&gt;/a1.log 2&gt;&amp;1</code>. Expect <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++17, natively tested).">aim_map.h</a>: No such file</code>.</li>
+<li class="unchecked"><b>Step 2: Run to confirm it fails.</b> From <code>ESP32/</code>: <code>pio test -e native -f native/test_aim_map &gt; &lt;scratch&gt;/a1.log 2&gt;&amp;1</code>. Expect <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++20, natively tested).">aim_map.h</a>: No such file</code>.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 3: Create <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++17, natively tested).">aim_map.h</a></code></b></li>
+<li class="unchecked"><b>Step 3: Create <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++20, natively tested).">aim_map.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -516,7 +516,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">} <span class="comment">// namespace aiming</span></div>
 <div class="ttc" id="aaim__map_8h_html_a41d0eedc471c3c14d58c972e953b1c76"><div class="ttname"><a href="aim__map_8h.html#a41d0eedc471c3c14d58c972e953b1c76">aiming::kFrameW</a></div><div class="ttdeci">constexpr int kFrameW</div><div class="ttdoc">QVGA.</div><div class="ttdef"><b>Definition</b> aim_map.h:23</div></div>
 </div><!-- fragment --><ul class="check">
-<li class="unchecked"><b>Step 5: Create <code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).">calibration_blob.h</a></code> / <code>.cpp</code></b></li>
+<li class="unchecked"><b>Step 5: Create <code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).">calibration_blob.h</a></code> / <code>.cpp</code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -579,7 +579,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line">    <span class="keywordflow">return</span> b;</div>
 <div class="line">}</div>
 <div class="line"> </div>
-<div class="line">std::optional&lt;AimMap&gt; <a class="code hl_function" href="calibration__blob_8h.html#a3b68e39bc03da70a56b14a67f9f336b8">deserialize</a>(<span class="keyword">const</span> uint8_t* data, <span class="keywordtype">size_t</span> len)</div>
+<div class="line">std::optional&lt;AimMap&gt; <a class="code hl_function" href="calibration__blob_8h.html#afa3bc1373e083c8dab34fa35135c5584">deserialize</a>(<span class="keyword">const</span> uint8_t* data, <span class="keywordtype">size_t</span> len)</div>
 <div class="line">{</div>
 <div class="line">    <span class="keywordflow">if</span> (!data || len != kBlobSize)</div>
 <div class="line">    {</div>
@@ -621,7 +621,7 @@ Task 1: AimMap and calibration blob</h2>
 <h2><a class="anchor" id="autotoc_md79"></a>
 Task 2: StepPlanner</h2>
 <p><b>Files:</b></p><ul>
-<li>Create: <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).">ESP32/lib/aiming/include/step_planner.h</a></code></li>
+<li>Create: <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).">ESP32/lib/aiming/include/step_planner.h</a></code></li>
 <li>Create: <code>ESP32/lib/aiming/src/step_planner.cpp</code></li>
 <li>Test: <code><a class="el" href="test__step__planner_8cpp.html" title="Host-side tests for the trapezoidal 1 kHz stepper planner (target and jog modes).">ESP32/test/native/test_step_planner/test_step_planner.cpp</a></code></li>
 </ul>
@@ -846,16 +846,16 @@ Task 2: StepPlanner</h2>
 <div class="ttc" id="aclassaiming_1_1StepPlanner_html_a11caa4a1096082a051306fee50f323d8"><div class="ttname"><a href="classaiming_1_1StepPlanner.html#a11caa4a1096082a051306fee50f323d8">aiming::StepPlanner::set_velocity</a></div><div class="ttdeci">void set_velocity(float steps_per_s)</div><div class="ttdoc">jog; clamped to +-max_speed; switches to jog mode</div><div class="ttdef"><b>Definition</b> step_planner.cpp:21</div></div>
 <div class="ttc" id="aclassaiming_1_1StepPlanner_html_a1461024f0e047d3f81c14fb78b156789"><div class="ttname"><a href="classaiming_1_1StepPlanner.html#a1461024f0e047d3f81c14fb78b156789">aiming::StepPlanner::set_target</a></div><div class="ttdeci">void set_target(int32_t steps)</div><div class="ttdoc">absolute, clamped to the soft limits; switches to target mode</div><div class="ttdef"><b>Definition</b> step_planner.cpp:15</div></div>
 <div class="ttc" id="aclassaiming_1_1StepPlanner_html_ace49a59c6edd71564361ba5d29175c3f"><div class="ttname"><a href="classaiming_1_1StepPlanner.html#ace49a59c6edd71564361ba5d29175c3f">aiming::StepPlanner::reset_position</a></div><div class="ttdeci">void reset_position(int32_t steps=0)</div><div class="ttdoc">redefine the current position (zero_here); stops motion</div><div class="ttdef"><b>Definition</b> step_planner.cpp:36</div></div>
-<div class="ttc" id="astep__planner_8h_html"><div class="ttname"><a href="step__planner_8h.html">step_planner.h</a></div><div class="ttdoc">Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).</div></div>
+<div class="ttc" id="astep__planner_8h_html"><div class="ttname"><a href="step__planner_8h.html">step_planner.h</a></div><div class="ttdoc">Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).</div></div>
 <div class="ttc" id="astructaiming_1_1PlannerConfig_html"><div class="ttname"><a href="structaiming_1_1PlannerConfig.html">aiming::PlannerConfig</a></div><div class="ttdef"><b>Definition</b> step_planner.h:17</div></div>
 <div class="ttc" id="astructaiming_1_1PlannerConfig_html_a18452b937b428f3301e7aec6b1184cb6"><div class="ttname"><a href="structaiming_1_1PlannerConfig.html#a18452b937b428f3301e7aec6b1184cb6">aiming::PlannerConfig::min_speed</a></div><div class="ttdeci">float min_speed</div><div class="ttdoc">creep speed: start/finish at this without ramping</div><div class="ttdef"><b>Definition</b> step_planner.h:20</div></div>
 <div class="ttc" id="astructaiming_1_1PlannerConfig_html_a4612d353241c8a429337a7435249ab23"><div class="ttname"><a href="structaiming_1_1PlannerConfig.html#a4612d353241c8a429337a7435249ab23">aiming::PlannerConfig::max_speed</a></div><div class="ttdeci">float max_speed</div><div class="ttdoc">steps/s</div><div class="ttdef"><b>Definition</b> step_planner.h:18</div></div>
 <div class="ttc" id="astructaiming_1_1PlannerConfig_html_ad0ab8783b3c2d02cf50169a5ce76e5cb"><div class="ttname"><a href="structaiming_1_1PlannerConfig.html#ad0ab8783b3c2d02cf50169a5ce76e5cb">aiming::PlannerConfig::accel</a></div><div class="ttdeci">float accel</div><div class="ttdoc">steps/s^2</div><div class="ttdef"><b>Definition</b> step_planner.h:19</div></div>
 </div><!-- fragment --><ul class="check">
-<li class="unchecked"><b>Step 2: Run to confirm it fails.</b> <code>pio test -e native -f native/test_step_planner</code> should fail because <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).">step_planner.h</a></code> is not found.</li>
+<li class="unchecked"><b>Step 2: Run to confirm it fails.</b> <code>pio test -e native -f native/test_step_planner</code> should fail because <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).">step_planner.h</a></code> is not found.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 3: Create <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++17, natively tested).">step_planner.h</a></code></b></li>
+<li class="unchecked"><b>Step 3: Create <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).">step_planner.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -1068,16 +1068,16 @@ Task 2: StepPlanner</h2>
 <h2><a class="anchor" id="autotoc_md81"></a>
 Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <p><b>Files:</b></p><ul>
-<li>Create: <code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++17, natively tested).">ESP32/lib/aiming/include/aim_policy.h</a></code>, <code>src/aim_policy.cpp</code></li>
-<li>Create: <code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++17, natively tested).">ESP32/lib/aiming/include/button_classifier.h</a></code>, <code>src/button_classifier.cpp</code></li>
-<li>Create: <code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++17, natively tested).">ESP32/lib/aiming/include/calibration_session.h</a></code>, <code>src/calibration_session.cpp</code></li>
+<li>Create: <code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_policy.h</a></code>, <code>src/aim_policy.cpp</code></li>
+<li>Create: <code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++20, natively tested).">ESP32/lib/aiming/include/button_classifier.h</a></code>, <code>src/button_classifier.cpp</code></li>
+<li>Create: <code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++20, natively tested).">ESP32/lib/aiming/include/calibration_session.h</a></code>, <code>src/calibration_session.cpp</code></li>
 <li>Test: <code><a class="el" href="test__aim__policy_8cpp.html" title="Host-side tests for the aim policy, the button classifier, the calibration session,...">ESP32/test/native/test_aim_policy/test_aim_policy.cpp</a></code></li>
 </ul>
 <p><b>Interfaces:</b></p><ul>
 <li><b>Consumes:</b><ul>
 <li>Task 1: <code>AimMap</code>, <code>Angles</code>, <code>CalPoint</code>, <code>fit</code>, <code>default_map</code>, <code>kTiltHomeDeg</code>, <code>pan_deg_to_steps</code>.</li>
 <li>Task 2: <code>StepPlanner</code>.</li>
-<li><code>tracking::TrackPhase</code> from <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">tracking_types.h</a></code>.</li>
+<li><code>tracking::TrackPhase</code> from <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">tracking_types.h</a></code>.</li>
 </ul>
 </li>
 <li><b>Produces:</b><ul>
@@ -1316,9 +1316,9 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <div class="line">    RUN_TEST(test_policy_to_planner_reaches_aim);</div>
 <div class="line">    <span class="keywordflow">return</span> UNITY_END();</div>
 <div class="line">}</div>
-<div class="ttc" id="aaim__policy_8h_html"><div class="ttname"><a href="aim__policy_8h.html">aim_policy.h</a></div><div class="ttdoc">Decides where the turret should point from the tracker state (pure C++17, natively tested).</div></div>
-<div class="ttc" id="abutton__classifier_8h_html"><div class="ttname"><a href="button__classifier_8h.html">button_classifier.h</a></div><div class="ttdoc">Turns a raw push-button level into Short / Long press events (pure C++17, natively tested).</div></div>
-<div class="ttc" id="acalibration__session_8h_html"><div class="ttname"><a href="calibration__session_8h.html">calibration_session.h</a></div><div class="ttdoc">Two-point joystick calibration as a state machine (pure C++17, natively tested).</div></div>
+<div class="ttc" id="aaim__policy_8h_html"><div class="ttname"><a href="aim__policy_8h.html">aim_policy.h</a></div><div class="ttdoc">Decides where the turret should point from the tracker state (pure C++20, natively tested).</div></div>
+<div class="ttc" id="abutton__classifier_8h_html"><div class="ttname"><a href="button__classifier_8h.html">button_classifier.h</a></div><div class="ttdoc">Turns a raw push-button level into Short / Long press events (pure C++20, natively tested).</div></div>
+<div class="ttc" id="acalibration__session_8h_html"><div class="ttname"><a href="calibration__session_8h.html">calibration_session.h</a></div><div class="ttdoc">Two-point joystick calibration as a state machine (pure C++20, natively tested).</div></div>
 <div class="ttc" id="aclassaiming_1_1AimPolicy_html"><div class="ttname"><a href="classaiming_1_1AimPolicy.html">aiming::AimPolicy</a></div><div class="ttdef"><b>Definition</b> aim_policy.h:41</div></div>
 <div class="ttc" id="aclassaiming_1_1ButtonClassifier_html"><div class="ttname"><a href="classaiming_1_1ButtonClassifier.html">aiming::ButtonClassifier</a></div><div class="ttdef"><b>Definition</b> button_classifier.h:23</div></div>
 <div class="ttc" id="aclassaiming_1_1CalibrationSession_html"><div class="ttname"><a href="classaiming_1_1CalibrationSession.html">aiming::CalibrationSession</a></div><div class="ttdef"><b>Definition</b> calibration_session.h:21</div></div>
@@ -1330,7 +1330,7 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <li class="unchecked"><b>Step 2: Run to confirm it fails.</b> The headers are not found.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 3: Create <code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++17, natively tested).">aim_policy.h</a></code> / <code>.cpp</code></b></li>
+<li class="unchecked"><b>Step 3: Create <code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++20, natively tested).">aim_policy.h</a></code> / <code>.cpp</code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -1387,7 +1387,7 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <div class="ttc" id="astructaiming_1_1PolicyConfig_html"><div class="ttname"><a href="structaiming_1_1PolicyConfig.html">aiming::PolicyConfig</a></div><div class="ttdef"><b>Definition</b> aim_policy.h:35</div></div>
 <div class="ttc" id="astructaiming_1_1TrackView_html"><div class="ttname"><a href="structaiming_1_1TrackView.html">aiming::TrackView</a></div><div class="ttdef"><b>Definition</b> aim_policy.h:18</div></div>
 <div class="ttc" id="astructaiming_1_1TrackView_html_a59274f0a816a7091472f0d481f070092"><div class="ttname"><a href="structaiming_1_1TrackView.html#a59274f0a816a7091472f0d481f070092">aiming::TrackView::x</a></div><div class="ttdeci">float x</div><div class="ttdoc">target centroid, frame pixels</div><div class="ttdef"><b>Definition</b> aim_policy.h:20</div></div>
-<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++17, natively tested).</div></div>
+<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++20, natively tested).</div></div>
 </div><!-- fragment --><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="aim__policy_8h.html">aim_policy.h</a>&quot;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#include &lt;cmath&gt;</span></div>
@@ -1432,7 +1432,7 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <div class="line">}</div>
 <div class="line">} <span class="comment">// namespace aiming</span></div>
 </div><!-- fragment --><ul class="check">
-<li class="unchecked"><b>Step 4: Create <code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++17, natively tested).">button_classifier.h</a></code> / <code>.cpp</code></b></li>
+<li class="unchecked"><b>Step 4: Create <code><a class="el" href="button__classifier_8h.html" title="Turns a raw push-button level into Short / Long press events (pure C++20, natively tested).">button_classifier.h</a></code> / <code>.cpp</code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -1504,7 +1504,7 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <li>Long fires when <code>now - 50 &gt;= 1500</code>, at t = 1550. That falls in <code>[1549, 3000)</code> and not in <code>[0, 1549)</code>, so the test's split is right.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 5: Create <code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++17, natively tested).">calibration_session.h</a></code> / <code>.cpp</code></b></li>
+<li class="unchecked"><b>Step 5: Create <code><a class="el" href="calibration__session_8h.html" title="Two-point joystick calibration as a state machine (pure C++20, natively tested).">calibration_session.h</a></code> / <code>.cpp</code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>

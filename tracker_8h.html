@@ -104,7 +104,7 @@ $(function(){initNavTree('tracker_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Single-target persistent tracker over detector blobs (pure C++17, natively tested).  
+<p>Single-target persistent tracker over detector blobs (pure C++20, natively tested).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="tracking__types_8h_source.html">tracking_types.h</a>&quot;</code><br />
 </div>
@@ -116,7 +116,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Single-target persistent tracker over detector blobs (pure C++17, natively tested). </p>
+<div class="textblock"><p>Single-target persistent tracker over detector blobs (pure C++20, natively tested). </p>
 <p>States: Idle -&gt; Tentative (candidate, must match confirm_frames in a row) -&gt; Locked (id assigned) -&gt; Coasting (missed; predicted forward with decaying velocity) -&gt; Locked again with the same id, or Idle after coast_frames misses. Prediction is an alpha-beta filter (constant velocity, fixed gains). The measurement is the union of every blob overlapping the gate around the prediction, so a target split into parts stays one box. While Locked, blobs outside the gate are ignored even if larger. NOT thread-safe. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

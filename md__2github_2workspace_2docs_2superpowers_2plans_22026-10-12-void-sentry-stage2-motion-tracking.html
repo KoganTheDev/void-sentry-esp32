@@ -140,15 +140,15 @@ File map</h1>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">File   </th><th class="markdownTableHeadNone">Task   </th><th class="markdownTableHeadNone">Responsibility    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">ESP32/lib/tracking/include/tracking_types.h</a></code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Grid constants, <code>GrayFrame</code>, <code>Box</code>, <code>Blob</code>, configs, <code>DetectionResult</code>, <code>TrackPhase</code>, <code>TrackState</code>    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">ESP32/lib/tracking/include/tracking_types.h</a></code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Grid constants, <code>GrayFrame</code>, <code>Box</code>, <code>Blob</code>, configs, <code>DetectionResult</code>, <code>TrackPhase</code>, <code>TrackState</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).">ESP32/lib/tracking/include/motion_detector.h</a></code>, <code>src/motion_detector.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Background model, mask, opening, scene-change guard, blobs    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).">ESP32/lib/tracking/include/motion_detector.h</a></code>, <code>src/motion_detector.cpp</code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Background model, mask, opening, scene-change guard, blobs    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code><a class="el" href="test__motion__detector_8cpp.html" title="Host-side tests for the background-model motion detector on synthetic 40x30 frames.">ESP32/test/native/test_motion_detector/test_motion_detector.cpp</a></code>   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">Detector tests    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++17, natively tested).">ESP32/lib/tracking/include/tracker.h</a></code>, <code>src/tracker.cpp</code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Alpha-beta single-target tracker    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++20, natively tested).">ESP32/lib/tracking/include/tracker.h</a></code>, <code>src/tracker.cpp</code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Alpha-beta single-target tracker    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17,...">ESP32/lib/tracking/include/direction.h</a></code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone"><code>direction_for()</code> -&gt; <code><a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a></code>/<code><a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a></code>    </td></tr>
+<td class="markdownTableBodyNone"><code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20,...">ESP32/lib/tracking/include/direction.h</a></code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone"><code>direction_for()</code> -&gt; <code><a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a></code>/<code><a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a></code>    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code><a class="el" href="test__tracker_8cpp.html" title="Host-side tests for the single-target alpha-beta tracker and direction_for().">ESP32/test/native/test_tracker/test_tracker.cpp</a></code>   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone">Tracker + direction tests    </td></tr>
 <tr class="markdownTableRowOdd">
@@ -182,8 +182,8 @@ File map</h1>
 <h2><a class="anchor" id="autotoc_md60"></a>
 Task 1: Tracking types and MotionDetector</h2>
 <p><b>Files:</b></p><ul>
-<li>Create: <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">ESP32/lib/tracking/include/tracking_types.h</a></code></li>
-<li>Create: <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).">ESP32/lib/tracking/include/motion_detector.h</a></code></li>
+<li>Create: <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">ESP32/lib/tracking/include/tracking_types.h</a></code></li>
+<li>Create: <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).">ESP32/lib/tracking/include/motion_detector.h</a></code></li>
 <li>Create: <code>ESP32/lib/tracking/src/motion_detector.cpp</code></li>
 <li>Test: <code><a class="el" href="test__motion__detector_8cpp.html" title="Host-side tests for the background-model motion detector on synthetic 40x30 frames.">ESP32/test/native/test_motion_detector/test_motion_detector.cpp</a></code></li>
 </ul>
@@ -192,7 +192,7 @@ Task 1: Tracking types and MotionDetector</h2>
 <li>Produces: <code>namespace tracking</code> with <code>kGridW</code>, <code>kGridH</code>, <code>kCells</code>, <code>kMaxBlobs</code>, <code>GrayFrame</code>, <code>Box{x0,y0,x1,y1; empty(), width(), height(), overlaps(), merge()}</code>, <code>Blob{box, area, cx, cy}</code>, <code>DetectorConfig</code>, <code>DetectionResult</code>, <code>TrackPhase</code>, <code>to_string(TrackPhase)</code>, <code>TrackerConfig</code>, <code>TrackState</code>; <code>class MotionDetector { explicit MotionDetector(const DetectorConfig&amp; = {}); const DetectionResult&amp; process(const GrayFrame&amp;); void reset(); const DetectionResult&amp; last() const; }</code>.</li>
 </ul>
 <ul class="check">
-<li class="unchecked"><b>Step 1: Create <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">tracking_types.h</a></code></b></li>
+<li class="unchecked"><b>Step 1: Create <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">tracking_types.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -637,16 +637,16 @@ Task 1: Tracking types and MotionDetector</h2>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html"><div class="ttname"><a href="classtracking_1_1MotionDetector.html">tracking::MotionDetector</a></div><div class="ttdef"><b>Definition</b> motion_detector.h:21</div></div>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html_a226ac9b8ea2af2e4716400a6472ad325"><div class="ttname"><a href="classtracking_1_1MotionDetector.html#a226ac9b8ea2af2e4716400a6472ad325">tracking::MotionDetector::reset</a></div><div class="ttdeci">void reset()</div><div class="ttdoc">Forget the background; the next frame re-seeds it and starts the warm-up.</div><div class="ttdef"><b>Definition</b> motion_detector.cpp:19</div></div>
 <div class="ttc" id="aclasstracking_1_1MotionDetector_html_aa2913289b3febeaee4a660bae29ce872"><div class="ttname"><a href="classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872">tracking::MotionDetector::process</a></div><div class="ttdeci">const DetectionResult &amp; process(const GrayFrame &amp;frame)</div><div class="ttdoc">Analyse one frame. The returned reference stays valid until the next call.</div><div class="ttdef"><b>Definition</b> motion_detector.cpp:26</div></div>
-<div class="ttc" id="amotion__detector_8h_html"><div class="ttname"><a href="motion__detector_8h.html">motion_detector.h</a></div><div class="ttdoc">Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).</div></div>
+<div class="ttc" id="amotion__detector_8h_html"><div class="ttname"><a href="motion__detector_8h.html">motion_detector.h</a></div><div class="ttdoc">Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).</div></div>
 <div class="ttc" id="astructtracking_1_1DetectionResult_html"><div class="ttname"><a href="structtracking_1_1DetectionResult.html">tracking::DetectionResult</a></div><div class="ttdoc">What the detector found in one frame. Blobs are sorted by area, largest first.</div><div class="ttdef"><b>Definition</b> tracking_types.h:83</div></div>
 <div class="ttc" id="astructtracking_1_1DetectorConfig_html"><div class="ttname"><a href="structtracking_1_1DetectorConfig.html">tracking::DetectorConfig</a></div><div class="ttdoc">Motion detector tunables. Defaults are tuned for an indoor scene 1-3 m away.</div><div class="ttdef"><b>Definition</b> tracking_types.h:67</div></div>
 <div class="ttc" id="atracking__types_8h_html_a211b8754850e23b96a6293769fffc32f"><div class="ttname"><a href="tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f">tracking::GrayFrame</a></div><div class="ttdeci">std::array&lt; uint8_t, kCells &gt; GrayFrame</div><div class="ttdoc">One 40x30 luma frame, row-major (index = y * kGridW + x).</div><div class="ttdef"><b>Definition</b> tracking_types.h:21</div></div>
 </div><!-- fragment --><ul class="check">
 <li class="unchecked"><b>Step 3: Run to confirm it fails</b></li>
 </ul>
-<p>Run (from <code>ESP32/</code>): <code>~/.platformio/penv/Scripts/pio.exe test -e native -f native/test_motion_detector &gt; /tmp/t1.log 2&gt;&amp;1; tail -20 /tmp/t1.log</code> (use the scratchpad instead of /tmp if available). Expected: compile error, <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).">motion_detector.h</a>: No such file or directory</code>.</p>
+<p>Run (from <code>ESP32/</code>): <code>~/.platformio/penv/Scripts/pio.exe test -e native -f native/test_motion_detector &gt; /tmp/t1.log 2&gt;&amp;1; tail -20 /tmp/t1.log</code> (use the scratchpad instead of /tmp if available). Expected: compile error, <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).">motion_detector.h</a>: No such file or directory</code>.</p>
 <ul class="check">
-<li class="unchecked"><b>Step 4: Create <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).">motion_detector.h</a></code></b></li>
+<li class="unchecked"><b>Step 4: Create <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).">motion_detector.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -699,7 +699,7 @@ Task 1: Tracking types and MotionDetector</h2>
 <div class="line">};</div>
 <div class="line">} <span class="comment">// namespace tracking</span></div>
 <div class="ttc" id="astructtracking_1_1Box_html"><div class="ttname"><a href="structtracking_1_1Box.html">tracking::Box</a></div><div class="ttdoc">Inclusive cell rectangle. A default-constructed box is empty.</div><div class="ttdef"><b>Definition</b> tracking_types.h:24</div></div>
-<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++17, natively tested).</div></div>
+<div class="ttc" id="atracking__types_8h_html"><div class="ttname"><a href="tracking__types_8h.html">tracking_types.h</a></div><div class="ttdoc">Value types shared by the motion detector and the tracker (pure C++20, natively tested).</div></div>
 </div><!-- fragment --><ul class="check">
 <li class="unchecked"><b>Step 5: Create <code>motion_detector.cpp</code></b></li>
 </ul>
@@ -1018,7 +1018,7 @@ Task 1: Tracking types and MotionDetector</h2>
 </div><!-- fragment --><ul class="check">
 <li class="unchecked"><b>Step 6: Run the tests until they pass</b></li>
 </ul>
-<p>Run (from <code>ESP32/</code>): <code>~/.platformio/penv/Scripts/pio.exe test -e native -f native/test_motion_detector &gt; &lt;scratch&gt;/t1.log 2&gt;&amp;1</code>, then read the tail of the log. Expected: <code>14 Tests 0 Failures 0 Ignored</code>, <code>PASSED</code>. If PlatformIO does not build <code>lib/tracking/src/*.cpp</code> for <code>native</code>, check that the test includes <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).">motion_detector.h</a></code> by name (LDF finds the library from it); do not add <code>lib_deps</code> hacks without reporting it.</p>
+<p>Run (from <code>ESP32/</code>): <code>~/.platformio/penv/Scripts/pio.exe test -e native -f native/test_motion_detector &gt; &lt;scratch&gt;/t1.log 2&gt;&amp;1</code>, then read the tail of the log. Expected: <code>14 Tests 0 Failures 0 Ignored</code>, <code>PASSED</code>. If PlatformIO does not build <code>lib/tracking/src/*.cpp</code> for <code>native</code>, check that the test includes <code><a class="el" href="motion__detector_8h.html" title="Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).">motion_detector.h</a></code> by name (LDF finds the library from it); do not add <code>lib_deps</code> hacks without reporting it.</p>
 <p>Then run the whole native suite to check nothing else broke: <code>pio test -e native &gt; &lt;scratch&gt;/native.log 2&gt;&amp;1</code> -&gt; all suites PASSED.</p>
 <p>Also build the firmware once to prove the library compiles with GCC 8.4: <code>pio run -e freenove_esp32_wrover &gt; &lt;scratch&gt;/fw.log 2&gt;&amp;1</code> -&gt; <code>SUCCESS</code> (the library is not used by the firmware yet; LDF may skip it, which is fine).</p>
 <ul class="check">
@@ -1032,13 +1032,13 @@ Task 1: Tracking types and MotionDetector</h2>
 <h2><a class="anchor" id="autotoc_md62"></a>
 Task 2: Tracker and direction_for</h2>
 <p><b>Files:</b></p><ul>
-<li>Create: <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++17, natively tested).">ESP32/lib/tracking/include/tracker.h</a></code></li>
+<li>Create: <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++20, natively tested).">ESP32/lib/tracking/include/tracker.h</a></code></li>
 <li>Create: <code>ESP32/lib/tracking/src/tracker.cpp</code></li>
-<li>Create: <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17,...">ESP32/lib/tracking/include/direction.h</a></code></li>
+<li>Create: <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20,...">ESP32/lib/tracking/include/direction.h</a></code></li>
 <li>Test: <code><a class="el" href="test__tracker_8cpp.html" title="Host-side tests for the single-target alpha-beta tracker and direction_for().">ESP32/test/native/test_tracker/test_tracker.cpp</a></code></li>
 </ul>
 <p><b>Interfaces:</b></p><ul>
-<li>Consumes (Task 1, <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++17, natively tested).">tracking_types.h</a></code>): <code>Box</code>, <code>Blob</code>, <code>DetectionResult</code>, <code>TrackPhase</code>, <code>TrackerConfig</code>, <code>TrackState</code>, <code>kGridW</code>, <code>kGridH</code>, <code>kMaxBlobs</code>.</li>
+<li>Consumes (Task 1, <code><a class="el" href="tracking__types_8h.html" title="Value types shared by the motion detector and the tracker (pure C++20, natively tested).">tracking_types.h</a></code>): <code>Box</code>, <code>Blob</code>, <code>DetectionResult</code>, <code>TrackPhase</code>, <code>TrackerConfig</code>, <code>TrackState</code>, <code>kGridW</code>, <code>kGridH</code>, <code>kMaxBlobs</code>.</li>
 <li>Consumes (<code><a class="el" href="move__types_8h_source.html">ESP32/include/move_types.h</a></code>): <code><a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a>{None, Left, Right}</code>, <code><a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a>{None, Up, Down}</code> (constructible from <code>MoveXValue</code>/<code>MoveYValue</code>, comparable with <code>==</code>).</li>
 <li>Produces: <code>class <a class="el" href="classtracking_1_1Tracker.html">tracking::Tracker</a> { explicit Tracker(const TrackerConfig&amp; = {}); const TrackState&amp; update(const DetectionResult&amp;); const TrackState&amp; state() const; void reset(); }</code>; <code>std::tuple&lt;<a class="el" href="classMoveX.html" title="Encapsulates horizontal movement states and utility methods.">MoveX</a>, <a class="el" href="classMoveY.html" title="Encapsulates vertical movement states and utility methods.">MoveY</a>&gt; tracking::direction_for(const TrackState&amp;, float deadzone_cells = 5.0f)</code>.</li>
 </ul>
@@ -1312,16 +1312,16 @@ Task 2: Tracker and direction_for</h2>
 <div class="ttc" id="aclasstracking_1_1Tracker_html"><div class="ttname"><a href="classtracking_1_1Tracker.html">tracking::Tracker</a></div><div class="ttdef"><b>Definition</b> tracker.h:18</div></div>
 <div class="ttc" id="aclasstracking_1_1Tracker_html_a7292ae44d6fe3ff1212b6733db644e65"><div class="ttname"><a href="classtracking_1_1Tracker.html#a7292ae44d6fe3ff1212b6733db644e65">tracking::Tracker::reset</a></div><div class="ttdeci">void reset()</div><div class="ttdoc">Drop the current target (Idle). Ids already handed out are never reused.</div><div class="ttdef"><b>Definition</b> tracker.cpp:10</div></div>
 <div class="ttc" id="aclasstracking_1_1Tracker_html_aac5391ba890304084d9b7f4251de6bb4"><div class="ttname"><a href="classtracking_1_1Tracker.html#aac5391ba890304084d9b7f4251de6bb4">tracking::Tracker::update</a></div><div class="ttdeci">const TrackState &amp; update(const DetectionResult &amp;detection)</div><div class="ttdoc">Advance one frame. The returned reference stays valid until the next call.</div><div class="ttdef"><b>Definition</b> tracker.cpp:12</div></div>
-<div class="ttc" id="adirection_8h_html"><div class="ttname"><a href="direction_8h.html">direction.h</a></div><div class="ttdoc">Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17,...</div></div>
+<div class="ttc" id="adirection_8h_html"><div class="ttname"><a href="direction_8h.html">direction.h</a></div><div class="ttdoc">Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20,...</div></div>
 <div class="ttc" id="astructtracking_1_1TrackState_html"><div class="ttname"><a href="structtracking_1_1TrackState.html">tracking::TrackState</a></div><div class="ttdoc">The tracked target. Positions in cells, velocity in cells per frame. id 0 = no target.</div><div class="ttdef"><b>Definition</b> tracking_types.h:123</div></div>
 <div class="ttc" id="astructtracking_1_1TrackerConfig_html"><div class="ttname"><a href="structtracking_1_1TrackerConfig.html">tracking::TrackerConfig</a></div><div class="ttdoc">Tracker tunables (frame counts assume ~17 fps).</div><div class="ttdef"><b>Definition</b> tracking_types.h:111</div></div>
-<div class="ttc" id="atracker_8h_html"><div class="ttname"><a href="tracker_8h.html">tracker.h</a></div><div class="ttdoc">Single-target persistent tracker over detector blobs (pure C++17, natively tested).</div></div>
+<div class="ttc" id="atracker_8h_html"><div class="ttname"><a href="tracker_8h.html">tracker.h</a></div><div class="ttdoc">Single-target persistent tracker over detector blobs (pure C++20, natively tested).</div></div>
 </div><!-- fragment --><ul class="check">
 <li class="unchecked"><b>Step 2: Run to confirm it fails</b></li>
 </ul>
-<p>Run: <code>pio test -e native -f native/test_tracker &gt; &lt;scratch&gt;/t2.log 2&gt;&amp;1</code> -&gt; compile error, <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++17, natively tested).">tracker.h</a></code> / <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17,...">direction.h</a></code> not found.</p>
+<p>Run: <code>pio test -e native -f native/test_tracker &gt; &lt;scratch&gt;/t2.log 2&gt;&amp;1</code> -&gt; compile error, <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++20, natively tested).">tracker.h</a></code> / <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20,...">direction.h</a></code> not found.</p>
 <ul class="check">
-<li class="unchecked"><b>Step 3: Create <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++17, natively tested).">tracker.h</a></code></b></li>
+<li class="unchecked"><b>Step 3: Create <code><a class="el" href="tracker_8h.html" title="Single-target persistent tracker over detector blobs (pure C++20, natively tested).">tracker.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -1532,7 +1532,7 @@ Task 2: Tracker and direction_for</h2>
 <div class="line">}</div>
 <div class="line">} <span class="comment">// namespace tracking</span></div>
 </div><!-- fragment --><ul class="check">
-<li class="unchecked"><b>Step 5: Create <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++17,...">direction.h</a></code></b></li>
+<li class="unchecked"><b>Step 5: Create <code><a class="el" href="direction_8h.html" title="Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20,...">direction.h</a></code></b></li>
 </ul>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -1697,7 +1697,7 @@ Task 3: Device integration (decoder, detection glue, /commands, controller, stat
 <div class="line">}</div>
 <div class="line">} <span class="comment">// namespace jpeg_gray</span></div>
 <div class="ttc" id="ajpeg__gray_8h_html"><div class="ttname"><a href="jpeg__gray_8h.html">jpeg_gray.h</a></div><div class="ttdoc">Decodes a QVGA camera JPEG at 1/8 scale straight into the 40x30 gray grid the tracker uses.</div></div>
-<div class="ttc" id="ajpeg__gray_8h_html_af371915d020ec49ede7f937a430f7646"><div class="ttname"><a href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">jpeg_gray::decode</a></div><div class="ttdeci">bool decode(const uint8_t *jpeg, size_t len, tracking::GrayFrame &amp;out)</div><div class="ttdoc">false if the JPEG is corrupt or its 1/8-scale size is not 40x30 (frame size must be QVGA).</div><div class="ttdef"><b>Definition</b> jpeg_gray.cpp:69</div></div>
+<div class="ttc" id="ajpeg__gray_8h_html_af371915d020ec49ede7f937a430f7646"><div class="ttname"><a href="jpeg__gray_8h.html#af371915d020ec49ede7f937a430f7646">jpeg_gray::decode</a></div><div class="ttdeci">bool decode(const uint8_t *jpeg, size_t len, tracking::GrayFrame &amp;out)</div><div class="ttdoc">false if the JPEG is corrupt or its 1/8-scale size is not 40x30 (frame size must be QVGA).</div><div class="ttdef"><b>Definition</b> jpeg_gray.cpp:54</div></div>
 </div><!-- fragment --><ul class="check">
 <li class="unchecked"><b>Step 2: Create <code><a class="el" href="track__snapshot_8h.html" title="Plain copies of the tracker output and detection timings, safe to hand across tasks.">track_snapshot.h</a></code></b></li>
 </ul>

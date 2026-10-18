@@ -145,7 +145,7 @@ constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames::k
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Slot bookkeeping for camera frames: who may write which slot, and RAII leases for readers. </p>
-<p>Pure C++17, no platform headers, so it is unit tested natively (with ASan/UBSan in CI). NOT thread-safe on its own: on the device, <a class="el" href="classFrameStore.html">FrameStore</a> serializes every call with a mutex.</p>
+<p>Pure C++20, no platform headers, so it is unit tested natively (with ASan/UBSan in CI). NOT thread-safe on its own: on the device, <a class="el" href="classFrameStore.html">FrameStore</a> serializes every call with a mutex.</p>
 <p>A slot is Free, Writing or Published. One Published slot is the latest. A Published slot that is no longer the latest becomes Free when its last reader releases it, so a slot with readers is never rewritten. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

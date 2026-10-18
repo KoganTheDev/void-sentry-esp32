@@ -106,12 +106,14 @@ $(function(){initNavTree('choose_8h_source.html',''); initResizable(true); });
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="network__list_8h.html">network_list.h</a>&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>prov</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>{</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>Candidates <a class="code hl_function" href="choose_8h.html#a201ea44d839b9b0a3c5d5736e3b05a26">choose_networks</a>(<span class="keyword">const</span> ScanResult* scan, <span class="keywordtype">size_t</span> scan_count, <span class="keyword">const</span> NetworkList&amp; list);</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>} <span class="comment">// namespace prov</span></div>
-<div class="ttc" id="achoose_8h_html_a201ea44d839b9b0a3c5d5736e3b05a26"><div class="ttname"><a href="choose_8h.html#a201ea44d839b9b0a3c5d5736e3b05a26">prov::choose_networks</a></div><div class="ttdeci">Candidates choose_networks(const ScanResult *scan, size_t scan_count, const NetworkList &amp;list)</div><div class="ttdoc">Saved networks present in the scan (byte-exact SSID), strongest RSSI first.</div><div class="ttdef"><b>Definition</b> choose.cpp:20</div></div>
-<div class="ttc" id="anetwork__list_8h_html"><div class="ttname"><a href="network__list_8h.html">network_list.h</a></div><div class="ttdoc">Fixed-capacity list of saved WiFi networks with recency-based eviction (pure C++17,...</div></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;span&gt;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>prov</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>{</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>Candidates <a class="code hl_function" href="choose_8h.html#a936252a3f23cf692cea6f0e2d07dd0cf">choose_networks</a>(std::span&lt;const ScanResult&gt; scan, <span class="keyword">const</span> NetworkList&amp; list);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>} <span class="comment">// namespace prov</span></div>
+<div class="ttc" id="achoose_8h_html_a936252a3f23cf692cea6f0e2d07dd0cf"><div class="ttname"><a href="choose_8h.html#a936252a3f23cf692cea6f0e2d07dd0cf">prov::choose_networks</a></div><div class="ttdeci">Candidates choose_networks(std::span&lt; const ScanResult &gt; scan, const NetworkList &amp;list)</div><div class="ttdoc">Saved networks present in the scan (byte-exact SSID), strongest RSSI first.</div><div class="ttdef"><b>Definition</b> choose.cpp:20</div></div>
+<div class="ttc" id="anetwork__list_8h_html"><div class="ttname"><a href="network__list_8h.html">network_list.h</a></div><div class="ttdoc">Fixed-capacity list of saved WiFi networks with recency-based eviction (pure C++20,...</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

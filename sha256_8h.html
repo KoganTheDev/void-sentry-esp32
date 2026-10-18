@@ -104,23 +104,24 @@ $(function(){initNavTree('sha256_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>SHA-256 (FIPS 180-4), pure C++17, no heap.  
+<p>SHA-256 (FIPS 180-4), pure C++20, no heap.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;array&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;span&gt;</code><br />
 </div>
 <p><a href="sha256_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af45c1b59a4784be82e1792b7d6951232" id="r_af45c1b59a4784be82e1792b7d6951232"><td class="memItemLeft" align="right" valign="top"><a id="af45c1b59a4784be82e1792b7d6951232" name="af45c1b59a4784be82e1792b7d6951232"></a>
-std::array&lt; uint8_t, 32 &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::sha256</b> (const uint8_t *data, size_t len)</td></tr>
-<tr class="memdesc:af45c1b59a4784be82e1792b7d6951232"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA-256 digest of a buffer. <code>data</code> may be null only when <code>len</code> is 0. <br /></td></tr>
-<tr class="separator:af45c1b59a4784be82e1792b7d6951232"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8199389c97f89121554e822042d63c8e" id="r_a8199389c97f89121554e822042d63c8e"><td class="memItemLeft" align="right" valign="top"><a id="a8199389c97f89121554e822042d63c8e" name="a8199389c97f89121554e822042d63c8e"></a>
+std::array&lt; uint8_t, 32 &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>prov::sha256</b> (std::span&lt; const uint8_t &gt; data)</td></tr>
+<tr class="memdesc:a8199389c97f89121554e822042d63c8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">SHA-256 digest of a buffer. An empty span hashes the empty message. <br /></td></tr>
+<tr class="separator:a8199389c97f89121554e822042d63c8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>SHA-256 (FIPS 180-4), pure C++17, no heap. </p>
+<div class="textblock"><p>SHA-256 (FIPS 180-4), pure C++20, no heap. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

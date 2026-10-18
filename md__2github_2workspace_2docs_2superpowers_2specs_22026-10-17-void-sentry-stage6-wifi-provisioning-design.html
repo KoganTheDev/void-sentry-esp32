@@ -101,9 +101,9 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 6: On-Device WiFi Provisioning</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md185"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md193"></a></p>
 <p>Date: 2026-10-17. Status: design approved in chat section by section; awaiting review of this written spec.</p>
-<h1><a class="anchor" id="autotoc_md186"></a>
+<h1><a class="anchor" id="autotoc_md194"></a>
 Problem</h1>
 <p>The WiFi network is compiled into the firmware from a gitignored credentials header (<code>ESP32/include/secrets.h</code>, copied from <code>secrets.h.example</code>):</p>
 <ul>
@@ -112,10 +112,10 @@ Problem</h1>
 <li><code>setup()</code> blocks for up to 30 s in <code>WifiManager::connect()</code>, and its timeout compares against time since boot (<code>millis() &gt; 30000</code>), not time since the connect started.</li>
 <li>If the network is unreachable there is no fallback: the board runs without a network and the HUD is unreachable.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md187"></a>
+<h1><a class="anchor" id="autotoc_md195"></a>
 Goal</h1>
 <p>Both equally (user's answer): the user can switch the board between networks from a phone without reflashing, and anyone who clones the repo can flash it and set it up from a phone with no credentials file and no recompiling.</p>
-<h1><a class="anchor" id="autotoc_md188"></a>
+<h1><a class="anchor" id="autotoc_md196"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -139,9 +139,9 @@ Decisions</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Transport   </td><td class="markdownTableBodyNone">Plain HTTP. Documented limitation: on the home network another device that knows the WiFi password could in principle read a network password typed into the HUD's WiFi page   </td><td class="markdownTableBodyNone">HTTPS on this board needs certificates and a lot of RAM   </td><td class="markdownTableBodyNone">HTTPS   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md189"></a>
+<h1><a class="anchor" id="autotoc_md197"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md190"></a>
+<h2><a class="anchor" id="autotoc_md198"></a>
 Pure library <code>lib/provisioning</code> (namespace <code>prov</code>; no Arduino/ESP-IDF headers, no heap; native + ASan/UBSan tested)</h2>
 <ul>
 <li><b><code>NetworkList</code></b>: fixed array of up to 3 <code>{ssid[33], pass[65], last_ok_seq}</code>. <code>add</code> with an existing SSID replaces it; when full, the entry with the oldest <code>last_ok_seq</code> (the one longest without a successful join) is dropped. <code>forget(ssid)</code>, <code>mark_joined(ssid)</code>, iteration.</li>
@@ -150,9 +150,9 @@ Pure library <code>lib/provisioning</code> (namespace <code>prov</code>; no Ardu
 <li><b><code>PinGuard</code></b>: <code>set(pin, salt)</code>, <code>check(pin, now_ms) -&gt; Ok | Wrong | LockedOut(seconds_left)</code>, lockout rules above. Uses the library's own <b>SHA-256</b> (checked against the NIST FIPS 180-2 vectors), so host and board run the same code.</li>
 <li><b>Form decoding</b>: <code>application/x-www-form-urlencoded</code> bodies up to 256 B, <code>XX</code> and <code>+</code> decoding, field lookup; validation: SSID 1-32 bytes, password empty (open network) or 8-63 characters, PIN 4-8 ASCII digits.</li>
 <li><b>Blobs</b>: <code>nets</code> and <code>pin</code> serialized with magic, version and CRC-32; unknown version, bad CRC, bad lengths rejected (treated as empty).</li>
-<li><b>CRC-32</b> moves from <code>lib/aiming</code> (<code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++17, natively tested).">calibration_blob.h</a></code>) into a tiny shared pure library <code>lib/checksum</code>, used by both; <code>aiming::crc32</code> callers are updated (no behaviour change, existing calibration blobs stay valid).</li>
+<li><b>CRC-32</b> moves from <code>lib/aiming</code> (<code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).">calibration_blob.h</a></code>) into a tiny shared pure library <code>lib/checksum</code>, used by both; <code>aiming::crc32</code> callers are updated (no behaviour change, existing calibration blobs stay valid).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md191"></a>
+<h2><a class="anchor" id="autotoc_md199"></a>
 Device side</h2>
 <ul>
 <li><b><code><a class="el" href="classWifiManager.html" title="Glue between the pure prov::WifiPlan and the Arduino WiFi stack.">WifiManager</a></code></b> (rewritten, <code>lib/network</code>): thin glue that feeds <code>WifiPlan</code> with WiFi events and scan results and executes its actions with the Arduino <code>WiFi</code> API (STA, or AP+STA in setup mode so background scans and test joins work while the hotspot is up). Called from <code>loop()</code> (<code>maintain()</code>), never blocks.</li>
@@ -163,7 +163,7 @@ Device side</h2>
 <li><b>Serial</b>: <code>wifi-reset</code> line read from <code>loop()</code>.</li>
 <li><b>Stats line</b>: the <code>[detect]</code> line gains <code>wifi=&lt;sta|setup|joining|lost&gt;</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md192"></a>
+<h1><a class="anchor" id="autotoc_md200"></a>
 Error handling</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -179,13 +179,13 @@ Error handling</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Oversized or malformed form body   </td><td class="markdownTableBodyNone">HTTP 400, nothing stored   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md193"></a>
+<h1><a class="anchor" id="autotoc_md201"></a>
 Testing</h1>
 <ul>
 <li><b>Host (native, plus ASan + UBSan in CI):</b> NetworkList add/replace/evict/forget; choose_networks ordering, ties, hidden SSIDs; every WifiPlan transition and timeout boundary (15 s, 120 s, 30 s) including a <code>uint32_t</code> wrap; PinGuard hash, wrong/ok, lockout, doubling, cap, reset; SHA-256 NIST vectors; form decoding (escapes, <code>+</code>, truncated <code>%</code>, oversize, missing fields) and validation bounds; blob round trips and each rejection; CRC-32 unchanged (existing calibration blob test still passes).</li>
 <li><b>On the board, with the user:</b> first boot from erased NVS opens the hotspot and prints its password; the phone opens the captive page; save the network and set a PIN, it joins and the HUD loads on the home network; reboot joins without setup; a second saved network: the stronger is chosen; router off for more than 2 min -&gt; hotspot, router back -&gt; normal; wrong PIN lockout; <code>wifi-reset</code> clears everything; Stage 4 numbers unchanged.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md194"></a>
+<h1><a class="anchor" id="autotoc_md202"></a>
 Success criteria</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -201,7 +201,7 @@ Success criteria</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Logic   </td><td class="markdownTableBodyNone">All new pure code natively tested; native, ASan + UBSan and CI pass   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md195"></a>
+<h1><a class="anchor" id="autotoc_md203"></a>
 Out of scope</h1>
 <p>HTTPS, LAN authentication of the HUD and WebSockets (beyond the PIN for WiFi changes), mDNS names, enterprise (802.1X) networks, BLE provisioning. </p>
 </div></div><!-- contents -->
