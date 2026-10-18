@@ -1,5 +1,6 @@
 #include "cal_store.h"
 #include "calibration_blob.h"
+#include "nvs_blob.h"
 #include <Preferences.h>
 
 namespace
@@ -17,10 +18,9 @@ bool load(aiming::AimMap& out)
     {
         return false;
     }
-    uint8_t buf[aiming::kBlobSize];
-    const size_t stored = prefs.getBytesLength(kKey);
+    aiming::Blob buf{};
     bool ok = false;
-    if (stored == sizeof(buf) && prefs.getBytes(kKey, buf, sizeof(buf)) == sizeof(buf))
+    if (nvs_blob::read(prefs, kKey, buf) == nvs_blob::ReadStatus::Ok)
     {
         const std::optional<aiming::AimMap> map = aiming::deserialize(buf);
         if (map)

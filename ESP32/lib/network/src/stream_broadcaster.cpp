@@ -1,6 +1,7 @@
 #include "stream_broadcaster.h"
 
 #include "handshake_guard.h"
+#include "sync.h"
 
 #include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
@@ -9,21 +10,6 @@
 static const char* TAG_STREAM = "STREAM";
 
 StreamBroadcaster* StreamBroadcaster::instance_ = nullptr;
-
-namespace
-{
-class Lock
-{
-public:
-    explicit Lock(SemaphoreHandle_t mutex) : mutex_(mutex) { xSemaphoreTake(mutex_, portMAX_DELAY); }
-    ~Lock() { xSemaphoreGive(mutex_); }
-    Lock(const Lock&) = delete;
-    Lock& operator=(const Lock&) = delete;
-
-private:
-    SemaphoreHandle_t mutex_;
-};
-} // namespace
 
 bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
 {
@@ -56,19 +42,11 @@ bool StreamBroadcaster::start(httpd_handle_t server, FrameStore& store)
         return false;
     }
 
-    TaskHandle_t task = nullptr;
     // Priority 4: the work per wake is tens of microseconds (lease + queue the send). At priority 1 it would wait
     // behind a whole detection (priority 3) on every frame, adding video latency.
-    if (xTaskCreatePinnedToCore(stream_task, "stream", 4096, this, 4, &task, 1) != pdPASS)
+    task_ = store_->start_subscriber_task(stream_task, "stream", 4096, 4, 1, this);
+    if (task_ == nullptr)
     {
-        ESP_LOGE(TAG_STREAM, "Failed to create stream task");
-        stop();
-        return false;
-    }
-    task_ = task;
-    if (!store_->add_subscriber(task))
-    {
-        ESP_LOGE(TAG_STREAM, "FrameStore subscriber slots are full");
         stop();
         return false;
     }
@@ -111,7 +89,7 @@ size_t StreamBroadcaster::viewer_count()
     {
         return 0;
     }
-    Lock lock(mutex_);
+    vsync::MutexLock lock(mutex_);
     return viewers_.size();
 }
 
@@ -126,7 +104,7 @@ esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
     const int fd = httpd_req_to_sockfd(req);
     bool added = false;
     {
-        Lock lock(self->mutex_);
+        vsync::MutexLock lock(self->mutex_);
         const bool is_new = !self->viewers_.index_of(fd);
         added = self->viewers_.add(fd);
         if (added && is_new)
@@ -185,7 +163,7 @@ void StreamBroadcaster::remove_viewer(int fd)
     {
         return;
     }
-    Lock lock(mutex_);
+    vsync::MutexLock lock(mutex_);
     if (viewers_.index_of(fd))
     {
         viewers_.remove(fd);
@@ -208,7 +186,7 @@ void StreamBroadcaster::run()
             {
                 continue;
             }
-            Lock lock(mutex_);
+            vsync::MutexLock lock(mutex_);
             ready = viewers_.ready_for(probe->meta().sequence);
         } // probe released here, outside the broadcaster mutex
 
@@ -223,7 +201,7 @@ void StreamBroadcaster::run()
 
             SendJob* job = nullptr;
             {
-                Lock lock(mutex_);
+                vsync::MutexLock lock(mutex_);
                 std::optional<size_t> index = viewers_.index_of(fd);
                 if (!index || jobs_[*index].in_flight)
                 {
@@ -242,7 +220,7 @@ void StreamBroadcaster::run()
             if (httpd_queue_work(server_, send_job, job) != ESP_OK)
             {
                 job->lease.reset();
-                Lock lock(mutex_);
+                vsync::MutexLock lock(mutex_);
                 viewers_.mark_done(fd);
                 job->in_flight = false;
             }
@@ -277,7 +255,7 @@ void StreamBroadcaster::send_job(void* arg)
     // The check is exact because post_handshake (add), close_fn (remove) and this job all run on the httpd task, so no
     // close/add can interleave between the check and the send below.
     auto still_same_viewer = [&]() {
-        Lock lock(self->mutex_);
+        vsync::MutexLock lock(self->mutex_);
         const std::optional<size_t> index = self->viewers_.index_of(fd);
         return index && *index == job->index && self->generation_[job->index] == job->generation;
     };
@@ -286,7 +264,7 @@ void StreamBroadcaster::send_job(void* arg)
     {
         job->lease.reset(); // release the slot before touching the broadcaster mutex
         {
-            Lock lock(self->mutex_);
+            vsync::MutexLock lock(self->mutex_);
             job->in_flight = false;
         }
         self->wake_task();
@@ -304,7 +282,7 @@ void StreamBroadcaster::send_job(void* arg)
 
     bool matched = false;
     {
-        Lock lock(self->mutex_);
+        vsync::MutexLock lock(self->mutex_);
         const std::optional<size_t> index = self->viewers_.index_of(fd);
         matched = index && *index == job->index && self->generation_[job->index] == job->generation;
         if (matched)

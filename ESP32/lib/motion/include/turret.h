@@ -6,6 +6,7 @@
 
 #include "base_turret.h"
 #include "step_planner.h"
+#include "sync.h"
 #include <ESP32Servo.h>
 #include <cstdint>
 #include <freertos/FreeRTOS.h>
@@ -20,8 +21,8 @@
  * servo at 50 Hz with a rate limit.
  * Why the coils are released: a 28BYJ-48 held energized at standstill draws current continuously and heats up, so
  * all four pins go LOW 500 ms after the last step. Its gear train holds the position unpowered.
- * Thread safety: the mailbox and the published state share one portMUX spinlock; critical sections only copy
- * a few words.
+ * Thread safety: the mailbox and the published state each sit in a vsync::SpinGuarded (own portMUX spinlock);
+ * critical sections only copy a few words.
  */
 class Turret : public BaseTurret
 {
@@ -68,12 +69,16 @@ private:
 
     Servo& _servo;
     TaskHandle_t _task = nullptr;
-    mutable portMUX_TYPE _lock = portMUX_INITIALIZER_UNLOCKED;
-    Command _command;                       ///< guarded by _lock
-    aiming::Angles _published{0.0f, 90.0f}; ///< guarded by _lock
-    uint32_t _late_ticks = 0;               ///< guarded by _lock
-    uint32_t _stack_free = 0;               ///< bytes, guarded by _lock
-    float _published_speed = 0.0f;          ///< guarded by _lock
+    /** @brief State the motor task publishes for readers on other tasks. */
+    struct Published {
+        aiming::Angles position{0.0f, 90.0f};
+        float speed = 0.0f;
+        uint32_t late_ticks = 0;
+        uint32_t stack_free = 0; ///< bytes
+    };
+
+    vsync::SpinGuarded<Command> _command;     ///< mailbox written by callers, read by the motor task
+    vsync::SpinGuarded<Published> _published; ///< written by the motor task, read by callers
 
     // Owned by the motor task only.
     aiming::StepPlanner _planner;

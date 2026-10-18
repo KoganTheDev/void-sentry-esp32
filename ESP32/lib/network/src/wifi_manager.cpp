@@ -1,5 +1,7 @@
 #include "wifi_manager.h"
 
+#include "sync.h"
+
 #include <cstring>
 #include <esp_system.h>
 #include <esp_wifi.h>
@@ -13,31 +15,6 @@ constexpr uint32_t kScanTimeoutMs = 20000;
 constexpr uint32_t kScanCacheMs = 10000;
 constexpr uint32_t kHotspotRetryMs = 5000;  // retry delay after a refused hotspot start
 constexpr uint32_t kHotspotGraceMs = 10000; // keep the hotspot after a join so the phone's page can read the new IP
-
-/** @brief RAII holder for the manager mutex (tolerates a null handle if creation failed). */
-class Lock
-{
-public:
-    explicit Lock(SemaphoreHandle_t m) : _m(m)
-    {
-        if (this->_m != nullptr)
-        {
-            xSemaphoreTake(this->_m, portMAX_DELAY);
-        }
-    }
-    ~Lock()
-    {
-        if (this->_m != nullptr)
-        {
-            xSemaphoreGive(this->_m);
-        }
-    }
-    Lock(const Lock&) = delete;
-    Lock& operator=(const Lock&) = delete;
-
-private:
-    SemaphoreHandle_t _m;
-};
 
 /** @brief Overwrites the heap buffer of a String holding a password (volatile writes the optimiser cannot drop). */
 void wipe_string(String& s)
@@ -124,7 +101,7 @@ void WifiManager::begin()
     WiFi.macAddress(mac);
     snprintf(this->_hotspot_ssid, sizeof(this->_hotspot_ssid), "VoidSentry-%02X%02X", mac[4], mac[5]);
 
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     const uint32_t now = millis();
     this->apply(this->_plan.start(this->_list.size() > 0, now), now);
 }
@@ -135,7 +112,7 @@ void WifiManager::maintain()
 
     const uint32_t now = millis();
     {
-        Lock lock(this->_mutex);
+        vsync::MutexLock lock(this->_mutex);
         this->process_events(now);
         if (this->_added_pending)
         {
@@ -446,7 +423,7 @@ void WifiManager::poll_serial()
 void WifiManager::factory_reset()
 {
     {
-        Lock lock(this->_mutex);
+        vsync::MutexLock lock(this->_mutex);
         this->_store.erase_all();
     }
     esp_wifi_restore(); // also drop the WiFi driver's own stored STA config (older firmware used persistent(true))
@@ -472,20 +449,20 @@ const char* WifiManager::mode_name_locked() const
 
 const char* WifiManager::mode_name()
 {
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     return this->mode_name_locked();
 }
 
 prov::PlanState WifiManager::plan_state()
 {
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     return this->_plan.state();
 }
 
 WifiManager::Status WifiManager::status()
 {
     Status s;
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     const prov::PlanState st = this->_plan.state();
     s.mode = this->mode_name_locked();
     s.pin_set = this->_pin.record().set;
@@ -526,7 +503,7 @@ WifiManager::Status WifiManager::status()
 
 size_t WifiManager::scan(prov::ScanResult* out, size_t cap)
 {
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     const uint32_t now = millis();
     if (!this->_scan_valid || (uint32_t)(now - this->_scan_time_ms) > kScanCacheMs)
     {
@@ -558,7 +535,7 @@ size_t WifiManager::scan(prov::ScanResult* out, size_t cap)
 
 size_t WifiManager::saved(char (*ssids)[prov::kSsidMax + 1], size_t cap)
 {
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     size_t n = 0;
     for (size_t i = 0; i < this->_list.size() && n < cap; ++i)
     {
@@ -571,7 +548,7 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
                                          const char* pin, size_t pin_len, uint32_t now_ms)
 {
     Outcome out;
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     if (!prov::valid_ssid({ssid, ssid_len}) || !prov::valid_password({pass, pass_len}))
     {
         return out; // BadInput; no PIN attempt is counted
@@ -630,7 +607,7 @@ WifiManager::ForgetOutcome WifiManager::forget(const char* ssid, size_t ssid_len
                                                uint32_t now_ms)
 {
     Outcome out;
-    Lock lock(this->_mutex);
+    vsync::MutexLock lock(this->_mutex);
     if (!prov::valid_ssid({ssid, ssid_len}) || !this->_pin.record().set)
     {
         return out;

@@ -1,5 +1,7 @@
 #include "calibration_blob.h"
 
+#include "blob_frame.h"
+
 #include <algorithm>
 #include <bit>
 #include <cmath>
@@ -10,7 +12,6 @@ namespace
 {
 constexpr uint32_t kMagic = 0x314D4941u; // "AIM1" little-endian
 constexpr uint16_t kVersion = 1;
-constexpr size_t kCrcOffset = kBlobSize - 4;
 
 /// Writes the object representation of @p v (host order, little-endian on every target) at @p dst.
 template <typename T> void put(uint8_t* dst, T v)
@@ -31,14 +32,13 @@ template <typename T> T get(const uint8_t* src)
 Blob serialize(const AimMap& map)
 {
     Blob b{};
-    put(b.data(), kMagic);
     put(b.data() + 4, kVersion);
     put(b.data() + 6, uint16_t{0}); // reserved
     put(b.data() + 8, map.pan_a);
     put(b.data() + 12, map.pan_b);
     put(b.data() + 16, map.tilt_a);
     put(b.data() + 20, map.tilt_b);
-    put(b.data() + kCrcOffset, crc32(std::span<const uint8_t>(b).first(kCrcOffset)));
+    checksum::frame_blob(b, kMagic);
     return b;
 }
 
@@ -48,12 +48,12 @@ std::optional<AimMap> deserialize(std::span<const uint8_t> blob)
     {
         return std::nullopt;
     }
-    const uint8_t* data = blob.data();
-    if (get<uint32_t>(data) != kMagic || get<uint16_t>(data + 4) != kVersion ||
-        get<uint32_t>(data + kCrcOffset) != crc32(blob.first(kCrcOffset)))
+    const auto body = checksum::unframe_blob(blob, kMagic);
+    if (!body || get<uint16_t>(blob.data() + 4) != kVersion)
     {
         return std::nullopt;
     }
+    const uint8_t* data = blob.data();
     const float values[4] = {get<float>(data + 8), get<float>(data + 12), get<float>(data + 16), get<float>(data + 20)};
     for (float v : values)
     {
