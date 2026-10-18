@@ -131,7 +131,7 @@ This is the longest story and the most useful one to tell, because the first exp
 
 **Wrong first hypothesis.** The Stage 3 notes had suspected a body near the PCB antenna causing WiFi retransmits and network bursts. If that were the cause, the problem should track signal strength.
 
-**How it was ruled out.** An instrument was needed first, because FreeRTOS run-time statistics were turned off in the precompiled SDK (core 2), so there was no direct per-core load number. Core 3 enables them, but the tick sampler was kept so the numbers stay comparable. A tick-sampled idle counter was added: at 1 kHz it records which core's IDLE task is running, and the stats line reports `idle0` and `idle1` as the percentage of samples in the last 5 s. With that:
+**How it was ruled out.** An instrument was needed first, because FreeRTOS run-time statistics were turned off in the precompiled SDK (core 2), so there was no direct per-core load number. Core 3 enables them, but the tick sampler was kept at the time so the numbers stay comparable (in Stage 8 it was replaced by the FreeRTOS run-time counters, which agreed within 2 points on the board: hook 80% idle, counters 78-79%). A tick-sampled idle counter was added: at 1 kHz it records which core's IDLE task is running, and the stats line reports `idle0` and `idle1` as the percentage of samples in the last 5 s. With that:
 - Core 0 saturated at RSSI -56 to -70 dBm (a good signal).
 - Without the problem it stayed above 80% idle even at -77 to -89 dBm (a poor signal).
 
@@ -161,7 +161,7 @@ So signal strength did not predict the failure. Weak WiFi was ruled out.
 
 The board has no ASan, so most of the effort goes into making logic testable on a PC and into measuring the rest.
 
-- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `provisioning`, `checksum`, `jpeg_gray`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 95% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
+- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `provisioning`, `checksum`, `jpeg_gray`, `stats`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 99% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
 - **Sanitizers.** The same tests run under ASan and UBSan in CI. These do not work on the Windows toolchain used here and not on Xtensa, so CI is the sanitizer runner by design.
 - **Clip regression bench.** `track_bench` runs recorded and synthetic clips through detector and tracker and checks per-clip `.expect` files. The same bench is built under ASan and UBSan, and CI reports cachegrind instruction counts per frame (deterministic, unlike wall time on shared runners). CI also regenerates the synthetic clips and compares them byte for byte.
 - **Static analysis and formatting.** cppcheck blocks on warning, performance and portability findings; clang-format 19 is checked (not applied) in CI.
@@ -172,7 +172,7 @@ The board has no ASan, so most of the effort goes into making logic testable on 
 
 **Problem.** WiFi credentials were compiled into the firmware (a gitignored header), so changing network meant a rebuild, and the board was unusable away from home.
 
-**What won and why.** Networks are provisioned on the device and kept in NVS (up to 3, the strongest in range is joined). With no known network in range, or after 120 s lost, the board opens a WPA2 hotspot `VoidSentry-XXXX` with a random password shown only on the serial log, and a DNS catch-all sends a phone to the `/wifi` page. The connection logic is a pure state machine (`prov::WifiPlan`) that returns actions, so it is tested on the host; `WifiManager` only executes them and never blocks `loop()`.
+**What won and why.** Networks are provisioned on the device and kept in NVS (up to 3, the strongest in range is joined). With no known network in range, or after 120 s lost, the board opens a WPA2 hotspot `VoidSentry-XXXX` with a random password shown only on the serial log, and a DNS catch-all sends a phone to the `/wifi` page. While the hotspot is up, `/` and any unknown GET answer 302 to `/wifi`. After a successful join the hotspot stays up for another 10 s so the phone page can read the new IP. The connection logic is a pure state machine (`prov::WifiPlan`) that returns actions, so it is tested on the host; `WifiManager` only executes them and never blocks `loop()`.
 
 **The PIN.** Changing networks over WiFi needs a PIN, stored as a salted SHA-256. After 5 consecutive wrong PINs the guard locks out for 60 s, doubling per further lockout and capped at 1 h (`pin_guard.h`). The lockout is RAM-only, so a reboot resets it; that needs physical access or a crash. A first PIN is accepted only while the hotspot is up or nothing is saved.
 

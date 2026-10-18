@@ -6,6 +6,11 @@
 #include <esp_log.h>
 #include <esp_timer.h>
 
+#if !CONFIG_FREERTOS_RUN_TIME_STATS_USING_ESP_TIMER
+// cppcheck-suppress preprocessorErrorDirective
+#error "idle0/idle1 assume microsecond run-time counters: needs CONFIG_FREERTOS_RUN_TIME_STATS_USING_ESP_TIMER=y"
+#endif
+
 namespace telemetry
 {
 namespace

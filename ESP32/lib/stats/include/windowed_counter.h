@@ -3,7 +3,7 @@
  * @brief Per-window deltas of monotonically increasing counters, and the averages/percentages built on them (pure).
  * @details The periodic stats line reports what happened in the last window (about 5 s), not since boot, because
  * since-boot averages hid slowdowns. Each reported quantity is a free-running unsigned counter (frames, bytes,
- * microseconds, tick samples); WindowedCounter remembers the previous reading and returns the difference. Unsigned
+ * microseconds); WindowedCounter remembers the previous reading and returns the difference. Unsigned
  * subtraction stays correct across a counter wrap, as long as the counter moves less than its range per window.
  */
 

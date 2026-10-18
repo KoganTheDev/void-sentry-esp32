@@ -129,7 +129,7 @@ jobs:
                   lcov $LCOV --remove ../coverage/all.info '/usr/*' '*/test/*' '*/.pio/*' \
                       --output-file ../coverage/coverage.info
             - name: Per-library summary and floor
-              run: python tools/coverage/coverage_gate.py coverage/coverage.info --floor 95
+              run: python tools/coverage/coverage_gate.py coverage/coverage.info --floor 99
             - name: HTML report
               if: always()
               run: genhtml --ignore-errors inconsistent,corrupt,unmapped,source --branch-coverage coverage/coverage.info --output-directory coverage/html || true

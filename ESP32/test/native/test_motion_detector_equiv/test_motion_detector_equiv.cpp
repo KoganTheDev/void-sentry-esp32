@@ -228,11 +228,43 @@ void test_random_sequences_match_with_resets_and_odd_configs(void)
     TEST_ASSERT_GREATER_THAN(0, t.scene_changes);
 }
 
+void test_fg_age_saturation_matches(void)
+{
+    // An object parked for 400 frames: fg_age_ reaches its 255 cap, and fg_age_limit = 300 is never hit.
+    std::vector<GrayFrame> frames;
+    for (int n = 0; n < 470; ++n)
+    {
+        GrayFrame f;
+        for (int i = 0; i < kCells; ++i)
+        {
+            f[i] = static_cast<uint8_t>(90 + ((i % kGridW) * 3 + (i / kGridW) * 5) % 17);
+        }
+        if (n >= 30 && n < 430)
+        {
+            for (int y = 10; y < 16; ++y)
+            {
+                for (int x = 12; x < 20; ++x)
+                {
+                    f[y * kGridW + x] = 230;
+                }
+            }
+        }
+        frames.push_back(f);
+    }
+    DetectorConfig cfg;
+    cfg.fg_shift = 10;
+    cfg.fg_age_limit = 300;
+    Totals t;
+    run_both(frames, cfg, 0, t);
+    TEST_ASSERT_GREATER_THAN(0, t.blob_frames);
+}
+
 int main(int, char**)
 {
     UNITY_BEGIN();
     RUN_TEST(test_bench_clips_match);
     RUN_TEST(test_random_sequences_match_default_config);
     RUN_TEST(test_random_sequences_match_with_resets_and_odd_configs);
+    RUN_TEST(test_fg_age_saturation_matches);
     return UNITY_END();
 }

@@ -2,7 +2,7 @@
  * @file telemetry.h
  * @brief Periodic benchmark stats lines (every 5 s, from loop()).
  * @details Split out of main.cpp. The objects it reads stay globals in main.cpp and are passed by reference. The
- * lines are the Stage 1 benchmark format (see CLAUDE.md); never prints credentials.
+ * lines are the Stage 1 benchmark format (see telemetry.cpp); never prints credentials.
  */
 
 #pragma once

@@ -9,7 +9,7 @@ Scope: data structures and algorithms, architecture and duplication, test covera
 | Metric | Value | Source |
 |---|---|---|
 | Native tests | 226 in 12 suites | `pio test -e native` |
-| Pure-library line / branch coverage | **99.3%** (1203/1212) / **88.0%** | new CI `coverage` job; floor set to 95% |
+| Pure-library line / branch coverage | **99.3%** (1203/1212) / **88.0%** | new CI `coverage` job; floor set to 95%, raised to 99% after the 8c tests |
 | Per library (lines) | aiming 98.7, checksum 100, frames 100, provisioning 99.8, remote 100, tracking 98.4 | same |
 | Tracking bench | 32.7k-102.4k instructions/frame (7 clips) | CI cachegrind |
 | Board (Stage 7 soak) | capture 16.7 fps, decode 9.1 ms, track 0.54 ms, idle0 80%, heap flat, viewer 16.6 fps | serial stats, 20 min |
@@ -52,6 +52,8 @@ The mismatches (D1-D6) are wrong statements, so they are fixed whatever you tick
 | U4 | `wifi_http.cpp` boilerplate: every API handler starts with `if (!api_host_ok(req)) return ESP_OK;`; the chunked JSON-array writer appears twice (`:127-140`, `:152-164`); the "Connection: close + JSON error" exit appears 5 or more times; `api_host_ok` reads the Host header separately from `handshake_guard.h:45`. | Add a `json_array` writer helper, a `reply_error()` helper and one `read_header()` shared with the handshake guard. Responses must stay byte-identical, checked by `s6_api.py` on the board. | [x] keep |
 | U5 | Task start plus FrameStore subscription repeats in `StreamBroadcaster::start` (`:62-74`) and `CameraDiffDetection::start_task` (`:136-146`). | A small `start_subscriber_task()` helper. A low gain (2 sites), so it is optional. | [x] keep |
 
+**Result (8d):** the golden-bytes tests pinned the NVS bytes before the refactor and stayed unchanged afterwards; native 244 -> 248 tests. On the board the WiFi API responses were as before and the saved networks load.
+
 ## 4. Architecture and DSA
 
 | ID | Finding | Change | Keep |
@@ -60,6 +62,8 @@ The mismatches (D1-D6) are wrong statements, so they are fixed whatever you tick
 | A2 | CPU load comes from a 1 kHz IRAM tick hook that samples "is the idle task running" per core (`main.cpp:23-38`), because run-time stats were off on core 2. The core 3 build now has `CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y`. | Spike first: read the idle-task run-time counters per core (`uxTaskGetSystemState`, or `ulTaskGetIdleRunTimeCounterForCore` if present) and compare with the hook over 5 minutes. If they agree within 2 points, replace the hook: the result is exact rather than sampled, the code in the tick interrupt goes away, and per-task CPU % (httpd, motor, detect) becomes available as a new stats field. Drop A2 if the counters are coarse or cost more. | [x] keep |
 | A3 | `MotionDetector` makes two passes over the 1200 cells per normal frame: `build_mask` (`motion_detector.cpp:110`) then `update_background` (`:83`). They can be fused safely: every path that skips the update (scene change, warm-up) overwrites the whole background and `fg_age` anyway, so updating in place during the mask pass changes no output. The mean and the mask still use the old background value, read first in the same iteration. | One fused pass. Keep it only if CI cachegrind shows at least 3% fewer instructions/frame on the bench clips, with every `.expect` unchanged (bit-identical outputs, checked by also running the old and new versions on all clips in a test). | [x] keep |
 | A4 | Checked and fine, no change: union-find labelling with path halving (`motion_detector.cpp:134`), top-K insertion (K up to 16 of 64 blobs), the linear scans in FrameSlots (4 slots), ViewerSet (2), NetworkList (3) and the FrameStore subscribers (2), `choose_networks` (3 x 24, once per scan), the RemoteInbox latest-value mailbox, and the scan dedup (24^2 strcmp, once per UI request). A heap, a hash map or a bitmap would add code with no measurable gain at these sizes. | none | n/a |
+
+**Result (8e):** A1 done (`telemetry.cpp`, `stats::WindowedCounter`, native tests). A2: the run-time counters read 78-79% idle against 80% from the tick hook (within 2 points), so the hook was removed and `idle0`/`idle1` come from `ulTaskGetIdleRunTimeCounterForCore`. A3: host cachegrind instructions/frame got worse (+7% to +52%, e.g. `real_cross_room` 102411 -> 109965, `light_switch` 32730 -> 49792) because x86 -O2 vectorizes the two simple loops but not the fused one. On the ESP32 (the target, -Os) interleaved same-scene board runs gave a detect+track median of 542 us two-pass versus 463 us fused (-15%); a warm-up-skip variant (`mask_and_learn<bool>`) measured 543 us and was reverted. Ruling: kept on the target measurement, the audit's host gate overruled. Final board: 16.6 fps viewer, 0 stream errors, heap flat.
 
 ## Not proposed
 - A multi-target tracker (Hungarian assignment). It needs a feature, not a refactor.
