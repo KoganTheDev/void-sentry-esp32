@@ -14,6 +14,7 @@ This document records the main design decisions and one debugging story from bui
 8. [The poll storm: a debugging story](#8-the-poll-storm-a-debugging-story)
 9. [WebSocket origin check and DNS rebinding](#9-websocket-origin-check-and-dns-rebinding)
 10. [How correctness is checked](#10-how-correctness-is-checked)
+11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
 
 ---
 
@@ -25,7 +26,7 @@ This document records the main design decisions and one debugging story from bui
 - Visual servoing: "target is left of centre, so step left", repeated until the target is centred. This converges only when the camera is mounted on the turret, because each step shifts the image.
 - Absolute aiming: map the target's image position to a pan/tilt angle and drive the motors there.
 
-**What won and why.** The camera is fixed on the base, not on the turret. With a fixed camera the image never changes when the turret moves, so a visual-servoing loop would see the target still left of centre and spin forever. Absolute aiming also removes ego-motion: the detector never has to pause or compensate while the turret moves, so detection runs continuously. The aim is a two-point linear `AimMap` (pixel to degrees, one line per axis). It is calibrated from the joystick (hold the button 1.5 s, aim at a spot near one corner and short-press, then the opposite corner) and stored in NVS as a CRC-checked blob. Without a saved map a default map based on the camera's field of view is used and the HUD shows UNCALIBRATED. A fit from two points that are too close together is rejected, because it would amplify error.
+**What won and why.** The camera is fixed on the base, not on the turret. With a fixed camera the image never changes when the turret moves, so a visual-servoing loop would see the target still left of centre and spin forever. Absolute aiming also removes ego-motion: the detector never has to pause or compensate while the turret moves, so detection runs continuously. The aim is a two-point linear `AimMap` (pixel to degrees, one line per axis). It is calibrated from the joystick at two opposite corners (procedure in the README) and stored in NVS as a CRC-checked blob. Without a saved map a default map based on the camera's field of view is used and the HUD shows UNCALIBRATED. A fit from two points that are too close together is rejected, because it would amplify error.
 
 **Cost, stated honestly.** Nothing in the image confirms where the turret points, so accuracy depends on the calibration and on the stepper not skipping steps. The check is by eye. An `AimPolicy` adds a 1 degree deadband so tracking noise does not make the motors dither. When the target is lost it holds the aim for 2 s, then returns home.
 
@@ -40,7 +41,9 @@ This document records the main design decisions and one debugging story from bui
 - Switch the camera to grayscale or YUV and encode JPEG in software for the stream: encode cost, and it undoes the streaming work.
 - Full-size RGB decode: far more pixels than needed, plus a large buffer.
 
-**What won and why.** The ROM TJpgDec decoder at 1/8 scale (`JPG_SCALE_8X`) into a 40x30 grey grid. At 1/8 each output cell is one 8x8 JPEG block, and the decoder only needs that block's DC coefficient (its average), so the inverse DCT is skipped entirely. The 1/2 and 1/4 modes still run the IDCT on every block and then average, which is why they cost about as much as a full decode. Measured: about 7 ms at 1/8 versus about 71 ms at 1/4. A side benefit is that the block average is a free noise filter, and there is no large RGB buffer and no per-frame allocation.
+**What won and why.** TJpgDec at 1/8 scale (`JPG_SCALE_8X`) into a 40x30 grey grid. At 1/8 each output cell is one 8x8 JPEG block, and the decoder only needs that block's DC coefficient (its average), so the inverse DCT is skipped entirely. The 1/2 and 1/4 modes still run the IDCT on every block and then average, which is why they cost about as much as a full decode. Measured: about 7 ms at 1/8 versus about 71 ms at 1/4. A side benefit is that the block average is a free noise filter, and there is no large RGB buffer and no per-frame allocation.
+
+**Which TJpgDec.** `lib/tjpgd` vendors the C build of TJpgDec from esp32-camera 2.0.4 instead of calling the ROM copy, which is about 40% slower (Stage 7 measurement; core 2 had linked the C copy by accident through esp32-camera, and moving to core 3 fell back to the ROM copy and lost about 5 ms per frame). Keep it at the default `-Os`: `-O2` measured 3 times slower.
 
 **Cost.** A 40x30 grid, so one cell is 8x8 pixels of the QVGA frame and a hand at 2 m is only about 1.5x3 cells. That is why the detector has no morphological opening (it would erase hand-sized targets) and uses a minimum blob of 2 cells instead.
 
@@ -55,11 +58,14 @@ This document records the main design decisions and one debugging story from bui
 | XCLK | Ping | Page fetch | Capture fps |
 |---|---|---|---|
 | 20 MHz | 265 ms | 1.1-5.0 s | 27.8 |
+| 16 MHz | 27 ms | 0.1-2.4 s (erratic) | 17.8 |
 | 12 MHz | 19 ms | 0.07-0.13 s | 16.6 |
+| 10 MHz | 17 ms | 0.14-0.19 s | 13.8 |
+| camera off | 10 ms | 0.07 s | - |
 
-The runs in between (16 MHz and 10 MHz) fit the same pattern: 16 MHz was erratic, 10 MHz gave up frame rate (13.8 fps) for little WiFi gain.
+10 MHz gave up frame rate for little WiFi gain, and 16 MHz was erratic.
 
-**What won and why.** 12 MHz, about 16.6 fps. A higher XCLK means more camera clock and DMA activity, which degrades WiFi on this board. 12 MHz is the highest frame rate that keeps the network healthy, and latency matters more than frame rate for a turret that has to react. JPEG quality is also set to 18 rather than 12, because at 12 close-up or noisy scenes made frames several times larger, which slowed decoding (decode cost scales with bytes) and loaded WiFi. WiFi modem sleep is disabled for the same latency reason.
+**What won and why.** 12 MHz, about 16.6 fps. A higher XCLK means more camera clock and DMA activity, which degrades WiFi on this board. 12 MHz is the highest frame rate that keeps the network healthy, and latency matters more than frame rate for a turret that has to react. JPEG quality is also set to 18 rather than 12 (`camera.h`): at 12, close-up or noisy scenes made QVGA frames 2.5-4 times larger (measured 2026-10-13), which doubled the decode time on the detection path (decode cost scales with bytes) and loaded WiFi. `jpeg_b_avg` in the stats line shows frame size. WiFi modem sleep is disabled for the same latency reason.
 
 **Lesson.** The "obvious" setting (max clock, best quality) was the wrong one. The only way to find that out was to measure ping, page fetch and fps together.
 
@@ -111,18 +117,7 @@ Streaming became push-based. `/stream` is a WebSocket where a stream task wakes 
 
 **What won and why.**
 
-| Task | Core | Priority |
-|---|---|---|
-| WiFi | 0 | 23 |
-| camera driver (esp-camera) | 0 | 23 |
-| esp_timer | 0 | 22 |
-| lwIP | 0 | 18 |
-| motor | 0 | 7 |
-| httpd | 0 | 5 |
-| camera copy | 1 | 4 |
-| stream | 1 | 4 |
-| detect | 1 | 3 |
-| `loop()` (control, stats) | 1 | 1 |
+The task table (cores, priorities, stack sizes) is in `CLAUDE.md`, the single place it is kept.
 
 Core 0 is network, motor and the camera driver; core 1 is the camera copy, detection and control. httpd is pinned to core 0 so network work cannot preempt detection. Detection moved out of `loop()` into its own task, woken by `FrameStore` on each published frame, so button handling and stats cannot delay it. The camera copy task sits above detection because its copy is short and it must hand the driver buffer back quickly. The stream task was moved from priority 1 to 4 during review: its work per wake is tiny, but at priority 1 it waited behind a whole detection pass on every frame, adding video latency. The motor task went from 3 to 7 so httpd cannot starve it; its work is about 10-20 us per tick, so the cost to core 0 is small.
 
@@ -136,7 +131,7 @@ This is the longest story and the most useful one to tell, because the first exp
 
 **Wrong first hypothesis.** The Stage 3 notes had suspected a body near the PCB antenna causing WiFi retransmits and network bursts. If that were the cause, the problem should track signal strength.
 
-**How it was ruled out.** An instrument was needed first, because FreeRTOS run-time statistics are turned off in the precompiled SDK, so there was no direct per-core load number. A tick-sampled idle counter was added: at 1 kHz it records which core's IDLE task is running, and the stats line reports `idle0` and `idle1` as the percentage of samples in the last 5 s. With that:
+**How it was ruled out.** An instrument was needed first, because FreeRTOS run-time statistics were turned off in the precompiled SDK (core 2), so there was no direct per-core load number. Core 3 enables them, but the tick sampler was kept so the numbers stay comparable. A tick-sampled idle counter was added: at 1 kHz it records which core's IDLE task is running, and the stats line reports `idle0` and `idle1` as the percentage of samples in the last 5 s. With that:
 - Core 0 saturated at RSSI -56 to -70 dBm (a good signal).
 - Without the problem it stayed above 80% idle even at -77 to -89 dBm (a poor signal).
 
@@ -166,11 +161,21 @@ So signal strength did not predict the failure. Weak WiFi was ruled out.
 
 The board has no ASan, so most of the effort goes into making logic testable on a PC and into measuring the rest.
 
-- **Host unit tests.** 132 Unity tests (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`). Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
+- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `provisioning`, `checksum`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 95% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
 - **Sanitizers.** The same tests run under ASan and UBSan in CI. These do not work on the Windows toolchain used here and not on Xtensa, so CI is the sanitizer runner by design.
 - **Clip regression bench.** `track_bench` runs recorded and synthetic clips through detector and tracker and checks per-clip `.expect` files. The same bench is built under ASan and UBSan, and CI reports cachegrind instruction counts per frame (deterministic, unlike wall time on shared runners). CI also regenerates the synthetic clips and compares them byte for byte.
 - **Static analysis and formatting.** cppcheck blocks on warning, performance and portability findings; clang-format 19 is checked (not applied) in CI.
 - **Hardware stats line.** Every 5 s the firmware logs frame counters, `heap_min` and `psram_min` (a downward drift means a leak), per-window decode and track times, stack high-water marks, motor late ticks and per-core idle. Performance changes record their method and numbers in the PR.
 - **Docs.** Public headers use Doxygen blocks, published to GitHub Pages from `main`.
+
+## 11. WiFi provisioning and the PIN
+
+**Problem.** WiFi credentials were compiled into the firmware (a gitignored header), so changing network meant a rebuild, and the board was unusable away from home.
+
+**What won and why.** Networks are provisioned on the device and kept in NVS (up to 3, the strongest in range is joined). With no known network in range, or after 120 s lost, the board opens a WPA2 hotspot `VoidSentry-XXXX` with a random password shown only on the serial log, and a DNS catch-all sends a phone to the `/wifi` page. The connection logic is a pure state machine (`prov::WifiPlan`) that returns actions, so it is tested on the host; `WifiManager` only executes them and never blocks `loop()`.
+
+**The PIN.** Changing networks over WiFi needs a PIN, stored as a salted SHA-256. After 5 consecutive wrong PINs the guard locks out for 60 s, doubling per further lockout and capped at 1 h (`pin_guard.h`). The lockout is RAM-only, so a reboot resets it; that needs physical access or a crash. A first PIN is accepted only while the hotspot is up or nothing is saved.
+
+**Same host checks as the HUD.** `/api/wifi/*` requires an IPv4-literal Host header (DNS rebinding, section 9) and POSTs are origin-checked.
 
 **Not yet verified on hardware:** calibration save and reload across a reboot, and HUD jog hands-on in a browser.

@@ -1,5 +1,5 @@
 /**
- * @file MoveTypes.h
+ * @file move_types.h
  * @brief movement definitions for the Smart Camera project.
  * @details Uses a template base class to provide shared logic for axis-specific
  * movement classes while maintaining type safety and snake_case naming conventions.

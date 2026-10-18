@@ -64,13 +64,13 @@ public:
         this->_config.pin_pwdn = pins::CAM_PWDN;
         this->_config.pin_reset = pins::CAM_RESET;
 
-        this->_config.xclk_freq_hz = 12000000;       // 12 MHz: >=15 fps QVGA without wrecking WiFi (see CLAUDE.md)
-        this->_config.pixel_format = PIXFORMAT_JPEG; // Required for MJPEG streaming
+        this->_config.xclk_freq_hz = 12000000; // not 20 MHz: it cripples WiFi (docs/engineering-notes.md section 3)
+        this->_config.pixel_format = PIXFORMAT_JPEG; // the /stream WebSocket sends JPEG frames as they are
         this->_config.frame_size = FRAMESIZE_QVGA;   // 320x240
         // 0-63, lower = bigger files. 18 keeps heavy-scene frames small enough for the detection decode budget and
         // WiFi; 12 made close-up scenes 2.5-4x bigger (measured 2026-10-13).
         this->_config.jpeg_quality = 18;
-        this->_config.fb_count = 2; // Double buffering in PSRAM
+        this->_config.fb_count = 2; // the driver fills one buffer while the camera task copies the other
         this->_config.fb_location = CAMERA_FB_IN_PSRAM;
         this->_config.grab_mode = CAMERA_GRAB_LATEST;
     }

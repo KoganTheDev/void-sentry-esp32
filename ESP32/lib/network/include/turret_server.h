@@ -1,5 +1,5 @@
 /**
- * @file HttpServer.h
+ * @file turret_server.h
  * @brief Web server interface for MJPEG streaming and remote command handling.
  */
 

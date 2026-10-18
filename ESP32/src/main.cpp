@@ -21,9 +21,9 @@
 static const char* TAG_MAIN = "MAIN";
 
 // Per-core idle share, sampled: each core's 1 kHz tick hook checks whether the task it interrupted is that core's
-// IDLE task. FreeRTOS run-time stats are off in the precompiled SDK; this is how a saturated core 0 (IDLE0 starved
-// -> task watchdog) shows up in the stats line before it aborts. Tasks that wake on the tick and finish within it
-// (the motor task) are never sampled, so busy time is slightly under-counted.
+// IDLE task. It shows a saturated core 0 (IDLE0 starved -> task watchdog) in the stats line before it aborts. Tasks
+// that wake on the tick and finish within it (the motor task) are never sampled, so busy time is slightly
+// under-counted.
 static std::atomic<uint32_t> tick_samples[portNUM_PROCESSORS];
 static std::atomic<uint32_t> idle_samples[portNUM_PROCESSORS];
 
@@ -49,7 +49,8 @@ CameraTaskStats camera_stats;
 
 Controller controller(turret, detection_manager, joystick);
 
-// One benchmark line every 5 s (format fixed by the Stage 1 spec). Never prints credentials.
+// Two benchmark lines ([stream], [detect]) every 5 s, the *_win_* and jpeg_b_avg fields are deltas over that window.
+// Never prints credentials.
 static void log_stream_stats()
 {
     static uint32_t last_ms = 0;
@@ -137,9 +138,7 @@ void setup()
     ESP_LOGI(TAG_MAIN, "====================================");
     ESP_LOGI(TAG_MAIN, "Reset reason: %d", (int)esp_reset_reason()); // lets a soak test confirm no reboots
     ESP_LOGI(TAG_MAIN, "Initializing components...");
-    ESP_LOGI(TAG_MAIN, "[SYSTEM] Initializing components...");
 
-    // Initialize Joystick
     ESP_LOGI(TAG_MAIN, "Initializing Joystick...");
     joystick.begin();
     ESP_LOGI(TAG_MAIN, "Joystick initialized successfully");
@@ -153,7 +152,6 @@ void setup()
 
     controller.begin(); // load the saved calibration from NVS (the turret has started)
 
-    // Initialize Camera
     ESP_LOGI(TAG_MAIN, "Initializing Camera...");
     if (!camera.begin())
     {
@@ -181,7 +179,6 @@ void setup()
     ESP_LOGI(TAG_MAIN, "Starting WiFi...");
     wifi.begin();
 
-    // Start HTTP Server
     ESP_LOGI(TAG_MAIN, "Starting HTTP Server...");
     if (http_server.start(frame_store, &detection_manager, &controller, &controller, &wifi))
     {
@@ -200,8 +197,8 @@ void setup()
 
 void loop()
 {
-    controller.run(); // Run main control loop
-    wifi.maintain();  // WiFi plan, scans, setup hotspot DNS, serial wifi-reset
+    controller.run();
+    wifi.maintain(); // WiFi plan, scans, setup hotspot DNS, serial wifi-reset
     log_stream_stats();
 
     // capture() used to pace loop(); now it spins unpaced, so always yield one tick to idle/other tasks.

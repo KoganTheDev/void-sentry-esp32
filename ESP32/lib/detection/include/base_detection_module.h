@@ -1,5 +1,5 @@
 /**
- * @file BaseDetectionModule.h
+ * @file base_detection_module.h
  * @brief Abstract interface for object detection logic on ESP32-CAM.
  */
 
