@@ -1,8 +1,14 @@
 var searchData=
 [
-  ['7_20browser_20hud_20tt_20web_20web_5fui_20html_20tt_0',['7. Browser HUD (&lt;tt&gt;web/web_ui.html&lt;/tt&gt;)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md157',1,'']]],
-  ['7_20dual_20core_20task_20layout_1',['7. Dual-core task layout',['../md__2github_2workspace_2docs_2engineering-notes.html#autotoc_md16',1,'']]],
-  ['7_20toolchain_20upgrade_20implementation_20plan_2',['Stage 7 Toolchain Upgrade Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage7-core3-cpp20.html',1,'']]],
-  ['7_3a_20hardware_20benchmarks_20sanitizer_20proof_20pr_20main_20session_20with_20the_20user_3',['Task 7: Hardware benchmarks, sanitizer proof, PR (main session, with the user)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md60',1,'']]],
-  ['7_3a_20toolchain_20upgrade_20arduino_20core_203_203_2012_20c_2020_4',['Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html',1,'']]]
+  ['gate_5fmargin_5ffrac_0',['gate_margin_frac',['../structtracking_1_1TrackerConfig.html#adad9ae46cef879a97ba74441ac750e38',1,'tracking::TrackerConfig']]],
+  ['gate_5fmargin_5fmin_1',['gate_margin_min',['../structtracking_1_1TrackerConfig.html#aea3fa30bcd92f26cbd7899c23941b6ab',1,'tracking::TrackerConfig']]],
+  ['get_5fspeed_5fx_2',['get_speed_x',['../classJoystick.html#afc4c9f9dd95402760cbf69d5c35ec435',1,'Joystick']]],
+  ['get_5fspeed_5fy_3',['get_speed_y',['../classJoystick.html#ae78d70c3b5f357b7cd31d2bc79b76669',1,'Joystick']]],
+  ['get_5fstats_4',['get_stats',['../classBaseDetectionModule.html#a5db4871c4907e31a9e86fdee1608b32e',1,'BaseDetectionModule::get_stats()'],['../classCameraDiffDetection.html#a92d4077ded3803096addf4143a006fc9',1,'CameraDiffDetection::get_stats()']]],
+  ['get_5ftrack_5fsnapshot_5',['get_track_snapshot',['../classBaseDetectionModule.html#a41b108f22763c96aabb047a911f59e82',1,'BaseDetectionModule::get_track_snapshot()'],['../classCameraDiffDetection.html#afd8c88d08af3c4594505709408be48e2',1,'CameraDiffDetection::get_track_snapshot()']]],
+  ['get_5fvalue_6',['get_value',['../classMoveDirection.html#ad02f2c26b334a6522dcfdda8597be072',1,'MoveDirection']]],
+  ['get_5fx_7',['get_x',['../classJoystick.html#afd2a78cd13bf73d65bcf519f936cb3ae',1,'Joystick']]],
+  ['get_5fy_8',['get_y',['../classJoystick.html#ab201351a439c108946b341c856c714fb',1,'Joystick']]],
+  ['getting_20started_9',['Getting started',['../index.html#autotoc_md5',1,'']]],
+  ['grayframe_10',['GrayFrame',['../tracking__types_8h.html#a211b8754850e23b96a6293769fffc32f',1,'tracking']]]
 ];

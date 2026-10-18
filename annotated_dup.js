@@ -14,9 +14,6 @@ var annotated_dup =
       [ "StepPlanner", "classaiming_1_1StepPlanner.html", "classaiming_1_1StepPlanner" ],
       [ "TrackView", "structaiming_1_1TrackView.html", "structaiming_1_1TrackView" ]
     ] ],
-    [ "coverage_gate", "namespacecoverage__gate.html", [
-      [ "Counts", "classcoverage__gate_1_1Counts.html", null ]
-    ] ],
     [ "frames", null, [
       [ "FrameLease", "classframes_1_1FrameLease.html", null ],
       [ "FrameMeta", "structframes_1_1FrameMeta.html", null ],
@@ -42,21 +39,6 @@ var annotated_dup =
       [ "Jog", "structremote_1_1Jog.html", null ],
       [ "RemoteInbox", "classremote_1_1RemoteInbox.html", "classremote_1_1RemoteInbox" ]
     ] ],
-    [ "test_coverage_gate", null, [
-      [ "GateTest", "classtest__coverage__gate_1_1GateTest.html", null ],
-      [ "ParseTest", "classtest__coverage__gate_1_1ParseTest.html", null ],
-      [ "ReportTest", "classtest__coverage__gate_1_1ReportTest.html", null ]
-    ] ],
-    [ "test_html_header", "namespacetest__html__header.html", [
-      [ "RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
-      [ "RenderWifiHeaderTests", "classtest__html__header_1_1RenderWifiHeaderTests.html", null ],
-      [ "WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ]
-    ] ],
-    [ "test_tracking_tools", "namespacetest__tracking__tools.html", [
-      [ "GhostClipTests", "classtest__tracking__tools_1_1GhostClipTests.html", null ],
-      [ "JpegToGrayTests", "classtest__tracking__tools_1_1JpegToGrayTests.html", null ],
-      [ "SyntheticClipTests", "classtest__tracking__tools_1_1SyntheticClipTests.html", null ]
-    ] ],
     [ "tracking", null, [
       [ "Blob", "structtracking_1_1Blob.html", "structtracking_1_1Blob" ],
       [ "Box", "structtracking_1_1Box.html", "structtracking_1_1Box" ],
@@ -81,9 +63,7 @@ var annotated_dup =
     [ "FrameStore", "classFrameStore.html", "classFrameStore" ],
     [ "FrameStoreStats", "structFrameStoreStats.html", null ],
     [ "HttpServer", "classHttpServer.html", "classHttpServer" ],
-    [ "JDEC", "structJDEC.html", null ],
     [ "Joystick", "classJoystick.html", "classJoystick" ],
-    [ "JRECT", "structJRECT.html", null ],
     [ "MoveDirection", "classMoveDirection.html", "classMoveDirection" ],
     [ "MoveX", "classMoveX.html", "classMoveX" ],
     [ "MoveY", "classMoveY.html", "classMoveY" ],

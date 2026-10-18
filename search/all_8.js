@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['8_20diagnostics_0',['8. Diagnostics',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md158',1,'']]],
-  ['8_20scale_1',['2. Decoding JPEG at 1/8 scale',['../md__2github_2workspace_2docs_2engineering-notes.html#autotoc_md11',1,'']]],
-  ['8_20the_20poll_20storm_3a_20a_20debugging_20story_2',['8. The poll storm: a debugging story',['../md__2github_2workspace_2docs_2engineering-notes.html#autotoc_md17',1,'']]],
-  ['8a_3',['Refactor audit (Stage 8a)',['../md__2github_2workspace_2docs_2refactor-audit.html',1,'']]]
+  ['hardware_20and_20wiring_0',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]],
+  ['highlights_1',['Highlights',['../index.html#autotoc_md1',1,'']]],
+  ['home_2',['home',['../classBaseTurret.html#ab6db682161b9033ea9aea2df827809ea',1,'BaseTurret::home()'],['../classTurret.html#aad45f971346041404b309532257b41a0',1,'Turret::home()']]],
+  ['hotspot_5fpassword_3',['hotspot_password',['../classWifiStore.html#a51b8e102541c8c149f715e5ffb2dcaa8',1,'WifiStore']]],
+  ['httpserver_4',['HttpServer',['../classHttpServer.html',1,'']]]
 ];

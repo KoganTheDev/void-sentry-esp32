@@ -10,6 +10,5 @@ var searchData=
   ['command_7',['Command',['../structremote_1_1Command.html',1,'remote']]],
   ['commandswebsockethandler_8',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html',1,'']]],
   ['controller_9',['Controller',['../classController.html',1,'']]],
-  ['controlstatus_10',['ControlStatus',['../structControlStatus.html',1,'']]],
-  ['counts_11',['Counts',['../classcoverage__gate_1_1Counts.html',1,'coverage_gate']]]
+  ['controlstatus_10',['ControlStatus',['../structControlStatus.html',1,'']]]
 ];

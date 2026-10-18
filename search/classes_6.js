@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['httpserver_0',['HttpServer',['../classHttpServer.html',1,'']]]
+  ['jog_0',['Jog',['../structremote_1_1Jog.html',1,'remote']]],
+  ['joystick_1',['Joystick',['../classJoystick.html',1,'']]]
 ];

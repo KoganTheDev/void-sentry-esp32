@@ -1,10 +1,23 @@
 var searchData=
 [
-  ['6_20controller_20user_20hardware_20_3a_20real_20clips_20and_20on_20device_20verification_0',['Task 6 (controller + user, hardware): real clips and on-device verification',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md77',1,'']]],
-  ['6_20controller_20user_20hardware_20_3a_20verify_20on_20the_20board_1',['Task 6 (controller + user, hardware): verify on the board',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage3-motion-control.html#autotoc_md94',1,'']]],
-  ['6_20on_20device_20wifi_20provisioning_20implementation_20plan_2',['Stage 6 On-Device WiFi Provisioning Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage6-wifi-provisioning.html',1,'']]],
-  ['6_20push_20streaming_3',['6. Push streaming',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html#autotoc_md156',1,'']]],
-  ['6_20the_20motor_20task_4',['6. The motor task',['../md__2github_2workspace_2docs_2engineering-notes.html#autotoc_md15',1,'']]],
-  ['6_3a_20hud_20push_20client_20model_3a_20haiku_5',['Task 6: HUD push client (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md58',1,'']]],
-  ['6_3a_20on_20device_20wifi_20provisioning_6',['Void Sentry Stage 6: On-Device WiFi Provisioning',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage6-wifi-provisioning-design.html',1,'']]]
+  ['failure_0',['failure',['../structWifiManager_1_1Status.html#ad297a3051571092bbb2a9be821eebd2e',1,'WifiManager::Status']]],
+  ['fg_5fage_5flimit_1',['fg_age_limit',['../structtracking_1_1DetectorConfig.html#a68bb1441f728f00fea8fd6aa41e0c5a6',1,'tracking::DetectorConfig']]],
+  ['fg_5fshift_2',['fg_shift',['../structtracking_1_1DetectorConfig.html#a1c5d46fda53770453917e69303f78949',1,'tracking::DetectorConfig']]],
+  ['find_3',['find',['../classprov_1_1NetworkList.html#ae07f6801075538db26eb33863acacd98',1,'prov::NetworkList']]],
+  ['fire_5fon_4',['fire_on',['../structremote_1_1Command.html#aacf7126f0e37fb16aa27f7a8ca37d40e',1,'remote::Command']]],
+  ['fit_5',['fit',['../aim__map_8h.html#a29510865ab2fb4b1db34025dac5aa1f1',1,'aiming']]],
+  ['foreground_5fcells_6',['foreground_cells',['../structtracking_1_1DetectionResult.html#aeb5e4cdf3c44a52a4d0b6a7bfa8bd5ea',1,'tracking::DetectionResult']]],
+  ['forget_7',['forget',['../classWifiManager.html#a1d7f5a1f914059c06a7fada225f5c613',1,'WifiManager::forget()'],['../classprov_1_1NetworkList.html#af7283a2d815886fe1f211d9502a9a0a2',1,'prov::NetworkList::forget()']]],
+  ['form_2eh_8',['form.h',['../form_8h.html',1,'']]],
+  ['form_5ffield_9',['form_field',['../form_8h.html#a4630ca12b139395597ede089f63dbec3',1,'prov']]],
+  ['form_5fhas_5fkey_10',['form_has_key',['../form_8h.html#a265676223edfd50bc9f7d9f058099845',1,'prov']]],
+  ['frame_5fslots_2eh_11',['frame_slots.h',['../frame__slots_8h.html',1,'']]],
+  ['frame_5fstore_2eh_12',['frame_store.h',['../frame__store_8h.html',1,'']]],
+  ['framelease_13',['FrameLease',['../classframes_1_1FrameLease.html',1,'frames']]],
+  ['framemeta_14',['FrameMeta',['../structframes_1_1FrameMeta.html',1,'frames']]],
+  ['frames_15',['frames',['../structDetectionStats.html#a77cd10ceefd368b9be18489605238e56',1,'DetectionStats']]],
+  ['frames_5fsent_16',['frames_sent',['../classHttpServer.html#a8d6b3350ea803a591b55faebef86a88f',1,'HttpServer']]],
+  ['frameslots_17',['FrameSlots',['../classframes_1_1FrameSlots.html',1,'frames']]],
+  ['framestore_18',['FrameStore',['../classFrameStore.html',1,'']]],
+  ['framestorestats_19',['FrameStoreStats',['../structFrameStoreStats.html',1,'']]]
 ];

@@ -1,12 +1,15 @@
 var searchData=
 [
-  ['kframew_0',['kFrameW',['../aim__map_8h.html#a41d0eedc471c3c14d58c972e953b1c76',1,'aiming']]],
-  ['kjogspeed_1',['kJogSpeed',['../remote__inbox_8h.html#aec8cbea47a4b17e76eaf5ca72043a15f',1,'remote']]],
-  ['kjogtimeoutms_2',['kJogTimeoutMs',['../remote__inbox_8h.html#ad852dc40068d8466be4c155081f1f1c0',1,'remote']]],
-  ['kmaxmessage_3',['kMaxMessage',['../classCommandsWebSocketHandler.html#a43f7dc7dece6d49092446f914a8209ef',1,'CommandsWebSocketHandler']]],
-  ['kmaxsubscribers_4',['kMaxSubscribers',['../classFrameStore.html#a216a1b6f187b3e970aedffccf473d484',1,'FrameStore']]],
-  ['kmincaldx_5',['kMinCalDx',['../aim__map_8h.html#a824fdb55b93f0e0e7effb4406d9855ed',1,'aiming']]],
-  ['kreplysize_6',['kReplySize',['../classCommandsWebSocketHandler.html#a860bc5c818f40e6f4848a452d3e52f30',1,'CommandsWebSocketHandler']]],
-  ['kscancap_7',['kScanCap',['../classWifiManager.html#a1e3255666b046813397e5cd37011744e',1,'WifiManager']]],
-  ['kstepsperrev_8',['kStepsPerRev',['../aim__map_8h.html#aeec6a335589d2145998d7026c2cd5586',1,'aiming']]]
+  ['warming_5fup_0',['warming_up',['../structtracking_1_1DetectionResult.html#a0eb58365b722f5b6a1bab2d148b26ea1',1,'tracking::DetectionResult']]],
+  ['warmup_5fframes_1',['warmup_frames',['../structtracking_1_1DetectorConfig.html#ae27e389b74cab3f63441f62c1da6c730',1,'tracking::DetectorConfig']]],
+  ['websocket_5fhandler_2',['websocket_handler',['../classCommandsWebSocketHandler.html#acbf5b28823707d7a8b85b18dc5e0005d',1,'CommandsWebSocketHandler']]],
+  ['what_20it_20does_3',['What it does',['../index.html#autotoc_md0',1,'']]],
+  ['wifi_5fhttp_2eh_4',['wifi_http.h',['../wifi__http_8h.html',1,'']]],
+  ['wifi_5fmanager_2eh_5',['wifi_manager.h',['../wifi__manager_8h.html',1,'']]],
+  ['wifi_5fplan_2eh_6',['wifi_plan.h',['../wifi__plan_8h.html',1,'']]],
+  ['wifi_5fstore_2eh_7',['wifi_store.h',['../wifi__store_8h.html',1,'']]],
+  ['wifimanager_8',['WifiManager',['../classWifiManager.html',1,'']]],
+  ['wifiplan_9',['WifiPlan',['../classprov_1_1WifiPlan.html',1,'prov']]],
+  ['wifistore_10',['WifiStore',['../classWifiStore.html',1,'']]],
+  ['wiring_11',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]]
 ];

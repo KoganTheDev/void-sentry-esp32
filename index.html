@@ -101,10 +101,10 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Void Sentry </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a> </p><div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>An ESP32-CAM pan/tilt turret that tracks motion on-device and serves a live web HUD</b></div><div align="center"> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml/badge.svg" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Static Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen" style="pointer-events: none;" class="inline"/></a> <img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT" class="inline"/> <img src="https://img.shields.io/badge/C%2B%2B-20-00599C" alt="C++20" class="inline"/> <img src="https://img.shields.io/badge/Platform-ESP32-e7352c" alt="Platform: ESP32" class="inline"/> </div><h2><a class="anchor" id="autotoc_md220"></a>
+<div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a> </p><div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>An ESP32-CAM pan/tilt turret that tracks motion on-device and serves a live web HUD</b></div><div align="center"> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml/badge.svg" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Static Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen" style="pointer-events: none;" class="inline"/></a> <img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT" class="inline"/> <img src="https://img.shields.io/badge/C%2B%2B-20-00599C" alt="C++20" class="inline"/> <img src="https://img.shields.io/badge/Platform-ESP32-e7352c" alt="Platform: ESP32" class="inline"/> </div><h2><a class="anchor" id="autotoc_md0"></a>
 What it does</h2>
 <p>Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.</p>
-<h2><a class="anchor" id="autotoc_md221"></a>
+<h2><a class="anchor" id="autotoc_md1"></a>
 Highlights</h2>
 <ul>
 <li><b>Cheap detection path:</b> each QVGA JPEG is decoded at 1/8 scale (DC coefficients only) to a 40x30 grey grid in about 7 ms, versus about 71 ms at 1/4 scale.</li>
@@ -112,11 +112,11 @@ Highlights</h2>
 <li><b>No per-frame allocation:</b> the camera task copies frames into 4 fixed 32 KB PSRAM slots; readers hold RAII leases, and a leased slot is never rewritten.</li>
 <li><b>Dual-core by design:</b> core 1 runs camera copy, detection and control; core 0 runs network, the camera driver and the motor task. A 20 min soak showed no reboots and about 147 KB heap free (min 137 KB).</li>
 <li><b>Smooth motion:</b> trapezoidal stepper profile at a 1 kHz motor tick (max 400 steps/s, accel 800 steps/s^2), rate-limited servo (120 deg/s), soft limits and a 2 s hold after the target is lost before returning home.</li>
-<li><b>Tested off-device:</b> 132 host unit tests, also run under ASan + UBSan in CI, plus a regression bench over recorded real clips and synthetic clips.</li>
-<li><b>Hardware-driven fixes:</b> a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in <a class="el" href="md__2github_2workspace_2docs_2engineering-notes.html">docs/engineering-notes.md</a>.</li>
+<li><b>Tested off-device:</b> the pure logic is unit-tested on the host (also under ASan + UBSan, with coverage tracked per library in CI), plus a regression bench over recorded real clips and synthetic clips.</li>
+<li><b>Hardware-driven fixes:</b> a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in docs/engineering-notes.md.</li>
 <li><b>Browser-origin checks on the WebSockets:</b> handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Non-browser clients on the LAN are not authenticated yet.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md222"></a>
+<h2><a class="anchor" id="autotoc_md2"></a>
 Architecture</h2>
 <div class="fragment"><div class="line">flowchart LR</div>
 <div class="line">    CAM[&quot;OV3660 camera&quot;] --&gt; CT[&quot;camera task (core 1)&quot;]</div>
@@ -132,23 +132,8 @@ Architecture</h2>
 <div class="line">    ST --&gt;|&quot;/stream WebSocket&quot;| HUD[&quot;Browser HUD&quot;]</div>
 <div class="line">    HUD &lt;--&gt;|&quot;/commands WebSocket&quot;| CTRL</div>
 </div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
-<div class="fragment"><div class="line">flowchart TB</div>
-<div class="line">    subgraph C0[&quot;Core 0: network, driver, motor&quot;]</div>
-<div class="line">        W[&quot;WiFi (23)&quot;]</div>
-<div class="line">        D[&quot;esp camera driver (23)&quot;]</div>
-<div class="line">        T[&quot;esp_timer (22)&quot;]</div>
-<div class="line">        L[&quot;lwIP (18)&quot;]</div>
-<div class="line">        M[&quot;motor (7)&quot;]</div>
-<div class="line">        H[&quot;httpd (5)&quot;]</div>
-<div class="line">    end</div>
-<div class="line">    subgraph C1[&quot;Core 1: camera copy, detection, control&quot;]</div>
-<div class="line">        A[&quot;camera copy (4)&quot;]</div>
-<div class="line">        S[&quot;stream (4)&quot;]</div>
-<div class="line">        E[&quot;detect (3)&quot;]</div>
-<div class="line">        P[&quot;loop(): control and stats (1)&quot;]</div>
-<div class="line">    end</div>
-</div><!-- fragment --><p>Numbers in brackets are FreeRTOS priorities. httpd is pinned to core 0 so network bursts cannot preempt detection.</p>
-<h2><a class="anchor" id="autotoc_md223"></a>
+<p>httpd is pinned to core 0 so network bursts cannot preempt detection. The full task table (cores, priorities, stack sizes) is in CLAUDE.md, and the reasoning in the <a href="docs/engineering-notes.md#7-dual-core-task-layout">engineering notes</a>.</p>
+<h2><a class="anchor" id="autotoc_md3"></a>
 Performance</h2>
 <p>Measured on the board (QVGA JPEG, quality 18, camera clock 12 MHz, about 16.6 fps capture).</p>
 <table class="markdownTable">
@@ -163,18 +148,12 @@ Performance</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Frames analysed per 5 s   </td><td class="markdownTableBodyNone">83-84 (every captured frame)    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Tracking in internal RAM vs PSRAM   </td><td class="markdownTableBodyNone">0.6 ms vs 1.1 ms (pipeline about 12.6 KB)    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Detect task stack   </td><td class="markdownTableBodyNone">2,496 B free of 4,096    </td></tr>
-<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">20 min soak   </td><td class="markdownTableBodyNone">no reboots, heap about 147 KB free (min 137 KB)    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> clock 20 MHz: ping / 14 KB page fetch / fps   </td><td class="markdownTableBodyNone">265 ms / 1.1-5.0 s / 27.8 fps    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> clock 12 MHz: ping / 14 KB page fetch / fps   </td><td class="markdownTableBodyNone">19 ms / 0.07-0.13 s / 16.6 fps   </td></tr>
+<td class="markdownTableBodyNone"><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> clock 20 MHz vs 12 MHz: ping   </td><td class="markdownTableBodyNone">265 ms vs 19 ms (capture 27.8 vs 16.6 fps)   </td></tr>
 </table>
-<p>A higher camera clock means more clock and DMA activity that degrades WiFi, so 12 MHz is the best frame rate that keeps the network healthy.</p>
-<h2><a class="anchor" id="autotoc_md224"></a>
+<p>A higher camera clock degrades WiFi on this board, so 12 MHz is the best frame rate that keeps the network healthy. The full sweep is in the <a href="docs/engineering-notes.md#3-camera-clock-speed-versus-wifi">engineering notes</a>.</p>
+<h2><a class="anchor" id="autotoc_md4"></a>
 Hardware and wiring</h2>
 <p>Parts: Freenove ESP32-WROVER CAM (OV3660, PSRAM required) on the Freenove GPIO Extension Board; 28BYJ-48 stepper with a ULN2003 driver (yaw); SG90 servo (pitch); 2-axis joystick with push button.</p>
 <table class="markdownTable">
@@ -190,9 +169,9 @@ Hardware and wiring</h2>
 <td class="markdownTableBodyNone">Stepper IN1-IN4 (yaw)   </td><td class="markdownTableBodyNone">13, 12, 15, 2   </td></tr>
 </table>
 <p>With the camera attached exactly 8 GPIOs are free, and the turret uses all 8. <code><a class="el" href="pins_8h.html" title="Single source of truth for every GPIO the turret uses.">ESP32/include/pins.h</a></code> is the only place pins are defined, and its <code>static_assert</code>s reject flash/PSRAM pins, camera collisions and duplicates. GPIO12 high at reset selects 1.8 V flash and causes a boot loop, so check the ULN2003 polarity before powering on.</p>
-<h2><a class="anchor" id="autotoc_md225"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 Getting started</h2>
-<p>Prerequisites: <a href="https://platformio.org/">PlatformIO</a> (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of <code>custom_sdkconfig</code> (20-40 minutes once, then about 1 minute); do not pipe <code>pio</code> into <code>head</code> or <code>grep -m1</code>, or it looks hung.</p>
+<p>Prerequisites: <a href="https://platformio.org/">PlatformIO</a> (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of <code>custom_sdkconfig</code> (20-40 minutes once, then 1-3 minutes).</p>
 <ol type="1">
 <li>From <code>ESP32/</code>, build, flash and watch the serial log: <div class="fragment"><div class="line">pio run -e freenove_esp32_wrover</div>
 <div class="line">pio run -e freenove_esp32_wrover -t upload</div>
@@ -202,43 +181,45 @@ Getting started</h2>
 <li>Read the board's IP address from the boot log. DHCP can hand out a new address after reflashing, so do not assume it.</li>
 </ol>
 <p><code>pio run -e pin_check -t upload</code> flashes a wiring bring-up test (no camera, no WiFi) and prints the result on serial.</p>
-<h2><a class="anchor" id="autotoc_md226"></a>
+<h2><a class="anchor" id="autotoc_md6"></a>
 Using it</h2>
 <p>Open <code><a href="http://">http://</a>&lt;board-ip&gt;/</code> in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.</p>
 <ul>
-<li><b>Modes:</b> AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved.</li>
-<li><b><a class="el" href="classJoystick.html" title="High-level interface for 12-bit analog joystick input.">Joystick</a>:</b> a short press of the button toggles AI and User; holding it for 1.5 s enters calibration, or cancels it and restores the previous mode.</li>
+<li><b>Modes:</b> AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.</li>
 <li><b>HUD controls:</b> the mode button toggles AI and manual. In manual mode, WASD, the arrow keys or the on-screen buttons jog the turret (resent every 100 ms, with a 300 ms dead man on the board). A deflected joystick always wins over the HUD.</li>
-<li><b>Calibration:</b> hold the button for 1.5 s, aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.</li>
+<li><b>Calibration:</b> hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md227"></a>
+<h2><a class="anchor" id="autotoc_md7"></a>
 Testing and CI</h2>
-<div class="fragment"><div class="line">pio test -e native                         # host unit tests (132), no board needed</div>
+<div class="fragment"><div class="line">pio test -e native                         # host unit tests, no board needed</div>
 <div class="line">pio test -e native_sanitize                # ASan + UBSan (Linux / CI)</div>
 <div class="line">pio check --severity=high --severity=medium   # cppcheck</div>
 <div class="line">python -m unittest discover -s tools/tracking -p &quot;test_*.py&quot;   # fixture tool tests</div>
 <div class="line">python -m unittest discover -s web -p &quot;test_*.py&quot;              # HUD generator tests</div>
-</div><!-- fragment --><p>CI (<code>ci.yml</code>) checks clang-format 19, builds both firmware environments, runs the native tests, the sanitizer job and the tracking bench. The bench replays recorded clips (<code>real_cross_room</code>, <code>real_hand_pause</code>, <code>real_light_switch</code>) and four synthetic clips against <code>.expect</code> files, regenerates the synthetic fixtures byte-for-byte and records cachegrind instruction counts. cppcheck blocks on warning-level findings in <code>static_analysis.yml</code>. Doxygen output is published to <a href="https://koganthedev.github.io/void-sentry-esp32/">GitHub Pages</a> from <code>main</code>. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.</p>
-<h2><a class="anchor" id="autotoc_md228"></a>
+</div><!-- fragment --><p>CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (95% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against <code>.expect</code> files and records cachegrind instruction counts per frame. Doxygen output is published to <a href="https://koganthedev.github.io/void-sentry-esp32/">GitHub Pages</a> from <code>main</code>. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.</p>
+<h2><a class="anchor" id="autotoc_md8"></a>
 Project layout</h2>
 <div class="fragment"><div class="line">ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/provisioning WiFi plan, PIN guard, network list (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/checksum     CRC-32 for the NVS blobs (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/tjpgd        vendored JPEG decoder</div>
 <div class="line">ESP32/lib/frame_store  camera task and PSRAM slots</div>
 <div class="line">ESP32/lib/detection    JPEG decode and detect task glue</div>
 <div class="line">ESP32/lib/controller   modes, joystick, ties detection to the turret</div>
 <div class="line">ESP32/lib/motion       turret, stepper and servo motor task</div>
-<div class="line">ESP32/lib/network      WiFi, HTTP/WebSocket server, stream broadcaster</div>
+<div class="line">ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster</div>
 <div class="line">ESP32/bench            tracking clip bench and fixtures</div>
 <div class="line">web/                   HUD source (web_ui.html) and header generator</div>
 <div class="line">tools/tracking/        clip recorder and fixture generator</div>
 <div class="line">docs/                  specs, plans and engineering notes</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md229"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
 Roadmap status</h2>
-<p>Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control) are done. Stage 5 (this documentation) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client). On-device WiFi provisioning (Stage 6) and the move to Arduino core 3.x with C++20 (Stage 7) are done.</p>
-<p>More detail: <a class="el" href="md__2github_2workspace_2docs_2engineering-notes.html">engineering notes</a> (design decisions and debugging stories) and the <a href="https://koganthedev.github.io/void-sentry-esp32/">API documentation</a>.</p>
-<h2><a class="anchor" id="autotoc_md230"></a>
+<p>Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client).</p>
+<p>More detail: engineering notes (design decisions and debugging stories) and the <a href="https://koganthedev.github.io/void-sentry-esp32/">API documentation</a>.</p>
+<h2><a class="anchor" id="autotoc_md10"></a>
 License</h2>
 <p>MIT, see [LICENSE](LICENSE). </p>
 </div></div><!-- PageDoc -->
