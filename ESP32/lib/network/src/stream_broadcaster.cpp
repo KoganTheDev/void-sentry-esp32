@@ -274,7 +274,7 @@ void StreamBroadcaster::send_job(void* arg)
 
     // A queued job can outlive its viewer, and the OS may reuse the fd for an unrelated session. So the job carries
     // the viewer's slot index and generation; it only acts on the fd if that exact viewer is still registered.
-    // The check is exact because ws_handler (add), close_fn (remove) and this job all run on the httpd task, so no
+    // The check is exact because post_handshake (add), close_fn (remove) and this job all run on the httpd task, so no
     // close/add can interleave between the check and the send below.
     auto still_same_viewer = [&]() {
         Lock lock(self->mutex_);

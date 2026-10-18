@@ -10,7 +10,7 @@
   [![Cppcheck Static Analysis](https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml/badge.svg)](https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml)
   [![Doxygen](https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml/badge.svg)](https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml)
   ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
-  ![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C)
+  ![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C)
   ![Platform: ESP32](https://img.shields.io/badge/Platform-ESP32-e7352c)
 </div>
 
@@ -18,7 +18,7 @@
 
 ## What it does
 
-Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++17 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.
+Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.
 
 ## Highlights
 
@@ -104,7 +104,7 @@ With the camera attached exactly 8 GPIOs are free, and the turret uses all 8. `E
 
 ## Getting started
 
-Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extension). The toolchain is Arduino core 2.0.17 (ESP-IDF 4.4, GCC 8.4) with C++17.
+Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of `custom_sdkconfig` (20-40 minutes once, then about 1 minute); do not pipe `pio` into `head` or `grep -m1`, or it looks hung.
 
 1. Create the WiFi credentials header (`ESP32/include/secrets.h`, copied from `ESP32/include/secrets.h.example`) and set your network name and password. It is gitignored; never commit it.
 2. From `ESP32/`, build, flash and watch the serial log:
@@ -158,7 +158,7 @@ docs/                  specs, plans and engineering notes
 
 ## Roadmap status
 
-Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control) are done. Stage 5 (this documentation) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client). Next: on-device WiFi provisioning, and a move to Arduino core 3.x for C++20.
+Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control) are done. Stage 5 (this documentation) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client). On-device WiFi provisioning (Stage 6) and the move to Arduino core 3.x with C++20 (Stage 7) are done.
 
 More detail: [engineering notes](docs/engineering-notes.md) (design decisions and debugging stories) and the [API documentation](https://koganthedev.github.io/void-sentry-esp32/).
 
