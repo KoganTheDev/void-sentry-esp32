@@ -70,6 +70,42 @@ esp_err_t send_json(httpd_req_t* req, const char* status, const char* body)
     return httpd_resp_send(req, body, HTTPD_RESP_USE_STRLEN);
 }
 
+/**
+ * @brief Sends {"error":"<msg>"} with @p status; @p close adds Connection: close (for errors where the request
+ * body may be unread or the client is untrusted, so the socket must not be reused). @p msg must need no escaping.
+ */
+esp_err_t send_error(httpd_req_t* req, const char* status, const char* msg, bool close = false)
+{
+    char body[160];
+    snprintf(body, sizeof(body), "{\"error\":\"%s\"}", msg);
+    if (close)
+    {
+        httpd_resp_set_hdr(req, "Connection", "close");
+    }
+    return send_json(req, status, body);
+}
+
+/**
+ * @brief Streams {"key":[ item, item ... ]} as a chunked JSON response.
+ * @param open The opening text up to and including the "[".
+ * @param make Called as make(i, sep, out, cap); writes item i into out (snprintf), prefixing it with @p sep (empty
+ * for the first item, "," after).
+ */
+template <typename MakeItem> esp_err_t send_json_array(httpd_req_t* req, const char* open, size_t n, MakeItem make)
+{
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_send_chunk(req, open, HTTPD_RESP_USE_STRLEN);
+    char item[kEscCap + 64];
+    for (size_t i = 0; i < n; ++i)
+    {
+        make(i, i == 0 ? "" : ",", item, sizeof(item));
+        httpd_resp_send_chunk(req, item, HTTPD_RESP_USE_STRLEN);
+    }
+    httpd_resp_send_chunk(req, "]}", HTTPD_RESP_USE_STRLEN);
+    return httpd_resp_send_chunk(req, nullptr, 0);
+}
+
 WifiManager& manager(httpd_req_t* req) { return *static_cast<WifiManager*>(req->user_ctx); }
 
 /**
@@ -81,14 +117,12 @@ WifiManager& manager(httpd_req_t* req) { return *static_cast<WifiManager*>(req->
 bool api_host_ok(httpd_req_t* req)
 {
     char host[128];
-    const size_t len = httpd_req_get_hdr_value_len(req, "Host");
-    if (len > 0 && len < sizeof(host) && httpd_req_get_hdr_value_str(req, "Host", host, sizeof(host)) == ESP_OK &&
-        remote::is_ipv4_host({host, len}))
+    size_t len = 0;
+    if (read_header(req, "Host", host, sizeof(host), &len) == HeaderStatus::Ok && remote::is_ipv4_host({host, len}))
     {
         return true;
     }
-    httpd_resp_set_hdr(req, "Connection", "close");
-    send_json(req, "403 Forbidden", "{\"error\":\"host not allowed\"}");
+    send_error(req, "403 Forbidden", "host not allowed", true);
     return false;
 }
 
@@ -124,20 +158,12 @@ esp_err_t scan_handler(httpd_req_t* req)
     prov::ScanResult found[kCap];
     const size_t n = manager(req).scan(found, kCap);
 
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
-    httpd_resp_send_chunk(req, "{\"networks\":[", HTTPD_RESP_USE_STRLEN);
-    for (size_t i = 0; i < n; ++i)
-    {
+    return send_json_array(req, "{\"networks\":[", n, [&](size_t i, const char* sep, char* out, size_t cap) {
         char ssid[kEscCap];
         json_escape(found[i].ssid, ssid, sizeof(ssid));
-        char item[kEscCap + 64];
-        snprintf(item, sizeof(item), "%s{\"ssid\":\"%s\",\"rssi\":%d,\"secured\":%s}", i == 0 ? "" : ",", ssid,
-                 (int)found[i].rssi, found[i].secured ? "true" : "false");
-        httpd_resp_send_chunk(req, item, HTTPD_RESP_USE_STRLEN);
-    }
-    httpd_resp_send_chunk(req, "]}", HTTPD_RESP_USE_STRLEN);
-    return httpd_resp_send_chunk(req, nullptr, 0);
+        snprintf(out, cap, "%s{\"ssid\":\"%s\",\"rssi\":%d,\"secured\":%s}", sep, ssid, (int)found[i].rssi,
+                 found[i].secured ? "true" : "false");
+    });
 }
 
 esp_err_t saved_handler(httpd_req_t* req)
@@ -149,19 +175,11 @@ esp_err_t saved_handler(httpd_req_t* req)
     char ssids[prov::kMaxNetworks][prov::kSsidMax + 1];
     const size_t n = manager(req).saved(ssids, prov::kMaxNetworks);
 
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
-    httpd_resp_send_chunk(req, "{\"saved\":[", HTTPD_RESP_USE_STRLEN);
-    for (size_t i = 0; i < n; ++i)
-    {
+    return send_json_array(req, "{\"saved\":[", n, [&](size_t i, const char* sep, char* out, size_t cap) {
         char ssid[kEscCap];
         json_escape(ssids[i], ssid, sizeof(ssid));
-        char item[kEscCap + 8];
-        snprintf(item, sizeof(item), "%s\"%s\"", i == 0 ? "" : ",", ssid);
-        httpd_resp_send_chunk(req, item, HTTPD_RESP_USE_STRLEN);
-    }
-    httpd_resp_send_chunk(req, "]}", HTTPD_RESP_USE_STRLEN);
-    return httpd_resp_send_chunk(req, nullptr, 0);
+        snprintf(out, cap, "%s\"%s\"", sep, ssid);
+    });
 }
 
 /**
@@ -176,15 +194,14 @@ bool read_form(httpd_req_t* req, char* buf, size_t* len)
     }
     if (!handshake_origin_ok(req, TAG_WIFI_HTTP))
     {
-        httpd_resp_set_hdr(req, "Connection", "close");
-        send_json(req, "403 Forbidden", "{\"error\":\"origin not allowed\"}");
+        send_error(req, "403 Forbidden", "origin not allowed", true);
         return false;
     }
     const size_t total = req->content_len;
     if (total == 0 || total > prov::kMaxFormBody)
     {
-        httpd_resp_set_hdr(req, "Connection", "close"); // the unread body must not be parsed as the next request
-        send_json(req, "400 Bad Request", "{\"error\":\"bad request size\"}");
+        // Connection: close because the unread body must not be parsed as the next request.
+        send_error(req, "400 Bad Request", "bad request size", true);
         return false;
     }
     // A slow client must not hold the single httpd task (it also serves /stream and /commands). The whole body has
@@ -198,20 +215,18 @@ bool read_form(httpd_req_t* req, char* buf, size_t* len)
     {
         if (esp_timer_get_time() >= deadline)
         {
-            httpd_resp_set_hdr(req, "Connection", "close");
-            send_json(req, "408 Request Timeout", "{\"error\":\"request timeout\"}");
+            send_error(req, "408 Request Timeout", "request timeout", true);
             return false;
         }
         const int r = httpd_req_recv(req, buf + got, total - got);
         if (r <= 0)
         {
-            httpd_resp_set_hdr(req, "Connection", "close");
             if (r == HTTPD_SOCK_ERR_TIMEOUT)
             {
-                send_json(req, "408 Request Timeout", "{\"error\":\"request timeout\"}");
+                send_error(req, "408 Request Timeout", "request timeout", true);
             } else
             {
-                send_json(req, "400 Bad Request", "{\"error\":\"bad request\"}");
+                send_error(req, "400 Bad Request", "bad request", true);
             }
             return false;
         }
@@ -238,9 +253,7 @@ esp_err_t send_outcome(httpd_req_t* req, const WifiManager::Outcome& out, const 
     case WifiManager::Result::BadInput:
         break;
     }
-    char body[160];
-    snprintf(body, sizeof(body), "{\"error\":\"%s\"}", bad_input_msg);
-    return send_json(req, "400 Bad Request", body);
+    return send_error(req, "400 Bad Request", bad_input_msg);
 }
 
 esp_err_t add_handler(httpd_req_t* req)
@@ -262,7 +275,7 @@ esp_err_t add_handler(httpd_req_t* req)
     size_t pin_len = 0;
     if (!prov::form_field({body, body_len}, "ssid", ssid, sizeof(ssid), &ssid_len))
     {
-        err = send_json(req, "400 Bad Request", "{\"error\":\"missing or too long ssid\"}");
+        err = send_error(req, "400 Bad Request", "missing or too long ssid");
     } else
     {
         // Only a missing password key means an open network; a present but oversized or malformed one is a 400.
@@ -283,7 +296,7 @@ esp_err_t add_handler(httpd_req_t* req)
         }
         if (!pass_ok)
         {
-            err = send_json(req, "400 Bad Request", "{\"error\":\"malformed or too long password\"}");
+            err = send_error(req, "400 Bad Request", "malformed or too long password");
         } else
         {
             const WifiManager::Outcome out = manager(req).add(ssid, ssid_len, pass, pass_len, pin, pin_len, millis());
@@ -314,7 +327,7 @@ esp_err_t forget_handler(httpd_req_t* req)
     size_t pin_len = 0;
     if (!prov::form_field({body, body_len}, "ssid", ssid, sizeof(ssid), &ssid_len))
     {
-        err = send_json(req, "400 Bad Request", "{\"error\":\"missing or too long ssid\"}");
+        err = send_error(req, "400 Bad Request", "missing or too long ssid");
     } else
     {
         if (!prov::form_field({body, body_len}, "pin", pin, sizeof(pin), &pin_len))

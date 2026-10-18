@@ -13,6 +13,33 @@
 #error "needs CONFIG_HTTPD_WS_PRE/POST_HANDSHAKE_CB_SUPPORT=y (custom_sdkconfig in platformio.ini)"
 #endif
 
+/** @brief Result of read_header(). */
+enum class HeaderStatus {
+    Absent,  ///< no such header, or it is empty
+    TooLong, ///< present but does not fit the buffer (or the copy failed)
+    Ok       ///< copied, NUL-terminated, length in *len
+};
+
+/**
+ * @brief Copies one request header into @p buf (capacity @p cap, NUL included) and reports its length in @p len.
+ * @details Shared by the WebSocket handshake guard and the WiFi API's Host check, so both read headers the same way.
+ */
+inline HeaderStatus read_header(httpd_req_t* req, const char* name, char* buf, size_t cap, size_t* len)
+{
+    *len = 0;
+    const size_t n = httpd_req_get_hdr_value_len(req, name);
+    if (n == 0)
+    {
+        return HeaderStatus::Absent;
+    }
+    if (n >= cap || httpd_req_get_hdr_value_str(req, name, buf, cap) != ESP_OK)
+    {
+        return HeaderStatus::TooLong;
+    }
+    *len = n;
+    return HeaderStatus::Ok;
+}
+
 /**
  * @brief Reads the Origin and Host headers of a WebSocket handshake or a browser POST and applies
  * remote::origin_allowed.
@@ -29,23 +56,11 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
     char host[kHdrBuf];
     size_t origin_len = 0;
     size_t host_len = 0;
-    bool origin_too_long = false;
 
-    const size_t o_len = httpd_req_get_hdr_value_len(req, "Origin");
-    if (o_len > 0)
+    const bool origin_too_long = read_header(req, "Origin", origin, kHdrBuf, &origin_len) == HeaderStatus::TooLong;
+    if (read_header(req, "Host", host, kHdrBuf, &host_len) != HeaderStatus::Ok)
     {
-        if (o_len >= kHdrBuf || httpd_req_get_hdr_value_str(req, "Origin", origin, kHdrBuf) != ESP_OK)
-        {
-            origin_too_long = true;
-        } else
-        {
-            origin_len = o_len;
-        }
-    }
-    const size_t h_len = httpd_req_get_hdr_value_len(req, "Host");
-    if (h_len > 0 && h_len < kHdrBuf && httpd_req_get_hdr_value_str(req, "Host", host, kHdrBuf) == ESP_OK)
-    {
-        host_len = h_len;
+        host_len = 0; // absent or too long both count as empty
     }
 
     if (origin_too_long)
