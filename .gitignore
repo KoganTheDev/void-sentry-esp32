@@ -250,3 +250,6 @@ ESP32/sdkconfig.defaults
 ESP32/sdkconfig.freenove_esp32_wrover
 ESP32/sdkconfig.pin_check
 ESP32/src/idf_component.yml.orig
+
+# Claude Code agent worktrees (isolated checkouts for parallel agents)
+.claude/worktrees/
