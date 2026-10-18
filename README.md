@@ -27,7 +27,7 @@ Void Sentry watches a room through an OV3660 camera on an ESP32, finds the movin
 - **No per-frame allocation:** the camera task copies frames into 4 fixed 32 KB PSRAM slots; readers hold RAII leases, and a leased slot is never rewritten.
 - **Dual-core by design:** core 1 runs camera copy, detection and control; core 0 runs network, the camera driver and the motor task. A 20 min soak showed no reboots and about 147 KB heap free (min 137 KB).
 - **Smooth motion:** trapezoidal stepper profile at a 1 kHz motor tick (max 400 steps/s, accel 800 steps/s^2), rate-limited servo (120 deg/s), soft limits and a 2 s hold after the target is lost before returning home.
-- **Tested off-device:** 132 host unit tests, also run under ASan + UBSan in CI, plus a regression bench over recorded real clips and synthetic clips.
+- **Tested off-device:** the pure logic is unit-tested on the host (also under ASan + UBSan, with coverage tracked per library in CI), plus a regression bench over recorded real clips and synthetic clips.
 - **Hardware-driven fixes:** a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in [docs/engineering-notes.md](docs/engineering-notes.md).
 - **Browser-origin checks on the WebSockets:** handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Non-browser clients on the LAN are not authenticated yet.
 
@@ -51,25 +51,7 @@ flowchart LR
 
 Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. `Controller` depends only on interfaces (`BaseDetectionModule`, `BaseTurret`), and objects are wired by reference in `src/main.cpp`.
 
-```mermaid
-flowchart TB
-    subgraph C0["Core 0: network, driver, motor"]
-        W["WiFi (23)"]
-        D["esp camera driver (23)"]
-        T["esp_timer (22)"]
-        L["lwIP (18)"]
-        M["motor (7)"]
-        H["httpd (5)"]
-    end
-    subgraph C1["Core 1: camera copy, detection, control"]
-        A["camera copy (4)"]
-        S["stream (4)"]
-        E["detect (3)"]
-        P["loop(): control and stats (1)"]
-    end
-```
-
-Numbers in brackets are FreeRTOS priorities. httpd is pinned to core 0 so network bursts cannot preempt detection.
+httpd is pinned to core 0 so network bursts cannot preempt detection. The full task table (cores, priorities, stack sizes) is in [CLAUDE.md](CLAUDE.md), and the reasoning in the [engineering notes](docs/engineering-notes.md#7-dual-core-task-layout).
 
 ## Performance
 
@@ -81,13 +63,10 @@ Measured on the board (QVGA JPEG, quality 18, camera clock 12 MHz, about 16.6 fp
 | Per-frame decode + track, empty scene | 7.7-9.1 ms + 0.49-0.59 ms |
 | Per-frame decode + track, person close, turret following (worst 5 s window) | 11.4 ms (Stage 3: 25-30 ms) |
 | Frames analysed per 5 s | 83-84 (every captured frame) |
-| Tracking in internal RAM vs PSRAM | 0.6 ms vs 1.1 ms (pipeline about 12.6 KB) |
-| Detect task stack | 2,496 B free of 4,096 |
 | 20 min soak | no reboots, heap about 147 KB free (min 137 KB) |
-| Camera clock 20 MHz: ping / 14 KB page fetch / fps | 265 ms / 1.1-5.0 s / 27.8 fps |
-| Camera clock 12 MHz: ping / 14 KB page fetch / fps | 19 ms / 0.07-0.13 s / 16.6 fps |
+| Camera clock 20 MHz vs 12 MHz: ping | 265 ms vs 19 ms (capture 27.8 vs 16.6 fps) |
 
-A higher camera clock means more clock and DMA activity that degrades WiFi, so 12 MHz is the best frame rate that keeps the network healthy.
+A higher camera clock degrades WiFi on this board, so 12 MHz is the best frame rate that keeps the network healthy. The full sweep is in the [engineering notes](docs/engineering-notes.md#3-camera-clock-speed-versus-wifi).
 
 ## Hardware and wiring
 
@@ -104,7 +83,7 @@ With the camera attached exactly 8 GPIOs are free, and the turret uses all 8. `E
 
 ## Getting started
 
-Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of `custom_sdkconfig` (20-40 minutes once, then about 1 minute); do not pipe `pio` into `head` or `grep -m1`, or it looks hung.
+Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of `custom_sdkconfig` (20-40 minutes once, then 1-3 minutes).
 
 1. From `ESP32/`, build, flash and watch the serial log:
    ```bash
@@ -121,22 +100,21 @@ Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extensi
 
 Open `http://<board-ip>/` in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.
 
-- **Modes:** AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved.
-- **Joystick:** a short press of the button toggles AI and User; holding it for 1.5 s enters calibration, or cancels it and restores the previous mode.
+- **Modes:** AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.
 - **HUD controls:** the mode button toggles AI and manual. In manual mode, WASD, the arrow keys or the on-screen buttons jog the turret (resent every 100 ms, with a 300 ms dead man on the board). A deflected joystick always wins over the HUD.
-- **Calibration:** hold the button for 1.5 s, aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.
+- **Calibration:** hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.
 
 ## Testing and CI
 
 ```bash
-pio test -e native                         # host unit tests (132), no board needed
+pio test -e native                         # host unit tests, no board needed
 pio test -e native_sanitize                # ASan + UBSan (Linux / CI)
 pio check --severity=high --severity=medium   # cppcheck
 python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool tests
 python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
 ```
 
-CI (`ci.yml`) checks clang-format 19, builds both firmware environments, runs the native tests, the sanitizer job and the tracking bench. The bench replays recorded clips (`real_cross_room`, `real_hand_pause`, `real_light_switch`) and four synthetic clips against `.expect` files, regenerates the synthetic fixtures byte-for-byte and records cachegrind instruction counts. cppcheck blocks on warning-level findings in `static_analysis.yml`. Doxygen output is published to [GitHub Pages](https://koganthedev.github.io/void-sentry-esp32/) from `main`. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.
+CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (95% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against `.expect` files and records cachegrind instruction counts per frame. Doxygen output is published to [GitHub Pages](https://koganthedev.github.io/void-sentry-esp32/) from `main`. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.
 
 ## Project layout
 
@@ -145,11 +123,14 @@ ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)
 ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)
 ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)
 ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)
+ESP32/lib/provisioning WiFi plan, PIN guard, network list (pure C++, host-tested)
+ESP32/lib/checksum     CRC-32 for the NVS blobs (pure C++, host-tested)
+ESP32/lib/tjpgd        vendored JPEG decoder
 ESP32/lib/frame_store  camera task and PSRAM slots
 ESP32/lib/detection    JPEG decode and detect task glue
 ESP32/lib/controller   modes, joystick, ties detection to the turret
 ESP32/lib/motion       turret, stepper and servo motor task
-ESP32/lib/network      WiFi, HTTP/WebSocket server, stream broadcaster
+ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster
 ESP32/bench            tracking clip bench and fixtures
 web/                   HUD source (web_ui.html) and header generator
 tools/tracking/        clip recorder and fixture generator
@@ -158,7 +139,7 @@ docs/                  specs, plans and engineering notes
 
 ## Roadmap status
 
-Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control) are done. Stage 5 (this documentation) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client). On-device WiFi provisioning (Stage 6) and the move to Arduino core 3.x with C++20 (Stage 7) are done.
+Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client).
 
 More detail: [engineering notes](docs/engineering-notes.md) (design decisions and debugging stories) and the [API documentation](https://koganthedev.github.io/void-sentry-esp32/).
 

@@ -37,16 +37,17 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     // Keep network work on core 0 so it cannot preempt detection on core 1.
     config.core_id = 0;
-    config.stack_size = 8192;                               // Increase stack for JSON/String handling
-    config.max_uri_handlers = 16;                           // 3 core routes + 6 WiFi routes + catch-all, with headroom
-    config.uri_match_fn = httpd_uri_match_wildcard;         // the WiFi catch-all "/*"; exact routes still match exactly
-    config.send_wait_timeout = 2;                           // seconds; stalled viewers would block httpd 5 s
-    config.lru_purge_enable = true;                         // Purge oldest connection if full
+    // 8 KB, double the default: handlers keep their buffers on this stack (scan list and escaped SSIDs in
+    // wifi_http.cpp, the 384 B JSON reply in websockets.h, form bodies).
+    config.stack_size = 8192;
+    config.max_uri_handlers = 16;                   // 3 core routes + 6 WiFi routes + catch-all, with headroom
+    config.uri_match_fn = httpd_uri_match_wildcard; // the WiFi catch-all "/*"; exact routes still match exactly
+    config.send_wait_timeout = 2;                   // seconds; stalled viewers would block httpd 5 s
+    config.lru_purge_enable = true;
     config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
-        // Define Root Route
         httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = wifi};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
 
@@ -67,11 +68,11 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
             register_wifi_routes(this->_server_handle, *wifi); // last: it registers the catch-all
         }
 
-        Serial.println("[HTTP] Server started successfully");
+        ESP_LOGI(TAG_HTTP, "Server started successfully");
         return true;
     }
 
-    Serial.println("[HTTP] Failed to start server");
+    ESP_LOGE(TAG_HTTP, "Failed to start server");
     return false;
 }
 
