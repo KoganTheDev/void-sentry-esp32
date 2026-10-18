@@ -240,6 +240,52 @@ static TrackState at(TrackPhase phase, float cx, float cy)
     return s;
 }
 
+void test_blob_touching_gate_edge_is_merged_and_one_cell_outside_is_not(void)
+{
+    // A static 4x4 target at (5,5)-(8,8) has centre 6.5 and margin max(2, 0.5 * 4) = 2, so the gate spans cells 3..10
+    // on both axes and overlap is inclusive.
+    Tracker t;
+    lock_static(t);
+    const TrackState& inside = t.update(with({rect_blob(5, 5, 8, 8), rect_blob(10, 5, 11, 8)}));
+    TEST_ASSERT_TRUE(TrackPhase::Locked == inside.state);
+    TEST_ASSERT_EQUAL_INT(16 + 8, inside.area); // the blob whose edge cell is on the gate boundary is merged
+
+    Tracker u;
+    lock_static(u);
+    const TrackState& outside = u.update(with({rect_blob(11, 5, 12, 8)})); // first cell one past the gate
+    TEST_ASSERT_TRUE(TrackPhase::Coasting == outside.state);
+    TEST_ASSERT_EQUAL_UINT32(1, outside.frames_since_seen);
+}
+
+void test_scene_changes_while_idle_stay_idle_and_while_coasting_count_as_misses(void)
+{
+    Tracker idle;
+    TEST_ASSERT_TRUE(TrackPhase::Idle == idle.update(scene_change()).state);
+
+    Tracker t;
+    lock_static(t);
+    const int limit = TrackerConfig{}.coast_frames;
+    for (int i = 0; i < limit; ++i)
+    {
+        TEST_ASSERT_TRUE(TrackPhase::Coasting == t.update(scene_change()).state);
+    }
+    TEST_ASSERT_TRUE(TrackPhase::Idle == t.update(scene_change()).state); // one miss past coast_frames drops it
+}
+
+void test_coasting_blob_outside_grown_gate_stays_lost_until_it_returns_inside(void)
+{
+    Tracker t;
+    lock_static(t);
+    t.update(none());
+    t.update(none()); // two misses: the gate has grown by coast_gate_growth * 2 cells on each side
+    // The gate's x1 is now 12 (10 + 2), so a blob starting at 13 is still outside it and counts as a third miss.
+    TEST_ASSERT_TRUE(TrackPhase::Coasting == t.update(with({rect_blob(13, 5, 15, 8)})).state);
+    TEST_ASSERT_EQUAL_UINT32(3, t.state().frames_since_seen);
+    const TrackState& s = t.update(with({rect_blob(5, 5, 8, 8)}));
+    TEST_ASSERT_TRUE(TrackPhase::Locked == s.state);
+    TEST_ASSERT_EQUAL_UINT32(1, s.id);
+}
+
 void test_direction_for(void)
 {
     // Grid centre is (19.5, 14.5); the default deadzone is 2.5 cells.
@@ -292,6 +338,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_coasting_extrapolates_with_decay);
     RUN_TEST(test_coasting_stays_on_the_grid);
     RUN_TEST(test_reset_goes_idle_and_keeps_id_counter);
+    RUN_TEST(test_blob_touching_gate_edge_is_merged_and_one_cell_outside_is_not);
+    RUN_TEST(test_scene_changes_while_idle_stay_idle_and_while_coasting_count_as_misses);
+    RUN_TEST(test_coasting_blob_outside_grown_gate_stays_lost_until_it_returns_inside);
     RUN_TEST(test_direction_for);
     return UNITY_END();
 }

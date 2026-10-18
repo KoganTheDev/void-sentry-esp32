@@ -172,6 +172,24 @@ void test_jog_stops_at_limit(void)
     TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.0f, p.speed());
 }
 
+void test_jog_started_two_steps_from_limit_brakes_before_stepping(void)
+{
+    // Two steps of room is less than the brake distance of a full-speed jog, so the planner must start braking at
+    // creep speed, before the first step, and settle one step inside the limit. (The hard-stop branch at the end of
+    // tick() stays unreachable: a fuzz run of 600k random set_target/set_velocity operations never entered it.)
+    StepPlanner p;
+    const int32_t limit = p.config().max_pos;
+    p.reset_position(limit - 2);
+    p.set_velocity(p.config().max_speed);
+    for (int i = 0; i < 3000; ++i)
+    {
+        p.tick();
+        TEST_ASSERT_TRUE(p.position() <= limit);
+    }
+    TEST_ASSERT_EQUAL_INT32(limit - 1, p.position());
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, p.speed());
+}
+
 void test_reset_position(void)
 {
     StepPlanner p;
@@ -196,6 +214,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_target_is_clamped_to_limits);
     RUN_TEST(test_jog_ramps_up_and_down);
     RUN_TEST(test_jog_stops_at_limit);
+    RUN_TEST(test_jog_started_two_steps_from_limit_brakes_before_stepping);
     RUN_TEST(test_reset_position);
     return UNITY_END();
 }

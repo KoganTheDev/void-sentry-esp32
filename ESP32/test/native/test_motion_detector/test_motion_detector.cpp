@@ -163,6 +163,50 @@ void test_diagonal_neighbours_connect(void)
     TEST_ASSERT_EQUAL_INT(18, r.blobs[0].area);
 }
 
+void test_union_merges_larger_label_into_smaller(void)
+{
+    MotionDetector d;
+    GrayFrame bg = flat(50);
+    warm_up(d, bg);
+    GrayFrame f = bg;
+    // Scan order gives (3,0) label 1 and (1,1) label 2 (no visited neighbours each). Then (2,1) sees W = 2 first and
+    // NE = 1 second, so unite(2, 1) joins a larger root into a smaller one (the reverse-union branch).
+    f[0 * kGridW + 3] = 200;
+    f[1 * kGridW + 1] = 200;
+    f[1 * kGridW + 2] = 200;
+
+    const DetectionResult& r = d.process(f);
+    TEST_ASSERT_EQUAL_INT(1, r.blob_count);
+    TEST_ASSERT_EQUAL_INT(3, r.blobs[0].area);
+    TEST_ASSERT_EQUAL_INT(1, r.blobs[0].box.x0);
+    TEST_ASSERT_EQUAL_INT(3, r.blobs[0].box.x1);
+}
+
+void test_densest_seed_pattern_cannot_overflow_labels(void)
+{
+    // A cell gets a new provisional label only if none of its W, NW, N, NE neighbours is foreground, so new-label
+    // cells are never 8-adjacent and at most one per 2x2 block: 300 on this grid, below kMaxLabels (600). The
+    // overflow guard in label_blobs() is therefore unreachable; this is the densest input that stresses it.
+    DetectorConfig cfg;
+    cfg.scene_change_fraction = 1.0f;
+    MotionDetector d(cfg);
+    GrayFrame bg = flat(50);
+    warm_up(d, bg);
+    GrayFrame f = bg;
+    for (int y = 0; y < kGridH; y += 2)
+    {
+        for (int x = 0; x < kGridW; x += 2)
+        {
+            f[y * kGridW + x] = 200;
+        }
+    }
+
+    const DetectionResult& r = d.process(f);
+    TEST_ASSERT_FALSE(r.label_overflow);
+    TEST_ASSERT_EQUAL_INT(300, r.foreground_cells);
+    TEST_ASSERT_EQUAL_INT(0, r.blob_count); // every cell is a lone 1-cell blob, below min_blob_cells
+}
+
 void test_brightness_step_is_scene_change(void)
 {
     MotionDetector d;
@@ -428,6 +472,8 @@ int main(int argc, char** argv)
     RUN_TEST(test_two_blobs_sorted_by_area);
     RUN_TEST(test_u_shape_is_one_blob);
     RUN_TEST(test_diagonal_neighbours_connect);
+    RUN_TEST(test_union_merges_larger_label_into_smaller);
+    RUN_TEST(test_densest_seed_pattern_cannot_overflow_labels);
     RUN_TEST(test_brightness_step_is_scene_change);
     RUN_TEST(test_large_local_object_is_not_a_scene_change);
     RUN_TEST(test_warmup_absorbs_settling_exposure);

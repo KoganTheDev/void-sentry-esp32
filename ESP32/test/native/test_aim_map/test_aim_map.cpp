@@ -8,6 +8,8 @@
 #include "aim_map.h"
 #include "calibration_blob.h"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -128,6 +130,45 @@ void test_blob_rejects_non_finite_values(void)
     TEST_ASSERT_FALSE(deserialize(b).has_value());
 }
 
+void test_blob_rejects_non_finite_in_every_field(void)
+{
+    const float bad[] = {std::numeric_limits<float>::quiet_NaN(), -std::numeric_limits<float>::infinity()};
+    for (const float v : bad)
+    {
+        for (int field = 0; field < 4; ++field)
+        {
+            AimMap m = default_map();
+            float* slots[] = {&m.pan_a, &m.pan_b, &m.tilt_a, &m.tilt_b};
+            *slots[field] = v;
+            TEST_ASSERT_FALSE(deserialize(serialize(m)).has_value()); // the CRC is valid, only the value is not
+        }
+    }
+}
+
+void test_blob_rejects_corruption_in_each_header_and_crc_byte(void)
+{
+    const Blob good = serialize(default_map());
+    TEST_ASSERT_TRUE(deserialize(good).has_value());
+    // magic (0..3), version (4..5) and the stored CRC (the last 4 bytes) each reject on a single flipped bit
+    const size_t offsets[] = {0, 1, 2, 3, 4, 5, good.size() - 4, good.size() - 3, good.size() - 2, good.size() - 1};
+    for (const size_t off : offsets)
+    {
+        Blob b = good;
+        b[off] ^= 0x01;
+        TEST_ASSERT_FALSE(deserialize(b).has_value());
+    }
+}
+
+void test_blob_rejects_oversized_and_all_zero_input(void)
+{
+    const Blob b = serialize(default_map());
+    std::array<uint8_t, sizeof(Blob) + 1> longer{};
+    std::copy(b.begin(), b.end(), longer.begin());
+    TEST_ASSERT_FALSE(deserialize(longer).has_value());
+    const Blob zeros{};
+    TEST_ASSERT_FALSE(deserialize(zeros).has_value());
+}
+
 void test_aim_non_finite_pixel_falls_back_to_home(void)
 {
     const float nan = std::numeric_limits<float>::quiet_NaN();
@@ -193,6 +234,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_blob_rejects_wrong_length);
     RUN_TEST(test_blob_rejects_bad_magic_version_and_crc);
     RUN_TEST(test_blob_rejects_non_finite_values);
+    RUN_TEST(test_blob_rejects_non_finite_in_every_field);
+    RUN_TEST(test_blob_rejects_corruption_in_each_header_and_crc_byte);
+    RUN_TEST(test_blob_rejects_oversized_and_all_zero_input);
     RUN_TEST(test_aim_non_finite_pixel_falls_back_to_home);
     RUN_TEST(test_aim_infinite_pixel_gives_finite_in_range_angles);
     RUN_TEST(test_pan_deg_to_steps_guards_non_finite_and_huge);
