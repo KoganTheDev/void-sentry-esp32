@@ -48,6 +48,7 @@ var hierarchy =
     [ "MoveDirection< MoveYValue >", "classMoveDirection.html", [
       [ "MoveY", "classMoveY.html", null ]
     ] ],
+    [ "vsync::MutexLock", "classvsync_1_1MutexLock.html", null ],
     [ "prov::NetworkEntry", "structprov_1_1NetworkEntry.html", null ],
     [ "prov::NetworkList", "classprov_1_1NetworkList.html", null ],
     [ "WifiManager::Outcome", "structWifiManager_1_1Outcome.html", null ],
@@ -63,6 +64,11 @@ var hierarchy =
       [ "FrameStore", "classFrameStore.html", null ],
       [ "frames::FrameSlots", "classframes_1_1FrameSlots.html", null ]
     ] ],
+    [ "vsync::SpinGuarded< T >", "classvsync_1_1SpinGuarded.html", null ],
+    [ "vsync::SpinGuarded< Command >", "classvsync_1_1SpinGuarded.html", null ],
+    [ "vsync::SpinGuarded< ControlStatus >", "classvsync_1_1SpinGuarded.html", null ],
+    [ "vsync::SpinGuarded< Published >", "classvsync_1_1SpinGuarded.html", null ],
+    [ "vsync::SpinGuarded< remote::RemoteInbox >", "classvsync_1_1SpinGuarded.html", null ],
     [ "WifiManager::Status", "structWifiManager_1_1Status.html", null ],
     [ "aiming::StepPlanner", "classaiming_1_1StepPlanner.html", null ],
     [ "StreamBroadcaster", "classStreamBroadcaster.html", null ],

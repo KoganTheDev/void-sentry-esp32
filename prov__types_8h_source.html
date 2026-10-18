@@ -115,41 +115,54 @@ $(function(){initNavTree('prov__types_8h_source.html',''); initResizable(true); 
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> kSaltLen = 16;</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">constexpr</span> <span class="keywordtype">size_t</span> kHashLen = 32;</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="foldopen" id="foldopen00020" data-start="{" data-end="};">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="structprov_1_1NetworkEntry.html">   20</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1NetworkEntry.html">NetworkEntry</a> {</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keywordtype">char</span> ssid[kSsidMax + 1] = {};</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordtype">char</span> pass[kPassMax + 1] = {};</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    uint32_t last_ok_seq = 0; <span class="comment">// larger = more recently added or joined</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>};</div>
+<div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="prov__types_8h.html#a009e191847dcecc9fbb0797b04b3ee73">   20</a></span><span class="keyword">inline</span> <span class="keywordtype">size_t</span> <a class="code hl_function" href="prov__types_8h.html#a009e191847dcecc9fbb0797b04b3ee73">bounded_len</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* s, <span class="keywordtype">size_t</span> cap)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>{</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordtype">size_t</span> n = 0;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">while</span> (n &lt; cap &amp;&amp; s[n] != <span class="charliteral">&#39;\0&#39;</span>)</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>        ++n;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    }</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <span class="keywordflow">return</span> n;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
 </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="structprov_1_1PinRecord.html">   27</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1PinRecord.html">PinRecord</a> {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordtype">bool</span> set = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    uint8_t salt[kSaltLen] = {};</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    uint8_t hash[kHashLen] = {};</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>};</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="foldopen" id="foldopen00031" data-start="{" data-end="};">
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structprov_1_1NetworkEntry.html">   31</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1NetworkEntry.html">NetworkEntry</a> {</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordtype">char</span> ssid[kSsidMax + 1] = {};</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordtype">char</span> pass[kPassMax + 1] = {};</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    uint32_t last_ok_seq = 0; <span class="comment">// larger = more recently added or joined</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>};</div>
 </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="foldopen" id="foldopen00034" data-start="{" data-end="};">
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structprov_1_1ScanResult.html">   34</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1ScanResult.html">ScanResult</a> {</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordtype">char</span> ssid[kSsidMax + 1] = {};</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    int8_t rssi = -127;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordtype">bool</span> secured = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>};</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="};">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structprov_1_1PinRecord.html">   38</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1PinRecord.html">PinRecord</a> {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordtype">bool</span> set = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    uint8_t salt[kSaltLen] = {};</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    uint8_t hash[kHashLen] = {};</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>};</div>
 </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="foldopen" id="foldopen00041" data-start="{" data-end="};">
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="structprov_1_1Candidates.html">   41</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1Candidates.html">Candidates</a> {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    uint8_t idx[kMaxNetworks] = {}; <span class="comment">// indices into NetworkList, strongest first</span></div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">size_t</span> count = 0;</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>};</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="foldopen" id="foldopen00045" data-start="{" data-end="};">
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="structprov_1_1ScanResult.html">   45</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1ScanResult.html">ScanResult</a> {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">char</span> ssid[kSsidMax + 1] = {};</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    int8_t rssi = -127;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordtype">bool</span> secured = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>};</div>
 </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>} <span class="comment">// namespace prov</span></div>
-<div class="ttc" id="astructprov_1_1Candidates_html"><div class="ttname"><a href="structprov_1_1Candidates.html">prov::Candidates</a></div><div class="ttdoc">Saved networks present in a scan, strongest first.</div><div class="ttdef"><b>Definition</b> prov_types.h:41</div></div>
-<div class="ttc" id="astructprov_1_1NetworkEntry_html"><div class="ttname"><a href="structprov_1_1NetworkEntry.html">prov::NetworkEntry</a></div><div class="ttdoc">One saved network. Strings are NUL-terminated.</div><div class="ttdef"><b>Definition</b> prov_types.h:20</div></div>
-<div class="ttc" id="astructprov_1_1PinRecord_html"><div class="ttname"><a href="structprov_1_1PinRecord.html">prov::PinRecord</a></div><div class="ttdoc">Salted PIN hash as stored in NVS.</div><div class="ttdef"><b>Definition</b> prov_types.h:27</div></div>
-<div class="ttc" id="astructprov_1_1ScanResult_html"><div class="ttname"><a href="structprov_1_1ScanResult.html">prov::ScanResult</a></div><div class="ttdoc">One access point seen by a scan.</div><div class="ttdef"><b>Definition</b> prov_types.h:34</div></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="foldopen" id="foldopen00052" data-start="{" data-end="};">
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="structprov_1_1Candidates.html">   52</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structprov_1_1Candidates.html">Candidates</a> {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    uint8_t idx[kMaxNetworks] = {}; <span class="comment">// indices into NetworkList, strongest first</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">size_t</span> count = 0;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>};</div>
+</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>} <span class="comment">// namespace prov</span></div>
+<div class="ttc" id="aprov__types_8h_html_a009e191847dcecc9fbb0797b04b3ee73"><div class="ttname"><a href="prov__types_8h.html#a009e191847dcecc9fbb0797b04b3ee73">prov::bounded_len</a></div><div class="ttdeci">size_t bounded_len(const char *s, size_t cap)</div><div class="ttdoc">Length of the NUL-terminated string at s, looking at no more than cap bytes (cap if unterminated).</div><div class="ttdef"><b>Definition</b> prov_types.h:20</div></div>
+<div class="ttc" id="astructprov_1_1Candidates_html"><div class="ttname"><a href="structprov_1_1Candidates.html">prov::Candidates</a></div><div class="ttdoc">Saved networks present in a scan, strongest first.</div><div class="ttdef"><b>Definition</b> prov_types.h:52</div></div>
+<div class="ttc" id="astructprov_1_1NetworkEntry_html"><div class="ttname"><a href="structprov_1_1NetworkEntry.html">prov::NetworkEntry</a></div><div class="ttdoc">One saved network. Strings are NUL-terminated.</div><div class="ttdef"><b>Definition</b> prov_types.h:31</div></div>
+<div class="ttc" id="astructprov_1_1PinRecord_html"><div class="ttname"><a href="structprov_1_1PinRecord.html">prov::PinRecord</a></div><div class="ttdoc">Salted PIN hash as stored in NVS.</div><div class="ttdef"><b>Definition</b> prov_types.h:38</div></div>
+<div class="ttc" id="astructprov_1_1ScanResult_html"><div class="ttname"><a href="structprov_1_1ScanResult.html">prov::ScanResult</a></div><div class="ttdoc">One access point seen by a scan.</div><div class="ttdef"><b>Definition</b> prov_types.h:45</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

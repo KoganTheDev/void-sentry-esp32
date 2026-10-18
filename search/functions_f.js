@@ -17,8 +17,10 @@ var searchData=
   ['stack_5ffree_14',['stack_free',['../classTurret.html#ad56c38645858d37205b5f2532824ce9d',1,'Turret']]],
   ['start_15',['start',['../classaiming_1_1CalibrationSession.html#aabbc6032a9133f8497a818df12763162',1,'aiming::CalibrationSession::start()'],['../classStreamBroadcaster.html#a1656a8b65e436b33412305ebe8aedbf2',1,'StreamBroadcaster::start()'],['../classHttpServer.html#aa9254d2bb17ef347048c0ee181d6ad95',1,'HttpServer::start()'],['../classprov_1_1WifiPlan.html#a9bc82e427a8deb607ec7b42cb1d8cf61',1,'prov::WifiPlan::start()']]],
   ['start_5fcamera_5ftask_16',['start_camera_task',['../camera__task_8h.html#a0624d04eb78227689a8cfd697c087ce4',1,'camera_task.cpp']]],
-  ['start_5ftask_17',['start_task',['../classCameraDiffDetection.html#a7dc96540eba988f912144b2c09c9a9d9',1,'CameraDiffDetection']]],
-  ['status_18',['status',['../classWifiManager.html#a77d44b083f397f26c996bd7e7899163e',1,'WifiManager']]],
-  ['stop_19',['stop',['../classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e',1,'StreamBroadcaster::stop()'],['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer::stop()']]],
-  ['submit_20',['submit',['../classController.html#abd54cabecb052201737b1ffe1ecaf259',1,'Controller::submit()'],['../classremote_1_1BaseRemoteSink.html#a5e51f7f8cc04bae0b73b72e8448debbc',1,'remote::BaseRemoteSink::submit()'],['../classremote_1_1RemoteInbox.html#abe8b6e4cb106d3b8a63bb5518d1314e5',1,'remote::RemoteInbox::submit()']]]
+  ['start_5fsubscriber_5ftask_17',['start_subscriber_task',['../classFrameStore.html#ab41b92ab74b4549460bfe358ac4d954c',1,'FrameStore']]],
+  ['start_5ftask_18',['start_task',['../classCameraDiffDetection.html#a7dc96540eba988f912144b2c09c9a9d9',1,'CameraDiffDetection']]],
+  ['status_19',['status',['../classWifiManager.html#a77d44b083f397f26c996bd7e7899163e',1,'WifiManager']]],
+  ['stop_20',['stop',['../classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e',1,'StreamBroadcaster::stop()'],['../classHttpServer.html#aad9c63d3f8cda248e3c87067ac3ac5a5',1,'HttpServer::stop()']]],
+  ['store_21',['store',['../classvsync_1_1SpinGuarded.html#ae32052d8a8717f897bc3e8a2ec4b6c73',1,'vsync::SpinGuarded']]],
+  ['submit_22',['submit',['../classController.html#abd54cabecb052201737b1ffe1ecaf259',1,'Controller::submit()'],['../classremote_1_1BaseRemoteSink.html#a5e51f7f8cc04bae0b73b72e8448debbc',1,'remote::BaseRemoteSink::submit()'],['../classremote_1_1RemoteInbox.html#abe8b6e4cb106d3b8a63bb5518d1314e5',1,'remote::RemoteInbox::submit()']]]
 ];

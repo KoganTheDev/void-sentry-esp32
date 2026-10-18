@@ -146,6 +146,9 @@ const uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><b>data</b> (
 void&#160;</td><td class="memItemRight" valign="bottom"><b>remove_subscriber</b> (TaskHandle_t task)</td></tr>
 <tr class="memdesc:a56f5a6809c29468a107de82506cec8df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregister a task. Unknown or null handles are ignored. Remove before deleting the task. <br /></td></tr>
 <tr class="separator:a56f5a6809c29468a107de82506cec8df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab41b92ab74b4549460bfe358ac4d954c" id="r_ab41b92ab74b4549460bfe358ac4d954c"><td class="memItemLeft" align="right" valign="top">TaskHandle_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab41b92ab74b4549460bfe358ac4d954c">start_subscriber_task</a> (TaskFunction_t entry, const char *name, uint32_t stack_bytes, UBaseType_t priority, BaseType_t core, void *arg)</td></tr>
+<tr class="memdesc:ab41b92ab74b4549460bfe358ac4d954c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a task pinned to <code>core</code> and registers it as a subscriber, so it is woken on every publish.  <br /></td></tr>
+<tr class="separator:ab41b92ab74b4549460bfe358ac4d954c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d836de880ea80a9bc2f5a624adfce26" id="r_a9d836de880ea80a9bc2f5a624adfce26"><td class="memItemLeft" align="right" valign="top"><a id="a9d836de880ea80a9bc2f5a624adfce26" name="a9d836de880ea80a9bc2f5a624adfce26"></a>
 <a class="el" href="structFrameStoreStats.html">FrameStoreStats</a>&#160;</td><td class="memItemRight" valign="bottom"><b>stats</b> ()</td></tr>
 <tr class="separator:a9d836de880ea80a9bc2f5a624adfce26"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -212,6 +215,50 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kM
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classframes_1_1SlotReleaser.html">frames::SlotReleaser</a>.</p>
+
+</div>
+</div>
+<a id="ab41b92ab74b4549460bfe358ac4d954c" name="ab41b92ab74b4549460bfe358ac4d954c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab41b92ab74b4549460bfe358ac4d954c">&#9670;&#160;</a></span>start_subscriber_task()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">TaskHandle_t FrameStore::start_subscriber_task </td>
+          <td>(</td>
+          <td class="paramtype">TaskFunction_t</td>          <td class="paramname"><span class="paramname"><em>entry</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>stack_bytes</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">UBaseType_t</td>          <td class="paramname"><span class="paramname"><em>priority</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">BaseType_t</td>          <td class="paramname"><span class="paramname"><em>core</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>arg</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates a task pinned to <code>core</code> and registers it as a subscriber, so it is woken on every publish. </p>
+<p>Shared by the stream and detection tasks. If the subscriber slots are full the new task is deleted again, so the caller never owns a task that is not subscribed. </p><dl class="section return"><dt>Returns</dt><dd>The task handle, or nullptr if creation or registration failed (already logged). </dd></dl>
 
 </div>
 </div>

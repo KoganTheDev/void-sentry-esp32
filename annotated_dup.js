@@ -49,6 +49,10 @@ var annotated_dup =
       [ "TrackerConfig", "structtracking_1_1TrackerConfig.html", "structtracking_1_1TrackerConfig" ],
       [ "TrackState", "structtracking_1_1TrackState.html", null ]
     ] ],
+    [ "vsync", null, [
+      [ "MutexLock", "classvsync_1_1MutexLock.html", null ],
+      [ "SpinGuarded", "classvsync_1_1SpinGuarded.html", "classvsync_1_1SpinGuarded" ]
+    ] ],
     [ "BaseDetectionModule", "classBaseDetectionModule.html", "classBaseDetectionModule" ],
     [ "BaseStatusProvider", "classBaseStatusProvider.html", "classBaseStatusProvider" ],
     [ "BaseTurret", "classBaseTurret.html", "classBaseTurret" ],
