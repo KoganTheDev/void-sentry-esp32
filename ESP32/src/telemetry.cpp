@@ -6,6 +6,7 @@
 #include <atomic>
 #include <esp_freertos_hooks.h>
 #include <esp_log.h>
+#include <esp_timer.h>
 
 namespace telemetry
 {
@@ -15,7 +16,8 @@ const char* const TAG = "MAIN";
 
 // Per-core idle share, sampled: each core's 1 kHz tick hook checks whether the task it interrupted is that core's
 // IDLE task (idle0/idle1). Tasks that wake on the tick and finish within it (the motor task) are never sampled, so
-// busy time is slightly under-counted.
+// busy time is slightly under-counted. rt_idle0/rt_idle1 are the same share from the kernel's run-time counters
+// (exact, but see log_stats), kept side by side so the two can be compared.
 std::atomic<uint32_t> tick_samples[portNUM_PROCESSORS];
 std::atomic<uint32_t> idle_samples[portNUM_PROCESSORS];
 
@@ -38,6 +40,8 @@ stats::WindowedCounter<uint64_t> w_decode_us;
 stats::WindowedCounter<uint64_t> w_track_us;
 stats::WindowedCounter<uint32_t> w_ticks[portNUM_PROCESSORS];
 stats::WindowedCounter<uint32_t> w_idle[portNUM_PROCESSORS];
+stats::WindowedCounter<uint32_t> w_wall_us;
+stats::WindowedCounter<uint32_t> w_rt_idle[portNUM_PROCESSORS];
 } // namespace
 
 void begin()
@@ -70,13 +74,19 @@ void log_stats(const Sources& src)
         static_cast<uint32_t>(stats::window_avg<uint64_t>(w_decode_us.sample(det.decode_us_total), det_frames));
     const uint32_t trk_win_us =
         static_cast<uint32_t>(stats::window_avg<uint64_t>(w_track_us.sample(det.track_us_total), det_frames));
-    // Per-window idle % per core.
+    // Per-window idle % per core: sampled by the tick hook, and from the run-time counters. The ForCore getter reads
+    // one task's counter under the kernel lock: no allocation, no task list walk (uxTaskGetSystemState would do both).
+    // The counter source is esp_timer (microseconds, 32 bit), so a core's total time in the window is the wall time.
+    const uint32_t d_wall_us = w_wall_us.sample(static_cast<uint32_t>(esp_timer_get_time()));
     unsigned idle_pct[portNUM_PROCESSORS];
+    unsigned rt_idle_pct[portNUM_PROCESSORS];
     for (int core = 0; core < portNUM_PROCESSORS; ++core)
     {
         const uint32_t d_ticks = w_ticks[core].sample(tick_samples[core].load(std::memory_order_relaxed));
         const uint32_t d_idle = w_idle[core].sample(idle_samples[core].load(std::memory_order_relaxed));
         idle_pct[core] = stats::window_percent(d_idle, d_ticks);
+        const uint32_t d_rt_idle = w_rt_idle[core].sample(ulTaskGetIdleRunTimeCounterForCore(core));
+        rt_idle_pct[core] = stats::window_percent(d_rt_idle, d_wall_us);
     }
     const aiming::Angles pose = src.turret.position_deg();
     const ControlStatus ctl = src.controller.control_status();
@@ -96,8 +106,9 @@ void log_stats(const Sources& src)
         (unsigned)src.turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
     // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
     ESP_LOGI(TAG,
-             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s",
+             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s "
+             "rt_idle0=%u rt_idle1=%u",
              (unsigned)det_frames, (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free, idle_pct[0],
-             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name());
+             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name(), rt_idle_pct[0], rt_idle_pct[1]);
 }
 } // namespace telemetry
