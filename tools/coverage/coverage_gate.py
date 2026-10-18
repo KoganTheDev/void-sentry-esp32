@@ -13,7 +13,7 @@ import re
 import sys
 from dataclasses import dataclass
 
-PURE_LIBS = ("aiming", "checksum", "frames", "jpeg_gray", "provisioning", "remote", "tracking")
+PURE_LIBS = ("aiming", "checksum", "frames", "jpeg_gray", "provisioning", "remote", "stats", "tracking")
 _LIB_RE = re.compile(r"ESP32[/\\]lib[/\\]([^/\\]+)[/\\]")
 
 
