@@ -49,8 +49,8 @@ Use them throughout the project, on the target where each one actually works:
 
 ## Required local setup
 
-- Stage 6: the firmware **no longer includes or needs** `ESP32/include/secrets.h` to build (WiFi is provisioned on the device, see Architecture), and CI no longer copies the template. The file and its `.example` still exist until the user removes them after saving their network in NVS; until then the rules in this paragraph stay. `secrets.h` is gitignored. Never commit it, read it, or print its contents. This is enforced: `.claude/settings.json` denies Read/Edit on `**/secrets.h`, and `.claude/hooks/guard_wifi_credentials.py` blocks any shell command containing the substring `secret` (so ask the user for anything involving that file, including copying the template; put commit messages that mention it in a file and use `git commit -F`). The hook is an accident guard, not a security boundary. On-device WiFi provisioning is implemented in Stage 6; these rules are relaxed in a follow-up once the user has removed the file.
-- The project's Claude Code hooks (`.claude/settings.json`) invoke `python`; on a machine that only has `python3` they exit 127, which fails open (the WiFi-credential shell guard then does nothing).
+- None for building: a fresh clone builds as is. WiFi credentials are never in the repo or the firmware source; networks are provisioned on the device and kept in NVS (see Architecture). The old compiled-in credentials header was removed after Stage 7; `.gitignore` still lists `secrets.h` so a stray copy is never committed. Never log, print or commit WiFi passwords, the PIN or the hotspot password (the hotspot password appears only on the board's serial log; the user reads it there).
+- The project's Claude Code hook (`.claude/settings.json`, clang-format on edit) invokes `python`; on a machine that only has `python3` it exits 127 and the file is not formatted (CI's format check still catches it).
 
 ## Architecture
 

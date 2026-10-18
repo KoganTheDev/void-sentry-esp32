@@ -106,13 +106,13 @@ With the camera attached exactly 8 GPIOs are free, and the turret uses all 8. `E
 
 Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extension). The toolchain is Arduino core 3.3.12 (ESP-IDF 5.5.5, GCC 14) with C++20. The first build rebuilds the Arduino libraries because of `custom_sdkconfig` (20-40 minutes once, then about 1 minute); do not pipe `pio` into `head` or `grep -m1`, or it looks hung.
 
-1. Create the WiFi credentials header (`ESP32/include/secrets.h`, copied from `ESP32/include/secrets.h.example`) and set your network name and password. It is gitignored; never commit it.
-2. From `ESP32/`, build, flash and watch the serial log:
+1. From `ESP32/`, build, flash and watch the serial log:
    ```bash
    pio run -e freenove_esp32_wrover
    pio run -e freenove_esp32_wrover -t upload
    pio device monitor        # 115200 baud
    ```
+2. Set up WiFi on the device (no credentials are compiled in). With no saved network in range, the board opens a WPA2 hotspot `VoidSentry-XXXX` and prints its password on the serial log. Join it from a phone, and the setup page opens (or browse to `http://192.168.4.1/wifi`). Save your network and choose a PIN. Up to 3 networks are kept in flash, and the strongest one in range is joined. Later changes go through the same page (linked from the HUD) and need the PIN. Typing `wifi-reset` in the serial monitor erases the saved networks and the PIN.
 3. Read the board's IP address from the boot log. DHCP can hand out a new address after reflashing, so do not assume it.
 
 `pio run -e pin_check -t upload` flashes a wiring bring-up test (no camera, no WiFi) and prints the result on serial.
