@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['html_5fheader_0',['html_header',['../namespacehtml__header.html',1,'']]]
+  ['coverage_5fgate_0',['coverage_gate',['../namespacecoverage__gate.html',1,'']]],
+  ['coverage_5flink_1',['coverage_link',['../namespacecoverage__link.html',1,'']]]
 ];

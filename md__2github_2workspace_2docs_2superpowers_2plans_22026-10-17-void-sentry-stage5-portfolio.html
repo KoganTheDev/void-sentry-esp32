@@ -101,14 +101,14 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 5 Portfolio Polish Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md102"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md109"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (<code>- [ ]</code>) syntax. </p>
 </blockquote>
 <p><b>Goal:</b> Replace the outdated README with an accurate one (architecture diagrams, measured numbers, wiring, build/test, badges) and add an engineering write-up.</p>
 <p><b>Architecture:</b> Documentation only, plus one Doxyfile line. Two independent files, written in parallel.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-17-void-sentry-stage5-portfolio-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md103"></a>
+<h1><a class="anchor" id="autotoc_md110"></a>
 Global Constraints</h1>
 <ul>
 <li><b>Facts only from:</b> <code>CLAUDE.md</code>, <code>docs/superpowers/specs/*.md</code>, the code, and the facts list below. Never invent numbers, features or hardware. If something is not in those sources, leave it out.</li>
@@ -117,7 +117,7 @@ Global Constraints</h1>
 <li><b>Mermaid:</b> GitHub-flavoured Mermaid (<code>flowchart</code>), node labels in quotes when they contain punctuation, no HTML except <code>&lt;br/&gt;</code>.</li>
 <li><b>Commits:</b> trailer <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md104"></a>
+<h1><a class="anchor" id="autotoc_md111"></a>
 Facts list (measured on hardware unless noted; use these exact values)</h1>
 <ul>
 <li>Hardware: Freenove ESP32-WROVER CAM (OV3660 camera, PSRAM required) on the Freenove GPIO Extension Board; 28BYJ-48 stepper + ULN2003 driver (yaw); SG90 servo (pitch); 2-axis joystick with push button. Pins: joystick X/Y GPIO 32/33 (ADC1, works with WiFi on), button GPIO 0, servo GPIO 14, stepper IN1-IN4 GPIO 13, 12, 15, 2. With the camera attached exactly 8 GPIOs are free and the turret uses all 8. <code><a class="el" href="pins_8h.html" title="Single source of truth for every GPIO the turret uses.">ESP32/include/pins.h</a></code> is the only place pins are defined, with <code>static_assert</code>s.</li>
@@ -133,7 +133,7 @@ Facts list (measured on hardware unless noted; use these exact values)</h1>
 <li>Testing: 132 host unit tests (Unity, <code>pio test -e native</code>), also run under ASan + UBSan in CI; tracking regression bench on recorded clips (<code>real_cross_room</code>, <code>real_hand_pause</code>, <code>real_light_switch</code>) plus 4 synthetic clips with <code>.expect</code> files; cachegrind instruction counts in CI; cppcheck blocking in CI; clang-format 19 check; Doxygen published to GitHub Pages from <code>main</code>.</li>
 <li>Not yet verified on hardware: calibration save and reload across a reboot; HUD jog hands-on in a browser (protocol and dead man verified from a PC client).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md105"></a>
+<h2><a class="anchor" id="autotoc_md112"></a>
 Task 1: README.md (repo root)</h2>
 <ul class="check">
 <li class="unchecked">Header: logo and title images already used today (<code>assets/void_sentry_logo_for_md_file_400x400_pixels.png</code>, <code>assets/void_sentry_title.png</code>), a one-line description, badges with the repo path <code>KoganTheDev/void-sentry-esp32</code>: <code>ci.yml</code> (name "CI"), <code>static_analysis.yml</code>, <code>doxygen_docs_generator.yml</code>, MIT license, C++17, platform ESP32 (shields.io static badges for the last three).</li>
@@ -150,7 +150,7 @@ Task 1: README.md (repo root)</h2>
 <ul class="check">
 <li class="unchecked">Verify: every relative link points to an existing file; Mermaid blocks parse (<code>npx -y @mermaid-js/mermaid-cli@11.4.0 -i &lt;block&gt;.mmd -o out.svg</code> if npx works offline/online, else review syntax carefully and say so); no em dashes (<code>grep -n "—" README.md</code> prints nothing). Commit: "Rewrite README: accurate architecture, measured performance, wiring, build and test".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md106"></a>
+<h2><a class="anchor" id="autotoc_md113"></a>
 Task 2: <code>docs/engineering-notes.md</code> and Doxygen name</h2>
 <ul class="check">
 <li class="unchecked">One section per decision or debugging story, each written as: the problem -&gt; what was tried or considered -&gt; what won and why -&gt; the evidence (numbers from the facts list). Cover: (1) fixed camera and absolute aiming instead of visual servoing; (2) 1/8-scale DC-only JPEG decode; (3) camera XCLK 12 MHz versus WiFi; (4) frame ownership without per-frame allocation (fixed PSRAM slots, leases); (5) detector rules learned from real clips (scene-change rule, warm-up, ghost age limit); (6) the motor task (own coil driver, dropped missed ticks, 1.5 ms step spacing, trapezoidal profile); (7) dual-core task layout; (8) the poll-storm investigation as a debugging story (symptom, wrong first hypothesis, the instrument built, the reproduction, the fix, why Stage 3's slowdown was very likely the same storm on core 1); (9) WebSocket origin check and DNS rebinding; (10) how correctness is checked (native tests, sanitizers, clip regression bench, cppcheck, hardware stats line).</li>
@@ -164,9 +164,9 @@ Task 2: <code>docs/engineering-notes.md</code> and Doxygen name</h2>
 <ul class="check">
 <li class="unchecked">Verify: no em dashes; links resolve. Commit: "Add engineering notes; rename Doxygen project to Void Sentry".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md107"></a>
+<h2><a class="anchor" id="autotoc_md114"></a>
 Task 3 (controller): review, push, PR, CI</h2>
-<h2><a class="anchor" id="autotoc_md108"></a>
+<h2><a class="anchor" id="autotoc_md115"></a>
 Task 4 (with the user, later): record the demo GIF and add it to the README slot</h2>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

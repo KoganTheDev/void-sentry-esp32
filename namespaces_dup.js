@@ -1,5 +1,7 @@
 var namespaces_dup =
 [
+    [ "coverage_gate", "namespacecoverage__gate.html", "namespacecoverage__gate" ],
+    [ "coverage_link", "namespacecoverage__link.html", null ],
     [ "html_header", "namespacehtml__header.html", [
       [ "render_header", "namespacehtml__header.html#ae5709d0112f15bb8236e5b0981076278", null ],
       [ "render_wifi_header", "namespacehtml__header.html#aacde8c6adcff33afc7113c47232e8969", null ],

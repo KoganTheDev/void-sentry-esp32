@@ -1,13 +1,11 @@
 var searchData=
 [
-  ['c_2020_0',['Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html',1,'']]],
-  ['camera_20absolute_20aiming_1',['Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html',1,'']]],
-  ['camera_20push_20stream_20implementation_20plan_2',['Void Sentry Stage 1 (Camera + Push Stream) Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html',1,'']]],
-  ['claude_20md_3',['CLAUDE.md',['../md__2github_2workspace_2CLAUDE.html',1,'']]],
-  ['control_4',['Void Sentry Stage 4b: HUD Remote Control',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage4b-hud-remote-control-design.html',1,'']]],
-  ['control_20fixed_20camera_20absolute_20aiming_5',['Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html',1,'']]],
-  ['control_20implementation_20plan_6',['Control Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage3-motion-control.html',1,'Stage 3 Motion Control Implementation Plan'],['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-17-void-sentry-stage4b-hud-remote-control.html',1,'Stage 4b HUD Remote Control Implementation Plan']]],
-  ['core_203_203_2012_20c_2020_7',['Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html',1,'']]],
-  ['core_20task_20layout_8',['Void Sentry Stage 4: Dual-Core Task Layout',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage4-dual-core-design.html',1,'']]],
-  ['core_20task_20layout_20implementation_20plan_9',['Stage 4 Dual-Core Task Layout Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-13-void-sentry-stage4-dual-core.html',1,'']]]
+  ['absolute_20aiming_0',['Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html',1,'']]],
+  ['aiming_1',['Void Sentry Stage 3: Motion Control (Fixed Camera, Absolute Aiming)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-13-void-sentry-stage3-motion-control-design.html',1,'']]],
+  ['and_20persistent_20tracking_2',['Void Sentry Stage 2: Motion Detection and Persistent Tracking',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage2-motion-tracking-design.html',1,'']]],
+  ['and_20persistent_20tracking_20implementation_20plan_3',['Stage 2 Motion Detection and Persistent Tracking Implementation Plan',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html',1,'']]],
+  ['and_20push_20streaming_4',['Void Sentry Stage 1: frame ownership and push streaming',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-12-void-sentry-stage1-camera-stream-design.html',1,'']]],
+  ['and_20stage_200_20design_5',['Void Sentry rebuild: roadmap and Stage 0 design',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-11-void-sentry-stage0-design.html',1,'']]],
+  ['arduino_20core_203_203_2012_20c_2020_6',['Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)',['../md__2github_2workspace_2docs_2superpowers_2specs_22026-10-17-void-sentry-stage7-core3-cpp20-design.html',1,'']]],
+  ['audit_20stage_208a_7',['Refactor audit (Stage 8a)',['../md__2github_2workspace_2docs_2refactor-audit.html',1,'']]]
 ];

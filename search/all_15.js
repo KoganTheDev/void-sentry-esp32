@@ -1,8 +1,8 @@
 var searchData=
 [
   ['jdec_0',['JDEC',['../structJDEC.html',1,'']]],
-  ['job_1',['Task 5: Fixture tools, clip bench, CI job',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md68',1,'']]],
-  ['job_20model_3a_20haiku_2',['Task 3: &lt;tt&gt;native_sanitize&lt;/tt&gt; env + CI job (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md45',1,'']]],
+  ['job_1',['Task 5: Fixture tools, clip bench, CI job',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage2-motion-tracking.html#autotoc_md75',1,'']]],
+  ['job_20model_3a_20haiku_2',['Task 3: &lt;tt&gt;native_sanitize&lt;/tt&gt; env + CI job (model: Haiku)',['../md__2github_2workspace_2docs_2superpowers_2plans_22026-10-12-void-sentry-stage1-camera-stream.html#autotoc_md52',1,'']]],
   ['jog_3',['Jog',['../structremote_1_1Jog.html',1,'remote']]],
   ['jog_4',['jog',['../classBaseTurret.html#a66d48f970e376782d888d2d273ccffa3',1,'BaseTurret::jog()'],['../classTurret.html#a178e31395d3ef61d6cea41545033a7e1',1,'Turret::jog()'],['../classremote_1_1RemoteInbox.html#ad5d3f5b4ab99c0494cc0b2528e212052',1,'remote::RemoteInbox::jog(uint32_t now_ms) const']]],
   ['jog_5factive_5',['jog_active',['../classremote_1_1RemoteInbox.html#aa91a0aac49dc18600947cf569607bfcc',1,'remote::RemoteInbox']]],

@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 3 Motion Control Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md71"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md78"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking. </p>
 </blockquote>
@@ -117,7 +117,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 </ul>
 <p><b>Tech Stack:</b> C++17, PlatformIO (<a href="#" onclick="location.href='mai'+'lto:'+'esp'+'re'+'ssi'+'f3'+'2@6'+'.1'+'2'; return false;">espre<span class="obfuscator">.nosp@m.</span>ssif<span class="obfuscator">.nosp@m.</span>32@6.<span class="obfuscator">.nosp@m.</span>12</a>.0, Arduino core 2.0.17, GCC 8.4; host g++ &gt;= 8), FreeRTOS, ESP32Servo, Arduino <code>Preferences</code> (NVS), Unity.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-13-void-sentry-stage3-motion-control-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md72"></a>
+<h1><a class="anchor" id="autotoc_md79"></a>
 Global Constraints</h1>
 <ul>
 <li><b>Language:</b> C++17 everywhere; no C++20.</li>
@@ -161,7 +161,7 @@ Global Constraints</h1>
 </li>
 <li><b>Commit trailer:</b> <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md73"></a>
+<h1><a class="anchor" id="autotoc_md80"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b>Target changes mid-move.</b> A reversal at full speed must decelerate before turning around, then land exactly on the new target with no oscillation. Pinned by <code>test_reversal_decelerates_then_arrives</code> (Task 2).</li>
@@ -171,7 +171,7 @@ Review Focus</h1>
 <li><b>Lost target.</b> Aiming holds for 2 s, then homes exactly once, and aims again on re-lock. Pinned by <code>test_idle_holds_then_homes_once</code> and <code>test_relock_after_home_aims</code> (Task 3).</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md75"></a>
+<h1><a class="anchor" id="autotoc_md82"></a>
 File map</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -208,7 +208,7 @@ File map</h1>
 <td class="markdownTableBodyNone"><code>CLAUDE.md</code>   </td><td class="markdownTableBodyNone">5   </td><td class="markdownTableBodyNone">Docs   </td></tr>
 </table>
 <hr  />
-<h2><a class="anchor" id="autotoc_md77"></a>
+<h2><a class="anchor" id="autotoc_md84"></a>
 Task 1: AimMap and calibration blob</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code><a class="el" href="aim__map_8h.html" title="Maps a target&#39;s image position to turret angles (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_map.h</a></code></li>
@@ -618,7 +618,7 @@ Task 1: AimMap and calibration blob</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md79"></a>
+<h2><a class="anchor" id="autotoc_md86"></a>
 Task 2: StepPlanner</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code><a class="el" href="step__planner_8h.html" title="Trapezoidal velocity planner for the pan stepper, ticked at 1 kHz (pure C++20, natively tested).">ESP32/lib/aiming/include/step_planner.h</a></code></li>
@@ -1065,7 +1065,7 @@ Task 2: StepPlanner</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md81"></a>
+<h2><a class="anchor" id="autotoc_md88"></a>
 Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code><a class="el" href="aim__policy_8h.html" title="Decides where the turret should point from the tracker state (pure C++20, natively tested).">ESP32/lib/aiming/include/aim_policy.h</a></code>, <code>src/aim_policy.cpp</code></li>
@@ -1606,7 +1606,7 @@ Task 3: AimPolicy, ButtonClassifier, CalibrationSession</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md90"></a>
 Task 4: Turret motor task</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code><a class="el" href="base__turret_8h.html" title="What the controller can ask of the pan/tilt turret. Thread-safe: called from loop(),...">ESP32/lib/motion/include/base_turret.h</a></code>, <code><a class="el" href="turret_8h.html" title="Pan stepper + tilt servo driven by a dedicated FreeRTOS motor task.">ESP32/lib/motion/include/turret.h</a></code>, <code>ESP32/lib/motion/src/turret.cpp</code></li>
@@ -1719,7 +1719,7 @@ Task 4: Turret motor task</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md85"></a>
+<h2><a class="anchor" id="autotoc_md92"></a>
 Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <p><b>Files:</b></p><ul>
 <li>Modify: <code><a class="el" href="system__control__types_8h.html" title="Operating modes of the turret system.">ESP32/include/system_control_types.h</a></code>. Replace <code>SystemControl</code> with <code>enum class ControlMode : uint8_t {Ai, User, Calibrate}</code> and <code>const char* <a class="el" href="system__control__types_8h.html#aa2b8e116520d920c9874518935a5a6c7" title="Converts a mode to its lowercase wire name.">to_string(ControlMode)</a></code>, which returns <code>"ai"</code>, <code>"user"</code> or <code>"calibrate"</code>. Update any other users of <code>SystemControl</code> (grep).</li>
@@ -1844,7 +1844,7 @@ Task 5: Controller modes, aiming, calibration, NVS, /commands, HUD</h2>
 <li class="unchecked"><b>Step 5: Commit</b> in one or more commits with descriptive messages and the trailer.</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md87"></a>
+<h2><a class="anchor" id="autotoc_md94"></a>
 Task 6 (controller + user, hardware): verify on the board</h2>
 <p>Not dispatched: it needs the board and the user.</p>
 <ul class="check">

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['make_5fsynthetic_5fclips_0',['make_synthetic_clips',['../namespacemake__synthetic__clips.html',1,'']]]
+  ['jpeg_5fto_5fgray_0',['jpeg_to_gray',['../namespacejpeg__to__gray.html',1,'']]]
 ];

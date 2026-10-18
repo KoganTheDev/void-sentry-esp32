@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['record_5fstream_0',['record_stream',['../namespacerecord__stream.html',1,'']]]
+  ['make_5fsynthetic_5fclips_0',['make_synthetic_clips',['../namespacemake__synthetic__clips.html',1,'']]]
 ];

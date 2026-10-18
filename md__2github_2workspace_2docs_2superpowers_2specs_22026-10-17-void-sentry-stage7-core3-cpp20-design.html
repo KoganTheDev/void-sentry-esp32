@@ -101,15 +101,15 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 7: Toolchain Upgrade (Arduino Core 3.3.12, C++20)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md204"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md211"></a></p>
 <p>Date: 2026-10-17. Status: design approved in chat section by section.</p>
-<h1><a class="anchor" id="autotoc_md205"></a>
+<h1><a class="anchor" id="autotoc_md212"></a>
 Problem</h1>
 <p>The firmware is built on Arduino core 2.0.17 (ESP-IDF 4.4, GCC 8.4). GCC 8.4 cannot do C++20, so the whole project is held at C++17 (CLAUDE.md: "moving to C++20/23 means Arduino core 3.x via pioarduino, planned as its own stage"). ESP-IDF 4.4 is also out of support. The pure libraries pass pointer + length pairs everywhere, which a newer standard can turn into single, checked types.</p>
-<h1><a class="anchor" id="autotoc_md206"></a>
+<h1><a class="anchor" id="autotoc_md213"></a>
 Goal</h1>
 <p>Run the same firmware on Arduino core 3.3.12 with C++20 everywhere, with no regression against the Stage 4 numbers, and use C++20 where it clearly improves existing code.</p>
-<h1><a class="anchor" id="autotoc_md207"></a>
+<h1><a class="anchor" id="autotoc_md214"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -127,7 +127,7 @@ Decisions</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Servo   </td><td class="markdownTableBodyNone">Keep ESP32Servo (3.x supports core 3's new LEDC API); verify attach, limits and rate limit on hardware   </td><td class="markdownTableBodyNone">Smallest change   </td><td class="markdownTableBodyNone">Own LEDC driver   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md208"></a>
+<h1><a class="anchor" id="autotoc_md215"></a>
 Expected changes (to check during porting)</h1>
 <ul>
 <li>FreeRTOS: <code>xTaskGetIdleTaskHandleForCPU</code> / <code>xTaskGetCurrentTaskHandleForCPU</code> (idle telemetry in <code>main.cpp</code>) renamed to <code>...ForCore</code> in IDF 5.</li>
@@ -137,7 +137,7 @@ Expected changes (to check during porting)</h1>
 <li><code>esp_freertos_hooks</code>, <code>esp_task_wdt</code> (not called directly; watchdog config may differ), <code>esp_wifi_restore</code>, <code>esp_random</code> / <code>esp_fill_random</code>.</li>
 <li>Tooling: native env and cppcheck to <code>c++20</code> / <code>gnu++20</code>; <code>.clang-format</code> <code>Standard: c++20</code>; CI's Ubuntu GCC supports C++20.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md209"></a>
+<h1><a class="anchor" id="autotoc_md216"></a>
 C++20 adoption (after cut-over; behaviour identical, existing native tests are the proof)</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -158,7 +158,7 @@ C++20 adoption (after cut-over; behaviour identical, existing native tests are t
 <td class="markdownTableBodyNone">Designated initializers   </td><td class="markdownTableBodyNone">our option structs and test fixtures   </td><td class="markdownTableBodyNone">Field names visible; no silent reordering   </td></tr>
 </table>
 <p>ESP-IDF C structs keep their <code>*_DEFAULT_CONFIG()</code> macros. Out of scope: C++23, <code>std::expected</code>, rewriting device classes, concepts/coroutines/modules for their own sake.</p>
-<h1><a class="anchor" id="autotoc_md210"></a>
+<h1><a class="anchor" id="autotoc_md217"></a>
 Verification</h1>
 <ul>
 <li><b>Host (CI):</b> native suite, ASan + UBSan, tracking bench, cppcheck pass on C++17 before cut-over and C++20 after; both firmware envs build in CI during the side-by-side phase; cachegrind instructions per frame on the tracking bench within 2% of before.</li>
@@ -186,10 +186,10 @@ Verification</h1>
 <li><b>Functional:</b> boot to a saved network; setup hotspot and captive page; HUD stream and <code>/commands</code>; HUD jog with dead man; origin and Host guards (PC scripts); servo limits and stepper motion; calibration saved and surviving a reboot.</li>
 <li><b>Rollback:</b> until merge, flashing <code>freenove_esp32_wrover</code> (core 2) restores the old firmware.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md211"></a>
+<h1><a class="anchor" id="autotoc_md218"></a>
 Success criteria</h1>
 <p>Core 3.3.12 is the only firmware env; C++20 everywhere with the adoptions above; every gate passes; the PR records the A/B numbers.</p>
-<h1><a class="anchor" id="autotoc_md212"></a>
+<h1><a class="anchor" id="autotoc_md219"></a>
 Out of scope</h1>
 <p>Arduino core 4.0, C++23, new features, the logging rework (parked), LAN authentication. </p>
 </div></div><!-- contents -->

@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 6 On-Device WiFi Provisioning Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md109"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md116"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (<code>- [ ]</code>) syntax. </p>
 </blockquote>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 <p><b>Architecture:</b> A pure library <code>lib/provisioning</code> (namespace <code>prov</code>) holds every decision: saved-network list, choosing a network, the connection state machine (<code>WifiPlan</code>), PIN hashing and lockout, form decoding, NVS blob formats. Device glue in <code>lib/network</code> executes <code>WifiPlan</code> actions with the Arduino <code>WiFi</code> API from <code>loop()</code>, stores blobs with <code>Preferences</code>, polls <code>DNSServer</code> in setup mode and serves <code>/wifi</code> + <code>/api/wifi/*</code> on the existing <code>esp_http_server</code>. CRC-32 moves to a shared <code>lib/checksum</code>.</p>
 <p><b>Tech Stack:</b> ESP32 Arduino core 2.0.17 (ESP-IDF 4.4), C++17, PlatformIO, Unity; vanilla JS page; Python page generator.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-17-void-sentry-stage6-wifi-provisioning-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md110"></a>
+<h1><a class="anchor" id="autotoc_md117"></a>
 Global Constraints</h1>
 <ul>
 <li><b>C++17 only.</b> <code>lib/provisioning</code> and <code>lib/checksum</code>: no Arduino or ESP-IDF headers, no heap, natively tested (must pass under ASan + UBSan in CI).</li>
@@ -123,7 +123,7 @@ Global Constraints</h1>
 <li><b>Board:</b> implementers do not upload; the controller does hardware runs.</li>
 <li><b>Numbers (verbatim from the spec):</b> max 3 networks; SSID 1-32 bytes; password empty or 8-63 characters; PIN 4-8 ASCII digits; salt 16 bytes; SHA-256 hash 32 bytes; 5 wrong PINs -&gt; 60 s lockout, doubling per further lockout, cap 3600 s, reset on success; join timeout 15 s per candidate; lost -&gt; setup after 120 s; setup-mode rescan every 30 s; form body max 256 B; hotspot SSID <code>VoidSentry-XXXX</code> (last 2 MAC bytes, uppercase hex), IP <code>192.168.4.1</code>, password 10 random characters from <code>esp_random</code>; NVS namespace <code>wifi</code>, keys <code>nets</code>, <code>pin</code>, <code>appw</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md111"></a>
+<h1><a class="anchor" id="autotoc_md118"></a>
 Interfaces (fixed; every task uses exactly these)</h1>
 <p><code><a class="el" href="crc32_8h.html" title="Shared CRC-32 for versioned NVS blobs (pure C++20, natively tested).">ESP32/lib/checksum/include/crc32.h</a></code>: </p><div class="fragment"><div class="line"><span class="keyword">namespace </span>checksum</div>
 <div class="line">{</div>
@@ -236,7 +236,7 @@ Interfaces (fixed; every task uses exactly these)</h1>
 <li><code><a class="el" href="wifi__manager_8h.html" title="Non-blocking WiFi provisioning: saved networks, setup hotspot, PIN-protected changes.">ESP32/lib/network/include/wifi_manager.h</a></code>: <code>class <a class="el" href="classWifiManager.html" title="Glue between the pure prov::WifiPlan and the Arduino WiFi stack.">WifiManager</a></code> (instance, not static): <code>void begin();</code> (non-blocking: loads NVS, <code>WiFi.mode</code>, starts the plan), <code>void maintain();</code> (from <code>loop()</code>: WiFi events/scan polling, plan <code>tick</code>, executes actions, <code>DNSServer::processNextRequest()</code> in setup mode, serial <code>wifi-reset</code>), and thread-safe accessors for the HTTP layer under a mutex: <code>Status status()</code> (<code>mode</code> string <code>sta|setup|joining|lost</code>, current SSID, IP string, <code>pin_set</code>, last failure string), <code>size_t scan(prov::ScanResult* out, size_t cap)</code> (cached; requests a new async scan if older than 10 s), <code>size_t saved(char (*ssids)[prov::kSsidMax + 1], size_t cap)</code>, <code>AddOutcome add(ssid, pass, pin, now)</code> and <code>ForgetOutcome forget(ssid, pin, now)</code> with outcomes <code>Ok | BadInput | WrongPin | LockedOut</code> (plus <code>seconds_left</code> for LockedOut; a full list evicts, so there is no Full outcome) mapped by the HTTP layer to 200 / 400 / 403 / 429.</li>
 <li><code><a class="el" href="wifi__http_8h.html" title="HTTP routes of the WiFi setup page and its JSON API.">ESP32/lib/network/include/wifi_http.h</a></code>: <code>void register_wifi_routes(httpd_handle_t server, <a class="el" href="classWifiManager.html" title="Glue between the pure prov::WifiPlan and the Arduino WiFi stack.">WifiManager</a>&amp; wifi);</code> registers <code>/wifi</code>, <code>/api/wifi/status</code>, <code>/api/wifi/scan</code>, <code>/api/wifi/saved</code>, <code>POST /api/wifi/add</code>, <code>POST /api/wifi/forget</code>, and a catch-all <code>GET /*</code> (setup mode: 302 to <code><a href="http://192.168.4.1/wifi">http://192.168.4.1/wifi</a></code>; otherwise 404). Requires <code>config.uri_match_fn = httpd_uri_match_wildcard</code> in <code><a class="el" href="classHttpServer.html#aa9254d2bb17ef347048c0ee181d6ad95" title="Configures and launches the web server on port 80.">HttpServer::start</a></code>; the catch-all is registered last so exact routes win. POSTs call <code>handshake_origin_ok</code> (<code><a class="el" href="handshake__guard_8h_source.html">handshake_guard.h</a></code>) first; GETs do not.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md112"></a>
+<h1><a class="anchor" id="autotoc_md119"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b>Special characters survive end to end:</b> an SSID or password containing <code>&amp;</code>, <code>=</code>, <code>%</code>, <code>+</code>, spaces or UTF-8 bytes is stored byte-exact (form decode -&gt; NetworkList -&gt; blob -&gt; NVS -&gt; join). Tests: Task 1 blob round trip with such bytes; Task 2 form decode of <code>p%26ss%3D%2B%25+x</code> -&gt; <code>p&amp;ss=+% x</code> and a UTF-8 SSID.</li>
@@ -245,7 +245,7 @@ Review Focus</h1>
 <li><b>A failed setup join leaves setup usable:</b> after <code>on_join_failed</code> with no more candidates in Setup, the hotspot stays up (no second <code>StartHotspot</code>, no <code>StopHotspot</code>). Test in Task 2.</li>
 <li><b>Lockout cannot be bypassed by alternating add and forget:</b> one <code>PinGuard</code> instance guards both endpoints (Task 4); Task 2 tests that failures accumulate across calls regardless of caller.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md113"></a>
+<h2><a class="anchor" id="autotoc_md120"></a>
 Task 1: <code>lib/checksum</code>, types, NetworkList, choose, blobs (pure)</h2>
 <p><b>Files:</b> create <code><a class="el" href="crc32_8h.html" title="Shared CRC-32 for versioned NVS blobs (pure C++20, natively tested).">ESP32/lib/checksum/include/crc32.h</a></code>, <code>ESP32/lib/checksum/src/crc32.cpp</code>; modify <code><a class="el" href="calibration__blob_8h.html" title="Versioned, CRC-checked byte layout for saving an AimMap to NVS (pure C++20, natively tested).">ESP32/lib/aiming/include/calibration_blob.h</a></code>, <code>ESP32/lib/aiming/src/calibration_blob.cpp</code> (remove its crc32 implementation, use checksum's); create <code>ESP32/lib/provisioning/include/{<a class="el" href="prov__types_8h.html" title="Plain value types shared by the WiFi provisioning logic (pure C++20, no heap).">prov_types.h</a>,<a class="el" href="network__list_8h.html" title="Fixed-capacity list of saved WiFi networks with recency-based eviction (pure C++20,...">network_list.h</a>,<a class="el" href="choose_8h.html" title="Picks which saved networks to try, given a scan (pure C++20, no heap).">choose.h</a>,<a class="el" href="blobs_8h.html" title="Versioned, CRC-checked byte layouts for the saved networks and the PIN record (pure C++20,...">blobs.h</a>}</code>, <code>ESP32/lib/provisioning/src/{network_list.cpp,choose.cpp,blobs.cpp}</code>, <code><a class="el" href="test__provisioning__store_8cpp.html" title="Host-side tests for CRC-32, the saved-network list, the network chooser and the NVS blob formats.">ESP32/test/native/test_provisioning_store/test_provisioning_store.cpp</a></code>.</p>
 <p><code>network_list.cpp</code> needs the validation rules; implement them as file-local helpers matching <code><a class="el" href="form_8h.html" title="x-www-form-urlencoded decoding and input validation for the WiFi page (pure C++20,...">form.h</a></code>'s rules exactly (Task 2 owns <code><a class="el" href="form_8h.html" title="x-www-form-urlencoded decoding and input validation for the WiFi page (pure C++20,...">form.h</a></code>; do not create it).</p>
@@ -255,7 +255,7 @@ Task 1: <code>lib/checksum</code>, types, NetworkList, choose, blobs (pure)</h2>
 <ul class="check">
 <li class="unchecked">Implement; run <code>pio test -e native</code> (all suites pass); clang-format; commit "Add pure provisioning store: network list, chooser, NVS blobs; share CRC-32".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md114"></a>
+<h2><a class="anchor" id="autotoc_md121"></a>
 Task 2: SHA-256, PinGuard, form, WifiPlan (pure; after Task 1)</h2>
 <p><b>Files:</b> create <code>ESP32/lib/provisioning/include/{<a class="el" href="sha256_8h.html" title="SHA-256 (FIPS 180-4), pure C++20, no heap.">sha256.h</a>,<a class="el" href="pin__guard_8h.html" title="PIN storage (salted SHA-256) with constant-time check and escalating lockout (pure C++20,...">pin_guard.h</a>,<a class="el" href="form_8h.html" title="x-www-form-urlencoded decoding and input validation for the WiFi page (pure C++20,...">form.h</a>,<a class="el" href="wifi__plan_8h.html" title="WiFi connection state machine: events in, actions out (pure C++20, no heap).">wifi_plan.h</a>}</code>, <code>ESP32/lib/provisioning/src/{sha256.cpp,pin_guard.cpp,form.cpp,wifi_plan.cpp}</code>, <code><a class="el" href="test__provisioning__logic_8cpp.html" title="Host-side tests for SHA-256, PinGuard, form decoding and the WifiPlan state machine.">ESP32/test/native/test_provisioning_logic/test_provisioning_logic.cpp</a></code>.</p>
 <ul class="check">
@@ -264,7 +264,7 @@ Task 2: SHA-256, PinGuard, form, WifiPlan (pure; after Task 1)</h2>
 <ul class="check">
 <li class="unchecked">Implement; run native; clang-format; commit "Add pure provisioning logic: SHA-256, PIN guard, form decoding, WiFi plan".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md115"></a>
+<h2><a class="anchor" id="autotoc_md122"></a>
 Task 3: setup page and HUD link (web only; parallel with Tasks 1-2)</h2>
 <p><b>Files:</b> create <code>web/wifi_setup.html</code>; modify <code>web/update_index_html.py</code>, <code>web/html_header.py</code> (generate a second header <code>ESP32/lib/network/include/wifi_html.h</code> with symbols <code>WIFI_PAGE_GZ</code> / <code>WIFI_PAGE_GZ_LEN</code>, same gzip <code>mtime=0</code> determinism and write-if-changed behaviour; keep <code>index_html.h</code> unchanged), <code>web/test_*.py</code> (cover the second header), <code>.gitignore</code> (ignore <code>wifi_html.h</code> like <code>index_html.h</code>), <code>web/web_ui.html</code> (a "WiFi" link to <code>/wifi</code> and the current SSID fetched from <code>GET /api/wifi/status</code> on load and every 10 s; do not touch the <code>/commands</code> code).</p>
 <ul class="check">
@@ -273,7 +273,7 @@ Task 3: setup page and HUD link (web only; parallel with Tasks 1-2)</h2>
 <ul class="check">
 <li class="unchecked">Verify: <code>node --check</code> on the extracted scripts of both pages; <code>python -m unittest discover -s web -p "test_*.py"</code>; no em dashes. Commit "Add WiFi setup page and HUD WiFi link; generate wifi_html.h".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md116"></a>
+<h2><a class="anchor" id="autotoc_md123"></a>
 Task 4: firmware integration (after Tasks 1-3)</h2>
 <p><b>Files:</b> create <code><a class="el" href="wifi__store_8h.html" title="NVS persistence for the saved WiFi networks, the PIN record and the setup hotspot password.">ESP32/lib/network/include/wifi_store.h</a></code>, <code>ESP32/lib/network/src/wifi_store.cpp</code>, <code><a class="el" href="wifi__http_8h.html" title="HTTP routes of the WiFi setup page and its JSON API.">ESP32/lib/network/include/wifi_http.h</a></code>, <code>ESP32/lib/network/src/wifi_http.cpp</code>; rewrite <code><a class="el" href="wifi__manager_8h.html" title="Non-blocking WiFi provisioning: saved networks, setup hotspot, PIN-protected changes.">ESP32/lib/network/include/wifi_manager.h</a></code>, <code>ESP32/lib/network/src/wifi_manager.cpp</code>; modify <code>ESP32/lib/network/src/turret_server.cpp</code> (+ header) to set the wildcard matcher and call <code>register_wifi_routes</code>, raise <code>max_uri_handlers</code> if needed; <code>ESP32/src/main.cpp</code> (drop the credentials include and the blocking connect; <code>wifi.begin()</code> before <code>http_server.start(...)</code>, <code>wifi.maintain()</code> in <code>loop()</code>, <code>wifi=</code> field appended to the <code>[detect]</code> stats line); <code>.github/workflows/ci.yml</code> (remove the step that copies the credentials template, with the Edit tool); the two on-device sketches <code>ESP32/test/test_wifi_manager/test_wifi_manager.cpp</code> and <code>ESP32/test/test_turret_server/test_turret_server.cpp</code> (drop the credentials include; test_wifi_manager checks that <code>begin()</code> returns at once and the plan reaches Setup or Connected within 40 s; test_turret_server starts the server after <code>begin()</code>); <code>CLAUDE.md</code> (Architecture: provisioning + WiFi; Required local setup: the header is no longer needed to build - keep the guard rules until the user removes the file; stats line <code>wifi=</code>; Commands: <code>wifi-reset</code>).</p>
 <ul class="check">
@@ -282,7 +282,7 @@ Task 4: firmware integration (after Tasks 1-3)</h2>
 <ul class="check">
 <li class="unchecked">Verify: firmware and pin_check builds SUCCESS; <code>pio check --severity=high --severity=medium</code> no defects; native suite passes; clang-format clean; <code>grep</code> shows no remaining include of the credentials header in <code>ESP32/</code> sources. Commit "Provision WiFi on the device: saved networks, setup hotspot and captive page, PIN; non-blocking boot" (write the message to a file and use <code>git commit -F</code> if it mentions the header).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md117"></a>
+<h2><a class="anchor" id="autotoc_md124"></a>
 Task 5 (controller + user): hardware verification and cleanup</h2>
 <ul class="check">
 <li class="unchecked">The user removes the template and their local header (<code>git rm ESP32/include/&lt;header&gt;.example</code>, delete the local header) after their network is saved in NVS; then CLAUDE.md's guard rules and the hook are relaxed in a follow-up commit (asked first).</li>

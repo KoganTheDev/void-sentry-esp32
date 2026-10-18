@@ -14,6 +14,9 @@ var annotated_dup =
       [ "StepPlanner", "classaiming_1_1StepPlanner.html", "classaiming_1_1StepPlanner" ],
       [ "TrackView", "structaiming_1_1TrackView.html", "structaiming_1_1TrackView" ]
     ] ],
+    [ "coverage_gate", "namespacecoverage__gate.html", [
+      [ "Counts", "classcoverage__gate_1_1Counts.html", null ]
+    ] ],
     [ "frames", null, [
       [ "FrameLease", "classframes_1_1FrameLease.html", null ],
       [ "FrameMeta", "structframes_1_1FrameMeta.html", null ],
@@ -38,6 +41,11 @@ var annotated_dup =
       [ "Command", "structremote_1_1Command.html", "structremote_1_1Command" ],
       [ "Jog", "structremote_1_1Jog.html", null ],
       [ "RemoteInbox", "classremote_1_1RemoteInbox.html", "classremote_1_1RemoteInbox" ]
+    ] ],
+    [ "test_coverage_gate", null, [
+      [ "GateTest", "classtest__coverage__gate_1_1GateTest.html", null ],
+      [ "ParseTest", "classtest__coverage__gate_1_1ParseTest.html", null ],
+      [ "ReportTest", "classtest__coverage__gate_1_1ReportTest.html", null ]
     ] ],
     [ "test_html_header", "namespacetest__html__header.html", [
       [ "RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],

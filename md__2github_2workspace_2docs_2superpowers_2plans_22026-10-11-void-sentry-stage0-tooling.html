@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 0 Tooling Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md20"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md27"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking. </p>
 </blockquote>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 <p><b>Architecture:</b> <code>index_html.h</code> stops being a tracked file. A pure Python module renders it deterministically (gzip with <code>mtime=0</code>), and the PlatformIO pre-script calls that module when the script loads, before anything compiles. A Claude Code <code>PostToolUse</code> hook runs <code>clang-format</code> 19 on edited firmware sources. One GitHub Actions workflow replaces the auto-committing formatter with check-only jobs, alongside the existing cppcheck workflow.</p>
 <p><b>Tech Stack:</b> PlatformIO (espressif32 6.12, Arduino core 2.0.17, native), Python 3 (stdlib only), clang-format 19 (WinLibs LLVM 19.1 locally, <code>pip install "clang-format==19.1.*"</code> in CI), GitHub Actions, <code>gh</code> CLI.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-11-void-sentry-stage0-design.md</code>. Read the sections "Formatting", "CI", "Generated web UI header" and "Definition of done".</p>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 Global Constraints</h1>
 <ul>
 <li>Language standard is C++17 everywhere. Don't add C++20 features.</li>
@@ -121,7 +121,7 @@ Global Constraints</h1>
 <li>Work on branch <code>feature/stage0-foundation</code>. Only Task 5 pushes.</li>
 <li>Formatting rules come from the repo's <code>.clang-format</code> (LLVM base, Allman braces, 4-space indent, 120 columns, left pointer alignment). Don't change <code>.clang-format</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md29"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b>Fresh clone with no <code>index_html.h</code>:</b> the firmware build must still succeed, so the header has to be generated before compilation, not at link time. Pinned by Task 1, Step 7, which deletes the header and builds.</li>
@@ -131,7 +131,7 @@ Review Focus</h1>
 <li><b>CI on a clean runner:</b> there's no <code>secrets.h</code> and no <code>index_html.h</code>. The build job must create <code>secrets.h</code> from the template, and the format check must not scan generated files. Pinned by Task 4's workflow steps and checked live in Task 5.</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md31"></a>
 File structure</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -156,7 +156,7 @@ File structure</h1>
 <td class="markdownTableBodyNone"><code>CLAUDE.md</code>   </td><td class="markdownTableBodyNone">Modify   </td><td class="markdownTableBodyNone">Keep the "Web UI pipeline" and formatting notes accurate   </td></tr>
 </table>
 <hr  />
-<h2><a class="anchor" id="autotoc_md26"></a>
+<h2><a class="anchor" id="autotoc_md33"></a>
 Task 1: Generate <code>index_html.h</code> at build time (model: Sonnet)</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code>web/html_header.py</code></li>
@@ -385,7 +385,7 @@ Task 1: Generate <code>index_html.h</code> at build time (model: Sonnet)</h2>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><p>(<code>git rm --cached</code> from Step 6 is already staged and goes into this commit.)</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md28"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 Task 2: Format-on-edit hook (model: Haiku)</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code>.claude/hooks/format_cpp.py</code></li>
@@ -521,7 +521,7 @@ Task 2: Format-on-edit hook (model: Haiku)</h2>
 <div class="fragment"><div class="line">git add .claude/hooks/format_cpp.py .claude/settings.json</div>
 <div class="line">git commit -m &quot;Add clang-format on-edit hook for firmware sources&quot; -m &quot;Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md37"></a>
 Task 3: One-time reformat (model: Haiku)</h2>
 <p><b>Files:</b></p><ul>
 <li>Modify: every <code>*.c</code>, <code>*.cpp</code>, <code>*.h</code>, <code>*.hpp</code> under <code>ESP32/src</code>, <code>ESP32/include</code>, <code>ESP32/lib</code>, <code>ESP32/test</code>, except the generated <code>index_html.h</code>.</li>
@@ -558,7 +558,7 @@ Task 3: One-time reformat (model: Haiku)</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md39"></a>
 Task 4: CI workflow (model: Sonnet)</h2>
 <p><b>Files:</b></p><ul>
 <li>Create: <code>.github/workflows/ci.yml</code> (write it with the Write tool, because it mentions the secrets template)</li>
@@ -678,7 +678,7 @@ Task 4: CI workflow (model: Sonnet)</h2>
 <div class="line"> </div>
 <div class="line">Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md41"></a>
 Task 5: Push, PR, green CI (main session, not delegated)</h2>
 <p><b>Files:</b> none, unless CI finds a problem, in which case fix it in a new commit on the branch.</p>
 <p><b>Interfaces:</b></p><ul>

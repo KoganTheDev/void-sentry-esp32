@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 4 Dual-Core Task Layout Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md88"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md95"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (<code>- [ ]</code>) syntax. </p>
 </blockquote>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 <p><b>Architecture:</b> <a class="el" href="classFrameStore.html">FrameStore</a> notifies up to two subscribers. A "detect" task owns <code><a class="el" href="classCameraDiffDetection.html" title="Motion detection and persistent single-target tracking on camera frames.">CameraDiffDetection</a></code>'s pipeline and processes the newest frame on each notification. The controller only reads snapshots. httpd is pinned to core 0, motor task priority 3 -&gt; 7, camera task priority 2 -&gt; 4.</p>
 <p><b>Tech Stack:</b> ESP32 Arduino core 2.0.17 (ESP-IDF 4.4, FreeRTOS SMP), C++17, PlatformIO.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-13-void-sentry-stage4-dual-core-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md89"></a>
+<h1><a class="anchor" id="autotoc_md96"></a>
 Global Constraints</h1>
 <ul>
 <li><b>C++17 only.</b> No heap on the per-frame path.</li>
@@ -121,7 +121,7 @@ Global Constraints</h1>
 <li><b>Commits:</b> trailer <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
 <li><b>Board:</b> do not upload; the controller does hardware runs.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md90"></a>
+<h1><a class="anchor" id="autotoc_md97"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b>Shutdown race.</b> Stopping the stream broadcaster while the detection task stays subscribed must not drop the detection subscription. Removing one subscriber must not touch the other.</li>
@@ -130,7 +130,7 @@ Review Focus</h1>
 <li><b>No CPU spin.</b> The detection task must not spin when notified without a new frame (same sequence): it must block again.</li>
 <li><b>Motor priority 7 must not starve httpd/IDLE0.</b> The work per tick stays tiny. The motor loop must be unchanged apart from the priority.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md91"></a>
+<h2><a class="anchor" id="autotoc_md98"></a>
 Task 1: Multi-subscriber FrameStore and detection task</h2>
 <p><b>Files:</b></p><ul>
 <li><code><a class="el" href="frame__store_8h.html" title="Thread-safe home for camera frames: FrameSlots bookkeeping + fixed PSRAM buffers, allocated once.">ESP32/lib/frame_store/include/frame_store.h</a></code>, <code>src/frame_store.cpp</code></li>
@@ -184,7 +184,7 @@ Task 1: Multi-subscriber FrameStore and detection task</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md92"></a>
+<h2><a class="anchor" id="autotoc_md99"></a>
 Task 2: Pin httpd to core 0 and set priorities</h2>
 <p><b>Files:</b></p><ul>
 <li><code>ESP32/lib/network/src/turret_server.cpp</code></li>
@@ -207,7 +207,7 @@ Task 2: Pin httpd to core 0 and set priorities</h2>
 <ul class="check">
 <li class="unchecked"><b>Verify and commit:</b> firmware + pin_check builds, check, native, clang-format.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md93"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 Task 3 (controller + user): hardware verification</h2>
 <ul class="check">
 <li class="unchecked">Flash. Empty scene with 1 viewer: record <code>det_frames</code>, <code>dec_win_us</code>, <code>trk_win_us</code>, <code>motor_late</code>, fps.</li>

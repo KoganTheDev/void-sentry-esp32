@@ -31,6 +31,7 @@ var hierarchy =
     [ "remote::Command", "structremote_1_1Command.html", null ],
     [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
     [ "ControlStatus", "structControlStatus.html", null ],
+    [ "coverage_gate.Counts", "classcoverage__gate_1_1Counts.html", null ],
     [ "tracking::DetectionResult", "structtracking_1_1DetectionResult.html", null ],
     [ "DetectionStats", "structDetectionStats.html", null ],
     [ "tracking::DetectorConfig", "structtracking_1_1DetectorConfig.html", null ],
@@ -69,6 +70,9 @@ var hierarchy =
     [ "aiming::StepPlanner", "classaiming_1_1StepPlanner.html", null ],
     [ "StreamBroadcaster", "classStreamBroadcaster.html", null ],
     [ "unittest.TestCase", null, [
+      [ "test_coverage_gate.GateTest", "classtest__coverage__gate_1_1GateTest.html", null ],
+      [ "test_coverage_gate.ParseTest", "classtest__coverage__gate_1_1ParseTest.html", null ],
+      [ "test_coverage_gate.ReportTest", "classtest__coverage__gate_1_1ReportTest.html", null ],
       [ "test_html_header.RenderHeaderTests", "classtest__html__header_1_1RenderHeaderTests.html", null ],
       [ "test_html_header.RenderWifiHeaderTests", "classtest__html__header_1_1RenderWifiHeaderTests.html", null ],
       [ "test_html_header.WriteIfChangedTests", "classtest__html__header_1_1WriteIfChangedTests.html", null ],

@@ -101,9 +101,9 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2specs_22026
   <div class="headertitle"><div class="title">Void Sentry Stage 4: Dual-Core Task Layout</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md175"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md182"></a></p>
 <p>Date: 2026-10-13. Status: written by the assistant; the user asked to skip spec/plan review and go straight to implementation.</p>
-<h1><a class="anchor" id="autotoc_md176"></a>
+<h1><a class="anchor" id="autotoc_md183"></a>
 Problem (measured in Stage 3)</h1>
 <p>When a person sits close to the board while the turret follows them:</p>
 <ul>
@@ -140,10 +140,10 @@ Problem (measured in Stage 3)</h1>
 <td class="markdownTableBodyNone">httpd (<code>esp_http_server</code>)   </td><td class="markdownTableBodyNone"><b>no affinity</b>   </td><td class="markdownTableBodyNone"><b>5</b>   </td></tr>
 </table>
 <p>When core 0 is busy with WiFi (e.g. retransmits), httpd runs on core 1 and preempts everything there, detection included. Detection runs at the lowest priority in <code>loop()</code>, so any network burst starves it. The suspected trigger for the bursts (a body near the PCB antenna) is unconfirmed, but the layout makes detection fragile against any network load.</p>
-<h1><a class="anchor" id="autotoc_md177"></a>
+<h1><a class="anchor" id="autotoc_md184"></a>
 Goal</h1>
 <p>Detection gets a dedicated, higher-priority slot on core 1 that network work can't take. Network and motor work share core 0 in a defined priority order.</p>
-<h1><a class="anchor" id="autotoc_md178"></a>
+<h1><a class="anchor" id="autotoc_md185"></a>
 Decisions</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -167,7 +167,7 @@ Decisions</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Telemetry   </td><td class="markdownTableBodyNone">Stats line adds per-window <code>det_frames</code>, <code>dec_win_us</code>, <code>trk_win_us</code>   </td><td class="markdownTableBodyNone">Since-boot averages hid the Stage 3 problem.   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md179"></a>
+<h1><a class="anchor" id="autotoc_md186"></a>
 Success criteria (on hardware)</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -183,7 +183,7 @@ Success criteria (on hardware)</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Logic   </td><td class="markdownTableBodyNone">Native suite, ASan + UBSan and CI all pass   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md180"></a>
+<h1><a class="anchor" id="autotoc_md187"></a>
 Out of scope</h1>
 <p>WiFi provisioning, calibration UX changes, HUD manual controls. </p>
 </div></div><!-- contents -->

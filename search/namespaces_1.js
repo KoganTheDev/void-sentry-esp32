@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jpeg_5fto_5fgray_0',['jpeg_to_gray',['../namespacejpeg__to__gray.html',1,'']]]
+  ['html_5fheader_0',['html_header',['../namespacehtml__header.html',1,'']]]
 ];

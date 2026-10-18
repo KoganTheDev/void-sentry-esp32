@@ -8,8 +8,9 @@ var searchData=
   ['remove_5fsubscriber_5',['remove_subscriber',['../classFrameStore.html#a56f5a6809c29468a107de82506cec8df',1,'FrameStore']]],
   ['render_5fheader_6',['render_header',['../namespacehtml__header.html#ae5709d0112f15bb8236e5b0981076278',1,'html_header']]],
   ['render_5fwifi_5fheader_7',['render_wifi_header',['../namespacehtml__header.html#aacde8c6adcff33afc7113c47232e8969',1,'html_header']]],
-  ['reset_8',['reset',['../classaiming_1_1AimPolicy.html#a4f48bffba06e5bec57905f9eead6af5e',1,'aiming::AimPolicy::reset()'],['../classBaseDetectionModule.html#af20105ae3e768c91230ceca43e4d5413',1,'BaseDetectionModule::reset()'],['../classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7',1,'CameraDiffDetection::reset()'],['../classtracking_1_1MotionDetector.html#a226ac9b8ea2af2e4716400a6472ad325',1,'tracking::MotionDetector::reset()'],['../classtracking_1_1Tracker.html#a7292ae44d6fe3ff1212b6733db644e65',1,'tracking::Tracker::reset()']]],
-  ['reset_5fposition_9',['reset_position',['../classaiming_1_1StepPlanner.html#ace49a59c6edd71564361ba5d29175c3f',1,'aiming::StepPlanner']]],
-  ['restore_10',['restore',['../classprov_1_1NetworkList.html#a9881f6e0db858e9ad8c2a5da1982794c',1,'prov::NetworkList']]],
-  ['run_11',['run',['../classController.html#a692f0f5dc600cdcb79786a31cf283ce1',1,'Controller']]]
+  ['report_8',['report',['../namespacecoverage__gate.html#a85c92bf3fcab415c7520df5f38d169be',1,'coverage_gate']]],
+  ['reset_9',['reset',['../classaiming_1_1AimPolicy.html#a4f48bffba06e5bec57905f9eead6af5e',1,'aiming::AimPolicy::reset()'],['../classBaseDetectionModule.html#af20105ae3e768c91230ceca43e4d5413',1,'BaseDetectionModule::reset()'],['../classCameraDiffDetection.html#a3b87f5e909c18aa6f40e63bd3182ffe7',1,'CameraDiffDetection::reset()'],['../classtracking_1_1MotionDetector.html#a226ac9b8ea2af2e4716400a6472ad325',1,'tracking::MotionDetector::reset()'],['../classtracking_1_1Tracker.html#a7292ae44d6fe3ff1212b6733db644e65',1,'tracking::Tracker::reset()']]],
+  ['reset_5fposition_10',['reset_position',['../classaiming_1_1StepPlanner.html#ace49a59c6edd71564361ba5d29175c3f',1,'aiming::StepPlanner']]],
+  ['restore_11',['restore',['../classprov_1_1NetworkList.html#a9881f6e0db858e9ad8c2a5da1982794c',1,'prov::NetworkList']]],
+  ['run_12',['run',['../classController.html#a692f0f5dc600cdcb79786a31cf283ce1',1,'Controller']]]
 ];

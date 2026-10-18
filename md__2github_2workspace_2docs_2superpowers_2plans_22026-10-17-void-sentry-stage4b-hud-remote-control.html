@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 4b HUD Remote Control Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md94"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md101"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (<code>- [ ]</code>) syntax. </p>
 </blockquote>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 <p><b>Architecture:</b> A pure <code>lib/remote</code> (parser + <code>RemoteInbox</code>) is natively tested. The httpd handler parses each message and hands it to a <code><a class="el" href="classremote_1_1BaseRemoteSink.html" title="Receives parsed commands; implemented by the controller (device) and fakes (tests).">remote::BaseRemoteSink</a></code>. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a></code> implements the sink: it stores the command in a spinlocked <code>RemoteInbox</code> and consumes it in <code>run()</code>. The HUD resends a held direction every 100 ms.</p>
 <p><b>Tech Stack:</b> ESP32 Arduino core 2.0.17 (ESP-IDF 4.4), C++17, PlatformIO, Unity; vanilla JS HUD.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-17-void-sentry-stage4b-hud-remote-control-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md95"></a>
+<h1><a class="anchor" id="autotoc_md102"></a>
 Global Constraints</h1>
 <ul>
 <li><b>C++17 only.</b> No heap on the per-message path. <code>lib/remote</code> includes no Arduino or ESP-IDF headers.</li>
@@ -121,7 +121,7 @@ Global Constraints</h1>
 <li><b>Commits:</b> trailer <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
 <li><b>Board:</b> do not upload; the controller does hardware runs.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md96"></a>
+<h1><a class="anchor" id="autotoc_md103"></a>
 Interfaces (fixed; every task uses exactly these)</h1>
 <p><code><a class="el" href="remote__command_8h.html" title="Parses the HUD&#39;s /commands text messages into typed commands (pure C++20, natively tested).">ESP32/lib/remote/include/remote_command.h</a></code>, namespace <code>remote</code>:</p>
 <div class="fragment"><div class="line"><span class="keyword">enum class</span> CommandKind : uint8_t { Poll, Move, Stop, Mode, Fire };</div>
@@ -165,7 +165,7 @@ Interfaces (fixed; every task uses exactly these)</h1>
 <div class="line">};</div>
 </div><!-- fragment --><p>Parse table: <code>move:up</code> (0,+1), <code>move:down</code> (0,-1), <code>move:left</code> (-1,0), <code>move:right</code> (+1,0), <code>move:up-left</code> (-1,+1), <code>move:up-right</code> (+1,+1), <code>move:down-left</code> (-1,-1), <code>move:down-right</code> (+1,-1), <code>move:stop</code> -&gt; Stop, <code>mode:ai</code>, <code>mode:user</code> -&gt; Mode, <code>fire:on</code>, <code>fire:off</code> -&gt; Fire. Anything else (<code>" "</code>, empty, nullptr, unknown, trailing bytes, <code>MOVE:UP</code>, <code>move:</code>) -&gt; Poll.</p>
 <p>Inbox rules: Move stores the direction and <code>now_ms</code>; Stop ends the jog at once; Mode stores a pending request (a later Mode replaces an untaken one); Poll and Fire change nothing. <code>move:</code> with direction (0,0) cannot be produced by the parser.</p>
-<h1><a class="anchor" id="autotoc_md97"></a>
+<h1><a class="anchor" id="autotoc_md104"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b>Dead man.</b> A held HUD key followed by a dropped connection must stop the turret within 300 ms (no Stop ever arrives).</li>
@@ -174,7 +174,7 @@ Review Focus</h1>
 <li><b>Malformed input</b> (oversized frame, binary frame, partial <code>move:</code>) never reads past <code>len</code> and never allocates.</li>
 <li><b>No per-message heap and no leak</b> in <code><a class="el" href="classCommandsWebSocketHandler.html" title="The /commands WebSocket: parses each HUD message, hands it to the remote sink and replies with JSON m...">CommandsWebSocketHandler</a></code>, including the send-failure path.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md98"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 Task 1: Pure <code>lib/remote</code> with native tests</h2>
 <p><b>Files:</b> create <code><a class="el" href="remote__command_8h.html" title="Parses the HUD&#39;s /commands text messages into typed commands (pure C++20, natively tested).">ESP32/lib/remote/include/remote_command.h</a></code>, <code><a class="el" href="remote__inbox_8h.html" title="Holds the latest remote command state with a dead-man jog timeout (pure C++20, natively tested).">ESP32/lib/remote/include/remote_inbox.h</a></code>, <code>ESP32/lib/remote/src/remote_command.cpp</code>, <code>ESP32/lib/remote/src/remote_inbox.cpp</code>, <code><a class="el" href="test__remote_8cpp.html" title="Host-side tests for the remote command parser and the jog/mode inbox.">ESP32/test/native/test_remote/test_remote.cpp</a></code>.</p>
 <ul class="check">
@@ -193,7 +193,7 @@ Task 1: Pure <code>lib/remote</code> with native tests</h2>
 <ul class="check">
 <li class="unchecked">Verify: <code>pio test -e native</code> all pass (from <code>ESP32/</code>, with WinLibs on PATH); clang-format clean. Commit.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md99"></a>
+<h2><a class="anchor" id="autotoc_md106"></a>
 Task 2: HUD (<code>web/web_ui.html</code> only)</h2>
 <p>The firmware protocol is fixed by the parse table above. The <code>/commands</code> send path already goes through <code>App.sendCommand(msg)</code>, which keeps exactly one poll loop; never bypass it and never schedule polls from replies (see the comment block in the file and CLAUDE.md "Web UI pipeline").</p>
 <ul class="check">
@@ -217,7 +217,7 @@ Task 2: HUD (<code>web/web_ui.html</code> only)</h2>
 <ul class="check">
 <li class="unchecked">Verify: extract the <code>&lt;script&gt;</code> blocks and run <code>node --check</code> on them; <code>python -m unittest discover -s web -p "test_*.py"</code> passes. Commit.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md100"></a>
+<h2><a class="anchor" id="autotoc_md107"></a>
 Task 3: Firmware integration (after Tasks 1 and 2 are merged)</h2>
 <p><b>Files:</b> <code><a class="el" href="websockets_8h_source.html">ESP32/lib/network/include/websockets.h</a></code>, <code><a class="el" href="turret__server_8h_source.html">ESP32/lib/network/include/turret_server.h</a></code>, <code>ESP32/lib/network/src/turret_server.cpp</code>, <code><a class="el" href="controller_8h_source.html">ESP32/lib/controller/include/controller.h</a></code>, <code>ESP32/lib/controller/src/controller.cpp</code>, <code>ESP32/src/main.cpp</code>, <code>CLAUDE.md</code>.</p>
 <ul class="check">
@@ -243,7 +243,7 @@ Task 3: Firmware integration (after Tasks 1 and 2 are merged)</h2>
 <ul class="check">
 <li class="unchecked">Verify: firmware and pin_check builds SUCCESS, <code>pio check --severity=high --severity=medium</code> clean, native suite passes, clang-format clean. Commit.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md101"></a>
+<h2><a class="anchor" id="autotoc_md108"></a>
 Task 4 (controller + user, later): hardware verification</h2>
 <ul class="check">
 <li class="unchecked">Manual mode: HUD arrows/WASD jog; diagonal works; release stops within about 0.3 s; closing the tab mid-jog stops within 0.3 s.</li>

@@ -101,7 +101,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
   <div class="headertitle"><div class="title">Stage 7 Toolchain Upgrade Implementation Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md118"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md125"></a></p>
 <blockquote class="doxtable">
 <p>&zwj;<b>For agentic workers:</b> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development. Steps use checkbox (<code>- [ ]</code>) syntax. </p>
 </blockquote>
@@ -109,7 +109,7 @@ $(function(){initNavTree('md__2github_2workspace_2docs_2superpowers_2plans_22026
 <p><b>Architecture:</b> Side by side first (a second env on core 3; one compat header), A/B on the board, then cut over in the same branch (one env, C++20 everywhere), then targeted C++20 adoption in the pure libraries.</p>
 <p><b>Tech Stack:</b> PlatformIO, pioarduino platform-espressif32 55.03.312, ESP-IDF 5.5.5, GCC 14, Unity, cppcheck, clang-format 19.</p>
 <p><b>Spec:</b> <code>docs/superpowers/specs/2026-10-17-void-sentry-stage7-core3-cpp20-design.md</code></p>
-<h1><a class="anchor" id="autotoc_md119"></a>
+<h1><a class="anchor" id="autotoc_md126"></a>
 Global Constraints</h1>
 <ul>
 <li><b>Platform URL (exact):</b> <code>platform = <a href="https://github.com/pioarduino/platform-espressif32/releases/download/55.03.312/platform-espressif32.zip">https://github.com/pioarduino/platform-espressif32/releases/download/55.03.312/platform-espressif32.zip</a></code>. Never a branch or <code>latest</code>.</li>
@@ -123,7 +123,7 @@ Global Constraints</h1>
 <li><b>Commits:</b> trailer <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code>.</li>
 <li><b>Board:</b> implementers do not upload; the controller runs the board.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md120"></a>
+<h1><a class="anchor" id="autotoc_md127"></a>
 Review Focus</h1>
 <ol type="1">
 <li><b><a class="el" href="classCamera.html" title="Camera setup and sensor tuning.">Camera</a> driver duplication:</b> the v3 env must not link both the bundled esp32-camera and the <code>espressif/esp32-camera</code> lib_dep (duplicate symbols or, worse, two different driver versions silently mixed).</li>
@@ -132,7 +132,7 @@ Review Focus</h1>
 <li><b>Flash layout:</b> if the partition table changes, NVS must stay at <code>0x9000</code> (size <code>0x5000</code>) so saved networks and calibration survive.</li>
 <li><b>Watchdog and idle telemetry:</b> IDF 5 task-watchdog defaults and the renamed <code>...ForCore</code> APIs must keep <code>idle0</code>/<code>idle1</code> meaningful and the IDLE0 watchdog active.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md121"></a>
+<h2><a class="anchor" id="autotoc_md128"></a>
 Task 1: core 3 env side by side</h2>
 <p><b>Files:</b> <code>ESP32/platformio.ini</code> (new env <code>freenove_esp32_wrover_v3</code> extending the firmware env: platform URL above, no <code>espressif/esp32-camera</code> lib_dep, <code>board_build.partitions = min_spiffs.csv</code> only if needed for &gt;= 15% flash headroom), create <code>ESP32/include/platform_compat.h</code>, any source that needs a compat call; <code>.github/workflows/ci.yml</code> (build job also builds <code>freenove_esp32_wrover_v3</code>; cache the new platform).</p>
 <ul class="check">
@@ -144,24 +144,24 @@ Task 1: core 3 env side by side</h2>
 <ul class="check">
 <li class="unchecked">Verify: both firmware envs and pin_check build SUCCESS; native suite passes; cppcheck clean on the default env; clang-format clean. Commit "Add Arduino core 3.3.12 env side by side (pioarduino 55.03.312)".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md122"></a>
+<h2><a class="anchor" id="autotoc_md129"></a>
 Task 2 (controller): A/B on the board</h2>
 <ul class="check">
 <li class="unchecked">Flash core 2, 5 min stats with one viewer (PC WebSocket client), ping and 14 KB page fetch; flash core 3, same. Then functional checks (spec). Record numbers in the ledger; any gate failure goes back to Task 1 as a fix.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md123"></a>
+<h2><a class="anchor" id="autotoc_md130"></a>
 Task 3: cut-over to one env and C++20</h2>
 <p><b>Files:</b> <code>ESP32/platformio.ini</code> (v3 settings become <code>freenove_esp32_wrover</code>; delete the old env and <code>_v3</code>; <code>build_unflags</code> the core's default standard flag (check what core 3 passes, likely <code>-std=gnu++2b</code>) and set <code>-std=gnu++20</code>; native and native_sanitize <code>-std=gnu++20</code>; cppcheck <code>--std=c++20</code>), delete <code>ESP32/include/platform_compat.h</code> and inline its v3 branch, <code>.github/workflows/ci.yml</code> and <code>static_analysis.yml</code> (<code>--std=c++20</code>, one firmware env), <code>.clang-format</code> (<code>Standard: c++20</code>), <code>CLAUDE.md</code> (toolchain, C++20, platform URL, remove the "C++20 planned" notes).</p>
 <ul class="check">
 <li class="unchecked">Verify: firmware + pin_check builds, native, cppcheck, clang-format. Commit "Cut over to Arduino core 3.3.12 and C++20".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md124"></a>
+<h2><a class="anchor" id="autotoc_md131"></a>
 Task 4: targeted C++20 adoption (pure libs; after Task 3)</h2>
 <p>Per the spec table: <code>std::span&lt;const uint8_t&gt;</code> for byte APIs (<code><a class="el" href="crc32_8h.html#a4b126558fed04a6ec98c1b5f73143dd0" title="CRC-32 (IEEE 802.3, reflected, init 0xFFFFFFFF, final xor 0xFFFFFFFF).">checksum::crc32</a></code>, <code><a class="el" href="sha256_8h.html#a8199389c97f89121554e822042d63c8e" title="SHA-256 digest of a buffer. An empty span hashes the empty message.">prov::sha256</a></code>, <code><a class="el" href="blobs_8h.html#a0659233bae7ac11c10123b816a006eb1" title="Parses a nets blob; empty on wrong length, magic, version, CRC, count, unterminated or invalid fields...">prov::deserialize_nets</a>/_pin</code>, <code>frames</code> JPEG check, <code><a class="el" href="choose_8h.html#a936252a3f23cf692cea6f0e2d07dd0cf" title="Saved networks present in the scan (byte-exact SSID), strongest RSSI first.">prov::choose_networks</a></code> as <code>std::span&lt;const ScanResult&gt;</code>), <code>std::string_view</code> for text APIs (<code><a class="el" href="remote__command_8h.html#ae55779093517f1d80741ed9628ec70ca" title="Parses one message.">remote::parse</a></code>, <code>remote::origin_allowed</code>, <code>remote::is_ipv4_host</code>, <code><a class="el" href="form_8h.html#a4630ca12b139395597ede089f63dbec3" title="Finds key=value in an x-www-form-urlencoded body, decodes XX and &#39;+&#39;, writes value + NUL.">prov::form_field</a></code>, <code><a class="el" href="form_8h.html#a265676223edfd50bc9f7d9f058099845" title="True if the body contains key= (even with an empty or malformed value). Lets callers tell missing fro...">prov::form_has_key</a></code>, <code>prov::valid_*</code>), <code>std::bit_cast</code> in the calibration blob, <code>std::rotr</code> in SHA-256, <code>constexpr</code> CRC-32 table and SHA-256 constants, <code>using enum</code> in long switches, designated initializers in our structs and test fixtures. Update every caller (device code included). No behaviour change.</p>
 <ul class="check">
 <li class="unchecked">Verify: native (all pass), firmware build, cppcheck, clang-format; tracking bench cachegrind instruction count noted. Commit "Use C++20 where it helps: span, string_view, bit_cast, constexpr tables".</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md125"></a>
+<h2><a class="anchor" id="autotoc_md132"></a>
 Task 5 (controller + user): final board check and PR</h2>
 <ul class="check">
 <li class="unchecked">Flash, 20 min soak (heap drift), functional checks, PR with the A/B table. </li>
