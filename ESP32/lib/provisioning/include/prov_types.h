@@ -16,6 +16,17 @@ constexpr size_t kPassMax = 64; // buffer bound; valid passwords are empty or 8-
 constexpr size_t kSaltLen = 16;
 constexpr size_t kHashLen = 32;
 
+/** @brief Length of the NUL-terminated string at @p s, looking at no more than @p cap bytes (cap if unterminated). */
+inline size_t bounded_len(const char* s, size_t cap)
+{
+    size_t n = 0;
+    while (n < cap && s[n] != '\0')
+    {
+        ++n;
+    }
+    return n;
+}
+
 /** @brief One saved network. Strings are NUL-terminated. */
 struct NetworkEntry {
     char ssid[kSsidMax + 1] = {};

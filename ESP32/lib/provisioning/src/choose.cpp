@@ -4,19 +4,6 @@
 
 namespace prov
 {
-namespace
-{
-size_t bounded_len(const char* s, size_t cap)
-{
-    size_t n = 0;
-    while (n < cap && s[n] != '\0')
-    {
-        ++n;
-    }
-    return n;
-}
-} // namespace
-
 Candidates choose_networks(std::span<const ScanResult> scan, const NetworkList& list)
 {
     Candidates out;

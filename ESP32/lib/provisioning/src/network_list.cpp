@@ -8,16 +8,6 @@ namespace prov
 {
 namespace
 {
-size_t bounded_len(const char* s, size_t cap)
-{
-    size_t n = 0;
-    while (n < cap && s[n] != '\0')
-    {
-        ++n;
-    }
-    return n;
-}
-
 void fill(NetworkEntry& e, const char* ssid, size_t ssid_len, const char* pass, size_t pass_len, uint32_t seq)
 {
     e = NetworkEntry{};
