@@ -51,28 +51,28 @@ void test_jpeg_accepts_soi_and_eoi(void)
 {
     const uint8_t frame[] = {0xFF, 0xD8, 0x00, 0x11, 0xFF, 0xD9};
     const uint8_t minimal[] = {0xFF, 0xD8, 0xFF, 0xD9};
-    TEST_ASSERT_TRUE(is_complete_jpeg(frame, sizeof(frame)));
-    TEST_ASSERT_TRUE(is_complete_jpeg(minimal, sizeof(minimal)));
+    TEST_ASSERT_TRUE(is_complete_jpeg(frame));
+    TEST_ASSERT_TRUE(is_complete_jpeg(minimal));
 }
 
 void test_jpeg_rejects_null_and_short(void)
 {
     const uint8_t data[] = {0xFF, 0xD8, 0xFF};
-    TEST_ASSERT_FALSE(is_complete_jpeg(nullptr, 10));
-    TEST_ASSERT_FALSE(is_complete_jpeg(data, 0));
-    TEST_ASSERT_FALSE(is_complete_jpeg(data, 3));
+    TEST_ASSERT_FALSE(is_complete_jpeg({}));
+    TEST_ASSERT_FALSE(is_complete_jpeg({data, 0}));
+    TEST_ASSERT_FALSE(is_complete_jpeg({data, 3}));
 }
 
 void test_jpeg_rejects_missing_soi(void)
 {
     const uint8_t data[] = {0x00, 0xD8, 0x11, 0xFF, 0xD9};
-    TEST_ASSERT_FALSE(is_complete_jpeg(data, sizeof(data)));
+    TEST_ASSERT_FALSE(is_complete_jpeg(data));
 }
 
 void test_jpeg_rejects_truncated_frame(void)
 {
     const uint8_t data[] = {0xFF, 0xD8, 0x11, 0x22, 0x33};
-    TEST_ASSERT_FALSE(is_complete_jpeg(data, sizeof(data)));
+    TEST_ASSERT_FALSE(is_complete_jpeg(data));
 }
 
 // --- FrameSlots ---

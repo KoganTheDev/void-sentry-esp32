@@ -1,6 +1,6 @@
 /**
  * @file tracking_types.h
- * @brief Value types shared by the motion detector and the tracker (pure C++17, natively tested).
+ * @brief Value types shared by the motion detector and the tracker (pure C++20, natively tested).
  * @details Everything works on a 40x30 gray grid: the camera's QVGA JPEG decoded at 1/8 scale (one DC value per 8x8
  * block). Coordinates are in grid cells; multiply by 8 for QVGA pixels.
  */

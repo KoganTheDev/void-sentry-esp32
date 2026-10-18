@@ -1,6 +1,6 @@
 /**
  * @file tracker.h
- * @brief Single-target persistent tracker over detector blobs (pure C++17, natively tested).
+ * @brief Single-target persistent tracker over detector blobs (pure C++20, natively tested).
  * @details States: Idle -> Tentative (candidate, must match confirm_frames in a row) -> Locked (id assigned) ->
  * Coasting (missed; predicted forward with decaying velocity) -> Locked again with the same id, or Idle after
  * coast_frames misses. Prediction is an alpha-beta filter (constant velocity, fixed gains). The measurement is the

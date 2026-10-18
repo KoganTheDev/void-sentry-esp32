@@ -16,7 +16,8 @@ void tearDown(void) {}
 
 static bool allowed(const char* origin, const char* host)
 {
-    return origin_allowed(origin, origin ? std::strlen(origin) : 0, host, host ? std::strlen(host) : 0);
+    return origin_allowed(origin ? std::string_view(origin) : std::string_view(),
+                          host ? std::string_view(host) : std::string_view());
 }
 
 static void test_matching_http_and_https(void)
@@ -66,9 +67,9 @@ static void test_lengths_respected(void)
     // Not NUL-terminated and followed by junk: only the given lengths count.
     const char origin[] = {'h', 't', 't', 'p', ':', '/', '/', '1', '.', '2', '.', '3', '.', '4', 'X', 'X'};
     const char host[] = {'1', '.', '2', '.', '3', '.', '4', 'Y', 'Y'};
-    TEST_ASSERT_TRUE(origin_allowed(origin, 14, host, 7));
-    TEST_ASSERT_FALSE(origin_allowed(origin, 15, host, 7)); // trailing byte is part of the origin
-    TEST_ASSERT_FALSE(origin_allowed(origin, 14, host, 8)); // host longer than the origin's host part
+    TEST_ASSERT_TRUE(origin_allowed({origin, 14}, {host, 7}));
+    TEST_ASSERT_FALSE(origin_allowed({origin, 15}, {host, 7})); // trailing byte is part of the origin
+    TEST_ASSERT_FALSE(origin_allowed({origin, 14}, {host, 8})); // host longer than the origin's host part
 }
 
 static void test_dns_rebinding_rejected(void)
@@ -94,17 +95,17 @@ static void test_malformed_ipv4_hosts_rejected(void)
         std::strcat(origin, h);
         TEST_ASSERT_FALSE_MESSAGE(allowed(origin, h), h);
     }
-    TEST_ASSERT_FALSE(is_ipv4_host(nullptr, 0));
+    TEST_ASSERT_FALSE(is_ipv4_host({}));
 }
 
 static void test_is_ipv4_host_limits(void)
 {
-    TEST_ASSERT_TRUE(is_ipv4_host("0.0.0.0", 7));
-    TEST_ASSERT_TRUE(is_ipv4_host("255.255.255.255:65535", 21));
-    TEST_ASSERT_TRUE(is_ipv4_host("1.2.3.4:1", 9));
-    TEST_ASSERT_FALSE(is_ipv4_host("1.2.3.4:65536", 13));
-    TEST_ASSERT_TRUE(is_ipv4_host("1.2.3.4:5", 7));  // length respected: stops before ":5"
-    TEST_ASSERT_FALSE(is_ipv4_host("1.2.3.4:5", 8)); // ends at the colon
+    TEST_ASSERT_TRUE(is_ipv4_host({"0.0.0.0", 7}));
+    TEST_ASSERT_TRUE(is_ipv4_host({"255.255.255.255:65535", 21}));
+    TEST_ASSERT_TRUE(is_ipv4_host({"1.2.3.4:1", 9}));
+    TEST_ASSERT_FALSE(is_ipv4_host({"1.2.3.4:65536", 13}));
+    TEST_ASSERT_TRUE(is_ipv4_host({"1.2.3.4:5", 7}));  // length respected: stops before ":5"
+    TEST_ASSERT_FALSE(is_ipv4_host({"1.2.3.4:5", 8})); // ends at the colon
 }
 
 int main(int argc, char** argv)

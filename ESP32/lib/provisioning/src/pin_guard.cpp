@@ -4,11 +4,18 @@
 #include "sha256.h"
 
 #include <cstring>
+#include <span>
 
 namespace prov
 {
 namespace
 {
+// A null pointer is never a valid PIN, whatever the length says.
+std::string_view pin_view(const char* pin, size_t len)
+{
+    return pin != nullptr ? std::string_view(pin, len) : std::string_view();
+}
+
 std::array<uint8_t, kHashLen> salted_hash(const uint8_t (&salt)[kSaltLen], const char* pin, size_t len)
 {
     uint8_t buf[kSaltLen + 8] = {};
@@ -17,7 +24,7 @@ std::array<uint8_t, kHashLen> salted_hash(const uint8_t (&salt)[kSaltLen], const
     {
         std::memcpy(buf + kSaltLen, pin, len);
     }
-    const auto h = sha256(buf, kSaltLen + len);
+    const auto h = sha256(std::span<const uint8_t>(buf, kSaltLen + len));
     volatile uint8_t* w = buf; // the optimiser may not drop writes through a volatile pointer
     for (size_t i = 0; i < sizeof(buf); ++i)
     {
@@ -31,7 +38,7 @@ PinGuard::PinGuard(const PinRecord& rec) : _rec(rec) {}
 
 bool PinGuard::set_pin(const char* pin, size_t len, const uint8_t (&salt)[kSaltLen])
 {
-    if (!valid_pin(pin, len))
+    if (!valid_pin(pin_view(pin, len)))
     {
         return false;
     }
@@ -68,7 +75,7 @@ PinResult PinGuard::check(const char* pin, size_t len, uint32_t now_ms)
     }
 
     bool match = false;
-    if (valid_pin(pin, len))
+    if (valid_pin(pin_view(pin, len)))
     {
         const auto h = salted_hash(_rec.salt, pin, len);
         uint8_t diff = 0;

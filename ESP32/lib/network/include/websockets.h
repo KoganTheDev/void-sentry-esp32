@@ -51,6 +51,8 @@ public:
         uri_obj.user_ctx = this;
         uri_obj.handler = CommandsWebSocketHandler::websocket_handler;
         uri_obj.is_websocket = true;
+        uri_obj.ws_pre_handshake_cb = CommandsWebSocketHandler::pre_handshake;
+        uri_obj.ws_post_handshake_cb = CommandsWebSocketHandler::post_handshake;
 
         httpd_register_uri_handler(this->_server_handle, &uri_obj);
     }
@@ -68,22 +70,25 @@ public:
     /** @brief Size of the JSON reply buffer on the stack. */
     static constexpr size_t kReplySize = 384;
 
-    /** @brief httpd callback for /commands: completes the handshake, or parses one text frame and sends the JSON reply.
-     */
+    /** @brief ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). */
+    static esp_err_t pre_handshake(httpd_req_t* req)
+    {
+        return handshake_origin_ok(req, TAG_WEBSOCKETS) ? ESP_OK : ESP_FAIL;
+    }
+
+    /** @brief ws_post_handshake_cb: logs the new session once it is a WebSocket. */
+    static esp_err_t post_handshake(httpd_req_t* req)
+    {
+        const auto* _this = reinterpret_cast<const CommandsWebSocketHandler*>(req->user_ctx);
+        ESP_LOGI(TAG_WEBSOCKETS, "WebSocket: New connection established to %s", _this->_uri);
+        return ESP_OK;
+    }
+
+    /** @brief httpd callback for /commands: parses one text frame and sends the JSON reply (the handshake goes to the
+     * pre/post hooks, never here). */
     static esp_err_t websocket_handler(httpd_req_t* req)
     {
         CommandsWebSocketHandler* _this = reinterpret_cast<CommandsWebSocketHandler*>(req->user_ctx);
-
-        if (req->method == HTTP_GET)
-        {
-            // Initial WebSocket upgrade handshake: refuse pages from other origins before anything else.
-            if (!handshake_origin_ok(req, TAG_WEBSOCKETS))
-            {
-                return ESP_FAIL; // the server closes the session
-            }
-            ESP_LOGI(TAG_WEBSOCKETS, "WebSocket: New connection established to %s", _this->_uri);
-            return ESP_OK;
-        }
 
         // Get the frame header (type and length) without reading the payload.
         httpd_ws_frame_t ws_pkt;
@@ -122,7 +127,7 @@ public:
 
         if (_this->_remote != nullptr)
         {
-            _this->_remote->submit(remote::parse(reinterpret_cast<const char*>(buf), ws_pkt.len));
+            _this->_remote->submit(remote::parse({reinterpret_cast<const char*>(buf), ws_pkt.len}));
         }
 
         char json[kReplySize];

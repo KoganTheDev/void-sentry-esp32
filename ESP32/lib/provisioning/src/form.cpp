@@ -1,7 +1,5 @@
 #include "form.h"
 
-#include <cstring>
-
 namespace prov
 {
 namespace
@@ -63,13 +61,14 @@ bool decode(const char* s, size_t n, char* out, size_t out_cap, size_t* out_len)
 }
 } // namespace
 
-bool form_field(const char* body, size_t len, const char* key, char* out, size_t out_cap, size_t* out_len)
+bool form_field(std::string_view body, std::string_view key, char* out, size_t out_cap, size_t* out_len)
 {
-    if (body == nullptr || key == nullptr || out == nullptr || out_cap == 0 || len > kMaxFormBody)
+    if (out == nullptr || out_cap == 0 || body.size() > kMaxFormBody)
     {
         return false;
     }
-    const size_t key_len = std::strlen(key);
+    const size_t len = body.size();
+    const size_t key_len = key.size();
     size_t pos = 0;
     while (pos <= len)
     {
@@ -78,23 +77,24 @@ bool form_field(const char* body, size_t len, const char* key, char* out, size_t
         {
             ++end;
         }
-        if (end - pos > key_len && std::memcmp(body + pos, key, key_len) == 0 && body[pos + key_len] == '=')
+        if (end - pos > key_len && body.compare(pos, key_len, key) == 0 && body[pos + key_len] == '=')
         {
             const size_t vstart = pos + key_len + 1;
-            return decode(body + vstart, end - vstart, out, out_cap, out_len);
+            return decode(body.data() + vstart, end - vstart, out, out_cap, out_len);
         }
         pos = end + 1;
     }
     return false;
 }
 
-bool form_has_key(const char* body, size_t len, const char* key)
+bool form_has_key(std::string_view body, std::string_view key)
 {
-    if (body == nullptr || key == nullptr || len > kMaxFormBody)
+    if (body.size() > kMaxFormBody)
     {
         return false;
     }
-    const size_t key_len = std::strlen(key);
+    const size_t len = body.size();
+    const size_t key_len = key.size();
     size_t pos = 0;
     while (pos <= len)
     {
@@ -103,7 +103,7 @@ bool form_has_key(const char* body, size_t len, const char* key)
         {
             ++end;
         }
-        if (end - pos > key_len && std::memcmp(body + pos, key, key_len) == 0 && body[pos + key_len] == '=')
+        if (end - pos > key_len && body.compare(pos, key_len, key) == 0 && body[pos + key_len] == '=')
         {
             return true;
         }
@@ -112,21 +112,21 @@ bool form_has_key(const char* body, size_t len, const char* key)
     return false;
 }
 
-bool valid_ssid(const char* s, size_t len) { return s != nullptr && len >= 1 && len <= 32; }
+bool valid_ssid(std::string_view s) { return s.size() >= 1 && s.size() <= 32; }
 
-bool valid_password(const char* s, size_t len)
+bool valid_password(std::string_view s)
 {
-    if (len == 0)
+    if (s.empty())
     {
         return true;
     }
-    if (s == nullptr || len < 8 || len > 63)
+    if (s.size() < 8 || s.size() > 63)
     {
         return false;
     }
-    for (size_t i = 0; i < len; ++i)
+    for (const char ch : s)
     {
-        const unsigned char c = static_cast<unsigned char>(s[i]);
+        const unsigned char c = static_cast<unsigned char>(ch);
         if (c < 32 || c > 126)
         {
             return false;
@@ -135,15 +135,15 @@ bool valid_password(const char* s, size_t len)
     return true;
 }
 
-bool valid_pin(const char* s, size_t len)
+bool valid_pin(std::string_view s)
 {
-    if (s == nullptr || len < 4 || len > 8)
+    if (s.size() < 4 || s.size() > 8)
     {
         return false;
     }
-    for (size_t i = 0; i < len; ++i)
+    for (const char c : s)
     {
-        if (s[i] < '0' || s[i] > '9')
+        if (c < '0' || c > '9')
         {
             return false;
         }

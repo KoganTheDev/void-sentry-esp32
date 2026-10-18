@@ -1,5 +1,6 @@
 Language: Cpp
 BasedOnStyle: LLVM
+Standard: c++20
 
 # 1. Fix Braces: Puts the brace on a new line for functions
 # This changes func() { to func()\n{

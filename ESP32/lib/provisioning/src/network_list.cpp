@@ -32,7 +32,7 @@ void fill(NetworkEntry& e, const char* ssid, size_t ssid_len, const char* pass, 
 
 NetworkList::AddResult NetworkList::add(const char* ssid, size_t ssid_len, const char* pass, size_t pass_len)
 {
-    if (!valid_ssid(ssid, ssid_len) || !valid_password(pass, pass_len))
+    if (!valid_ssid({ssid, ssid_len}) || !valid_password({pass, pass_len}))
     {
         return AddResult::Invalid;
     }
@@ -111,8 +111,8 @@ bool NetworkList::restore(const NetworkEntry& e)
     }
     const size_t ssid_len = bounded_len(e.ssid, sizeof(e.ssid));
     const size_t pass_len = bounded_len(e.pass, sizeof(e.pass));
-    if (ssid_len == sizeof(e.ssid) || pass_len == sizeof(e.pass) || !valid_ssid(e.ssid, ssid_len) ||
-        !valid_password(e.pass, pass_len))
+    if (ssid_len == sizeof(e.ssid) || pass_len == sizeof(e.pass) || !valid_ssid({e.ssid, ssid_len}) ||
+        !valid_password({e.pass, pass_len}))
     {
         return false;
     }

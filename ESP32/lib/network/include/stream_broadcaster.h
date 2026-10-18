@@ -51,6 +51,8 @@ private:
     };
 
     static esp_err_t ws_handler(httpd_req_t* req);
+    static esp_err_t pre_handshake(httpd_req_t* req);  // ws_pre_handshake_cb: origin check, before the upgrade
+    static esp_err_t post_handshake(httpd_req_t* req); // registers the viewer once the session is a WebSocket
     static void stream_task(void* arg);
     static void send_job(void* arg);
     void run();

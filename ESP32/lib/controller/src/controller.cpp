@@ -219,7 +219,8 @@ void Controller::run()
 
     case ControlMode::Ai: {
         const TrackSnapshot s = this->_detection_module.get_track_snapshot();
-        const aiming::AimCommand cmd = this->_policy.update(aiming::TrackView{s.state, (float)s.x, (float)s.y}, now);
+        const aiming::AimCommand cmd =
+            this->_policy.update(aiming::TrackView{.state = s.state, .x = (float)s.x, .y = (float)s.y}, now);
         if (cmd.kind == aiming::AimKind::Aim)
         {
             this->_turret.set_target_deg(cmd.angles);

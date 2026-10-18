@@ -1,6 +1,6 @@
 /**
  * @file aim_map.h
- * @brief Maps a target's image position to turret angles (pure C++17, natively tested).
+ * @brief Maps a target's image position to turret angles (pure C++20, natively tested).
  * @details The camera is fixed (not on the turret), so aiming is open-loop: pan depends linearly on image x and tilt
  * on image y. The map comes from a 2-point joystick calibration, or from default_map() (camera next to the turret,
  * OV3660 field of view) until one exists. Angles: pan degrees from home (positive = right), tilt servo degrees

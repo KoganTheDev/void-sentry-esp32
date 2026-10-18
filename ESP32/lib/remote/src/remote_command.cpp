@@ -1,13 +1,11 @@
 #include "remote_command.h"
 
-#include <cstring>
-
 namespace remote
 {
 namespace
 {
 struct Entry {
-    const char* text;
+    std::string_view text;
     Command cmd;
 };
 
@@ -44,30 +42,30 @@ Command fire(bool on)
 }
 } // namespace
 
-Command parse(const char* data, size_t len)
+Command parse(std::string_view message)
 {
-    if (data == nullptr || len == 0)
+    if (message.empty())
     {
         return Command{};
     }
     const Entry table[] = {
-        {"move:up", move(0, 1)},
-        {"move:down", move(0, -1)},
-        {"move:left", move(-1, 0)},
-        {"move:right", move(1, 0)},
-        {"move:up-left", move(-1, 1)},
-        {"move:up-right", move(1, 1)},
-        {"move:down-left", move(-1, -1)},
-        {"move:down-right", move(1, -1)},
-        {"move:stop", simple(CommandKind::Stop)},
-        {"mode:ai", mode(RemoteMode::Ai)},
-        {"mode:user", mode(RemoteMode::User)},
-        {"fire:on", fire(true)},
-        {"fire:off", fire(false)},
+        {.text = "move:up", .cmd = move(0, 1)},
+        {.text = "move:down", .cmd = move(0, -1)},
+        {.text = "move:left", .cmd = move(-1, 0)},
+        {.text = "move:right", .cmd = move(1, 0)},
+        {.text = "move:up-left", .cmd = move(-1, 1)},
+        {.text = "move:up-right", .cmd = move(1, 1)},
+        {.text = "move:down-left", .cmd = move(-1, -1)},
+        {.text = "move:down-right", .cmd = move(1, -1)},
+        {.text = "move:stop", .cmd = simple(CommandKind::Stop)},
+        {.text = "mode:ai", .cmd = mode(RemoteMode::Ai)},
+        {.text = "mode:user", .cmd = mode(RemoteMode::User)},
+        {.text = "fire:on", .cmd = fire(true)},
+        {.text = "fire:off", .cmd = fire(false)},
     };
     for (const Entry& e : table)
     {
-        if (std::strlen(e.text) == len && std::memcmp(data, e.text, len) == 0)
+        if (message == e.text)
         {
             return e.cmd;
         }

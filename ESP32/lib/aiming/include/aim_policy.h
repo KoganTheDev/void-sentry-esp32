@@ -1,6 +1,6 @@
 /**
  * @file aim_policy.h
- * @brief Decides where the turret should point from the tracker state (pure C++17, natively tested).
+ * @brief Decides where the turret should point from the tracker state (pure C++20, natively tested).
  * @details Locked/Coasting: aim at the mapped target position, changing the setpoint only when the new aim is more
  * than deadband_deg away on either axis (no jitter). Tentative: hold. Idle: hold, and home_delay_ms after the target
  * was last seen, return Home exactly once. Time is millis()-style uint32 and wraparound-safe.

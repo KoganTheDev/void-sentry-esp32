@@ -27,9 +27,9 @@ AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
         {
             setpoint_ = a;
             have_setpoint_ = true;
-            return AimCommand{AimKind::Aim, a};
+            return AimCommand{.kind = AimKind::Aim, .angles = a};
         }
-        return AimCommand{AimKind::Hold, setpoint_};
+        return AimCommand{.kind = AimKind::Hold, .angles = setpoint_};
     }
     if (track.state == TrackPhase::Idle && seen_ && !homed_ &&
         static_cast<uint32_t>(now_ms - last_seen_ms_) >= config_.home_delay_ms)
@@ -37,8 +37,8 @@ AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
         homed_ = true;
         have_setpoint_ = false;
         setpoint_ = Angles{0.0f, kTiltHomeDeg};
-        return AimCommand{AimKind::Home, setpoint_};
+        return AimCommand{.kind = AimKind::Home, .angles = setpoint_};
     }
-    return AimCommand{AimKind::Hold, setpoint_};
+    return AimCommand{.kind = AimKind::Hold, .angles = setpoint_};
 }
 } // namespace aiming

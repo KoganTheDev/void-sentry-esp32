@@ -37,7 +37,7 @@ void camera_task(void*)
             if (fb->len > FrameStore::kSlotBytes)
             {
                 g_context.store->abort_write(*slot, frames::AbortReason::Oversize);
-            } else if (!frames::is_complete_jpeg(fb->buf, fb->len))
+            } else if (!frames::is_complete_jpeg({fb->buf, fb->len}))
             {
                 g_context.store->abort_write(*slot, frames::AbortReason::Corrupt);
             } else

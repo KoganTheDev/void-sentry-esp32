@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <atomic>
 #include <esp_freertos_hooks.h>
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 #include <esp_system.h>
 
@@ -30,7 +31,7 @@ static void IRAM_ATTR idle_sample_hook()
 {
     const BaseType_t core = xPortGetCoreID();
     tick_samples[core].fetch_add(1, std::memory_order_relaxed);
-    if (xTaskGetCurrentTaskHandleForCPU(core) == xTaskGetIdleTaskHandleForCPU(core))
+    if (xTaskGetCurrentTaskHandleForCore(core) == xTaskGetIdleTaskHandleForCore(core))
     {
         idle_samples[core].fetch_add(1, std::memory_order_relaxed);
     }
@@ -120,6 +121,11 @@ static void log_stream_stats()
 
 void setup()
 {
+    // First: IDF 5.x zeroes the minimum-free counter of any heap added after startup, and Arduino core 3 adds PSRAM to
+    // the heap after startup (psramAddToHeap in initArduino), so ESP.getMinFreePsram() would stay 0 forever. This
+    // restarts every heap's minimum from its current free size, so heap_min and psram_min count from setup().
+    // Never stopped: stop would restore the zeroed minimum.
+    heap_caps_monitor_local_minimum_free_size_start();
     Serial.begin(BAUDRATE);
     delay(100);
     esp_register_freertos_tick_hook_for_cpu(idle_sample_hook, 0);

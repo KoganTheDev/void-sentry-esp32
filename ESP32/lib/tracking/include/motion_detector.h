@@ -1,6 +1,6 @@
 /**
  * @file motion_detector.h
- * @brief Finds moving regions in 40x30 gray frames with a background model (pure C++17, natively tested).
+ * @brief Finds moving regions in 40x30 gray frames with a background model (pure C++20, natively tested).
  * @details Per frame: foreground mask against an exponential-moving-average background, a scene-change guard,
  * and 8-connected blobs via two-pass union-find labelling. There is no morphological opening: each cell is already
  * an 8x8 block average (1/8 DC decode), so an opening would erase hand-sized targets; isolated noise cells are

@@ -22,7 +22,7 @@ bool load(aiming::AimMap& out)
     bool ok = false;
     if (stored == sizeof(buf) && prefs.getBytes(kKey, buf, sizeof(buf)) == sizeof(buf))
     {
-        const std::optional<aiming::AimMap> map = aiming::deserialize(buf, sizeof(buf));
+        const std::optional<aiming::AimMap> map = aiming::deserialize(buf);
         if (map)
         {
             out = *map;

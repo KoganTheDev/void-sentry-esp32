@@ -1,6 +1,6 @@
 /**
  * @file network_list.h
- * @brief Fixed-capacity list of saved WiFi networks with recency-based eviction (pure C++17, no heap).
+ * @brief Fixed-capacity list of saved WiFi networks with recency-based eviction (pure C++20, no heap).
  */
 
 #pragma once

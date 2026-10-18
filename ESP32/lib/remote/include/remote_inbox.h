@@ -1,6 +1,6 @@
 /**
  * @file remote_inbox.h
- * @brief Holds the latest remote command state with a dead-man jog timeout (pure C++17, natively tested).
+ * @brief Holds the latest remote command state with a dead-man jog timeout (pure C++20, natively tested).
  * @details Not thread-safe by itself; the owner (Controller) guards it with a spinlock. Time is millis()-style
  * uint32 and wraparound-safe.
  */

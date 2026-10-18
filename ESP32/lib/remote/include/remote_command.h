@@ -1,13 +1,13 @@
 /**
  * @file remote_command.h
- * @brief Parses the HUD's /commands text messages into typed commands (pure C++17, natively tested).
+ * @brief Parses the HUD's /commands text messages into typed commands (pure C++20, natively tested).
  * @details No Arduino or ESP-IDF headers and no heap use, so the parser runs on the host and in the httpd handler.
  */
 
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 namespace remote
 {
@@ -28,10 +28,10 @@ struct Command {
 
 /**
  * @brief Parses one message.
- * @details Exact, case-sensitive match on the whole buffer (not NUL-terminated; len bytes). Reads at most len bytes.
- * Anything unrecognised (empty, nullptr, unknown text, trailing bytes) yields a Poll command.
+ * @details Exact, case-sensitive match on the whole view (it need not be NUL-terminated, and the receive buffer is
+ * not). Anything unrecognised (empty, unknown text, trailing bytes) yields a Poll command.
  */
-Command parse(const char* data, size_t len);
+Command parse(std::string_view message);
 
 /** @brief Receives parsed commands; implemented by the controller (device) and fakes (tests). */
 class BaseRemoteSink

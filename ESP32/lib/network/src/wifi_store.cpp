@@ -29,7 +29,7 @@ bool WifiStore::load(prov::NetworkList& list, prov::PinRecord& pin)
         std::array<uint8_t, prov::kNetsBlobSize> buf{};
         if (nets_len == buf.size() && prefs.getBytes(kKeyNets, buf.data(), buf.size()) == buf.size())
         {
-            const auto parsed = prov::deserialize_nets(buf.data(), buf.size());
+            const auto parsed = prov::deserialize_nets(buf);
             if (parsed)
             {
                 list = *parsed;
@@ -49,7 +49,7 @@ bool WifiStore::load(prov::NetworkList& list, prov::PinRecord& pin)
         bool pin_ok = false;
         if (pin_len == buf.size() && prefs.getBytes(kKeyPin, buf.data(), buf.size()) == buf.size())
         {
-            const auto parsed = prov::deserialize_pin(buf.data(), buf.size());
+            const auto parsed = prov::deserialize_pin(buf);
             if (parsed)
             {
                 pin = *parsed;

@@ -1,8 +1,17 @@
 #pragma once
 
 #include "origin_check.h"
+#include <esp32-hal-log.h> // route the refusal log through Arduino's logger (otherwise silenced)
 #include <esp_http_server.h>
 #include <esp_log.h>
+
+// IDF 5.5 never calls a WebSocket URI handler for the handshake: ws_pre_handshake_cb runs before the 101 reply (an
+// error refuses the upgrade) and ws_post_handshake_cb after it. Both are off in the precompiled Arduino libs, so
+// platformio.ini sets them through custom_sdkconfig.
+#if !CONFIG_HTTPD_WS_PRE_HANDSHAKE_CB_SUPPORT || !CONFIG_HTTPD_WS_POST_HANDSHAKE_CB_SUPPORT
+// cppcheck-suppress preprocessorErrorDirective
+#error "needs CONFIG_HTTPD_WS_PRE/POST_HANDSHAKE_CB_SUPPORT=y (custom_sdkconfig in platformio.ini)"
+#endif
 
 /**
  * @brief Reads the Origin and Host headers of a WebSocket handshake or a browser POST and applies
@@ -44,7 +53,7 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
         ESP_LOGW(tag, "request refused: Origin header too long");
         return false;
     }
-    if (!remote::origin_allowed(origin, origin_len, host, host_len))
+    if (!remote::origin_allowed({origin, origin_len}, {host, host_len}))
     {
         ESP_LOGW(tag, "request refused: Origin %.*s", (int)origin_len, origin);
         return false;

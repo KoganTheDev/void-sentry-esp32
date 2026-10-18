@@ -4,22 +4,23 @@ namespace remote
 {
 void RemoteInbox::submit(const Command& cmd, uint32_t now_ms)
 {
+    using enum CommandKind;
     switch (cmd.kind)
     {
-    case CommandKind::Move:
+    case Move:
         has_move_ = true;
         pan_ = cmd.pan;
         tilt_ = cmd.tilt;
         move_ms_ = now_ms;
         break;
-    case CommandKind::Stop:
+    case Stop:
         has_move_ = false;
         break;
-    case CommandKind::Mode:
+    case Mode:
         mode_request_ = cmd.mode;
         break;
-    case CommandKind::Poll:
-    case CommandKind::Fire:
+    case Poll:
+    case Fire:
         break;
     }
 }
