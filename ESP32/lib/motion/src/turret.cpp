@@ -172,7 +172,7 @@ void Turret::run()
         // Commands: copy under the lock, apply outside it.
         Command cmd;
         bool fresh = false;
-        this->_command.update([&](const Command& c) {
+        this->_command.inspect([&](const Command& c) {
             if (c.sequence != handled_seq)
             {
                 cmd = c;

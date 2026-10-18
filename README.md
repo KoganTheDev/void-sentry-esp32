@@ -114,7 +114,7 @@ python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool te
 python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
 ```
 
-CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (95% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against `.expect` files and records cachegrind instruction counts per frame. Doxygen output is published to [GitHub Pages](https://koganthedev.github.io/void-sentry-esp32/) from `main`. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.
+CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (99% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against `.expect` files and records cachegrind instruction counts per frame. Doxygen output is published to [GitHub Pages](https://koganthedev.github.io/void-sentry-esp32/) from `main`. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.
 
 ## Project layout
 
@@ -125,9 +125,11 @@ ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)
 ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)
 ESP32/lib/provisioning WiFi plan, PIN guard, network list (pure C++, host-tested)
 ESP32/lib/checksum     CRC-32 for the NVS blobs (pure C++, host-tested)
+ESP32/lib/jpeg_gray    JPEG to 40x30 gray decode (pure wrapper, host-tested)
+ESP32/lib/stats        windowed counters for the stats line (header-only, host-tested)
 ESP32/lib/tjpgd        vendored JPEG decoder
 ESP32/lib/frame_store  camera task and PSRAM slots
-ESP32/lib/detection    JPEG decode and detect task glue
+ESP32/lib/detection    detect task and tracking pipeline glue
 ESP32/lib/controller   modes, joystick, ties detection to the turret
 ESP32/lib/motion       turret, stepper and servo motor task
 ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster

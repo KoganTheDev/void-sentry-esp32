@@ -48,7 +48,8 @@ void Controller::jog_from_inputs(uint32_t now, bool calibrate_button_held)
         this->_turret.jog(sx / 255.0f, sy / 255.0f);
         return;
     }
-    const remote::Jog jog = this->_remote_inbox.update([now](remote::RemoteInbox& inbox) { return inbox.jog(now); });
+    const remote::Jog jog =
+        this->_remote_inbox.inspect([now](const remote::RemoteInbox& inbox) { return inbox.jog(now); });
     this->_turret.jog(jog.pan, jog.tilt); // (0,0) once the dead-man window has passed
 }
 
