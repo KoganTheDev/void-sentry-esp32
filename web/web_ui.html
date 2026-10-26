@@ -615,7 +615,8 @@
 
         /* ---------- Phone portrait: video, mode, then the controls row with no scrolling at 390x844 ---------- */
         @media (max-width: 700px) {
-            .brand span, .chip b, .chip.wifi, .chip.cal, #btn-fs { display: none; }
+            /* The mode switch sits right under the video on a phone, so the MODE chip would only crowd the bar. */
+            .brand span, .chip b, .chip.wifi, .chip.cal, #chip-mode, #btn-fs { display: none; }
             .chip.viewers:not(.warn):not(.err) { display: none; }
             .statusbar { gap: 6px; padding-left: 8px; padding-right: 8px; }
             .chip { padding: 0 8px; }
@@ -1227,7 +1228,11 @@
                 const step = st === 'point2' ? 2 : 1;
                 if (step === 2 && c.step !== 2) {
                     // The board just recorded point 1 on the tracked target: mark it and the zone point 2 must avoid.
-                    c.p1 = { x: Math.round(S.trk.x), y: Math.round(S.trk.y) };
+                    // The board records once the turret has stopped, so the target may have moved since; prefer where
+                    // it was when Record was pressed here (a physical button press has no such sample).
+                    const at = c.recordAt && now - c.recordAt.t < 2000 ? c.recordAt : S.trk;
+                    c.p1 = { x: Math.round(at.x), y: Math.round(at.y) };
+                    c.recordAt = null;
                     announce('Point 1 recorded. Step 2 of 2');
                 }
                 if (st === 'point1') c.p1 = null;
@@ -1318,6 +1323,7 @@
                 if (c.failed) { App.sendCommand('cal:point'); return; } // restarts at point 1
                 const why = recordBlock();
                 if (why) return toast(why, 'warn', 'rec');
+                c.recordAt = { x: S.trk.x, y: S.trk.y, t: performance.now() };
                 App.sendCommand('cal:point');
             }
             function askCancel() {
@@ -1947,7 +1953,9 @@
                         g.setLineDash([4, 3]); g.strokeStyle = 'rgba(255,77,77,0.6)'; g.lineWidth = 1;
                         g.strokeRect(p.x - 80, p.y - 60, 160, 120); g.setLineDash([]);
                         g.fillStyle = 'rgba(255,120,120,0.9)'; g.font = '600 7px ui-monospace, monospace';
-                        g.fillText('TOO CLOSE FOR POINT 2', Math.max(2, p.x - 78), Math.max(8, p.y - 52));
+                        // Label inside the zone, at its bottom edge when the top is off-frame or under the state badge.
+                        const zoneTop = p.y - 60, labelY = zoneTop < 24 ? Math.min(H - 4, p.y + 56) : zoneTop + 8;
+                        g.fillText('TOO CLOSE FOR POINT 2', Math.max(2, p.x - 78), labelY);
                     }
                     g.strokeStyle = '#ffb020'; g.lineWidth = 2;
                     g.beginPath(); g.moveTo(p.x - 5, p.y - 5); g.lineTo(p.x + 5, p.y + 5); g.moveTo(p.x + 5, p.y - 5); g.lineTo(p.x - 5, p.y + 5); g.stroke();
