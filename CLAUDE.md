@@ -25,6 +25,8 @@ g++ -std=c++20 -O2 -g -Wall -Wextra -I ESP32/include -I ESP32/lib/tracking/inclu
 ./track_bench [--repeat N] ESP32/bench/fixtures/*.gray   # exits non-zero if any .expect fails
 python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool tests
 python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
+python -m unittest discover -s tools/hud_mock -p "test_*.py"   # mock board tests
+python tools/hud_mock/mock_board.py   # fake board for HUD work (serves web/*.html, /commands, /stream; flags in its docstring), open http://127.0.0.1:8080
 ```
 
 - Envs are in `platformio.ini`: firmware `freenove_esp32_wrover`, `pin_check` (only `src/pin_check/`), and host-only `native`, `native_sanitize`, `native_coverage` (tests under `test/native/`; the last two are Linux/CI only). Device envs ignore `test/native/*`.
