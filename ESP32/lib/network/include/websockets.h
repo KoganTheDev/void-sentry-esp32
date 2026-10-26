@@ -6,6 +6,7 @@
 #include "control_status.h"
 #include "handshake_guard.h"
 #include "remote_command.h"
+#include "reply_json.h"
 #include "track_snapshot.h"
 #include "tracking_types.h"
 #include <cstdio>
@@ -19,8 +20,8 @@ static const char* TAG_WEBSOCKETS = "WEBSOCKETS";
  * @class CommandsWebSocketHandler
  * @brief The /commands WebSocket: parses each HUD message, hands it to the remote sink and replies with JSON metrics.
  * @details Request/reply: every received text frame gets exactly one JSON reply (the HUD's poll loop depends on it).
- * Receive and reply buffers live on the httpd task's stack (64 B and 384 B), so there is no heap use per message and
- * nothing to leak when a send fails.
+ * Receive and reply buffers live on the httpd task's stack (64 B and hud::kReplySize), so there is no heap use per
+ * message and nothing to leak when a send fails.
  */
 class CommandsWebSocketHandler
 {
@@ -66,9 +67,6 @@ public:
 
     /** @brief Longest accepted message in bytes; the longest real command ("move:down-right") is 15. */
     static constexpr size_t kMaxMessage = 64;
-
-    /** @brief Size of the JSON reply buffer on the stack. */
-    static constexpr size_t kReplySize = 384;
 
     /** @brief ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). */
     static esp_err_t pre_handshake(httpd_req_t* req)
@@ -130,7 +128,7 @@ public:
             _this->_remote->submit(remote::parse({reinterpret_cast<const char*>(buf), ws_pkt.len}));
         }
 
-        char json[kReplySize];
+        char json[hud::kReplySize];
         const size_t json_len = _this->build_reply(json, sizeof(json));
 
         httpd_ws_frame_t response_pkt = {0};
@@ -144,67 +142,24 @@ private:
     /** @brief Writes the NUL-terminated JSON metrics into out (size bytes) and returns its length. */
     size_t build_reply(char* out, size_t size) const
     {
-        const int cap = (int)size;
-        if (this->_detection_instance == nullptr)
+        hud::ReplyInput in;
+        TrackSnapshot track;
+        ControlStatus status;
+        if (this->_detection_instance != nullptr)
         {
-            // Fallback if no detection module
-            ESP_LOGW(TAG_WEBSOCKETS, "No detection module connected, sending fallback metrics");
-            return (size_t)snprintf(out, size,
-                                    "{\"detected\":0,\"x\":0,\"y\":0,\"width\":320,\"height\":240,\"pixels\":0}");
-        }
-
-        const TrackSnapshot t = this->_detection_instance->get_track_snapshot();
-        // Existing keys first (older HUDs keep working), then the tracker fields.
-        int len =
-            snprintf(out, size,
-                     "{\"detected\":%d,\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d,\"pixels\":%d,"
-                     "\"state\":\"%s\",\"id\":%u,\"bx\":%d,\"by\":%d,\"bw\":%d,\"bh\":%d,"
-                     "\"vx\":%.1f,\"vy\":%.1f",
-                     t.detected() ? 1 : 0, t.x, t.y, t.frame_width, t.frame_height, t.area_px,
-                     tracking::to_string(t.state), (unsigned)t.id, t.bx, t.by, t.bw, t.bh, (double)t.vx, (double)t.vy);
-        if (len > 0 && len < cap && this->_status_provider != nullptr)
-        {
-            const ControlStatus c = this->_status_provider->control_status();
-            const int extra =
-                snprintf(out + len, size - len,
-                         ",\"mode\":\"%s\",\"cal\":%u,\"cal_state\":\"%s\",\"calibrated\":%d,"
-                         "\"pan\":%.1f,\"tilt\":%.1f,\"cal_error\":\"%s\"",
-                         to_string(c.mode), (unsigned)c.cal_points, cal_state_name(c.cal_state), c.calibrated ? 1 : 0,
-                         (double)c.angles.pan, (double)c.angles.tilt, c.cal_failure ? c.cal_failure : "");
-            len = (extra < 0) ? -1 : len + extra;
-        }
-        if (len > 0 && len < cap - 1)
-        {
-            out[len++] = '}';
-            out[len] = '\0';
+            track = this->_detection_instance->get_track_snapshot();
+            in.track = &track;
+            if (this->_status_provider != nullptr)
+            {
+                status = this->_status_provider->control_status();
+                in.status = &status;
+            }
         } else
         {
-            len = -1;
+            ESP_LOGW(TAG_WEBSOCKETS, "No detection module connected, sending fallback metrics");
         }
-        if (len < 0 || len >= cap)
-        {
-            len = snprintf(out, size, "{\"detected\":0}");
-        }
-        return (size_t)len;
-    }
-
-private:
-    static const char* cal_state_name(aiming::CalState st)
-    {
-        switch (st)
-        {
-        case aiming::CalState::WaitPoint1:
-            return "point1";
-        case aiming::CalState::WaitPoint2:
-            return "point2";
-        case aiming::CalState::Done:
-            return "done";
-        case aiming::CalState::Failed:
-            return "failed";
-        case aiming::CalState::Idle:
-            break;
-        }
-        return "idle";
+        in.viewers = 0; // TODO(HUD task B): the /stream viewer count
+        return hud::format_reply(in, out, size);
     }
 
     httpd_handle_t _server_handle;
