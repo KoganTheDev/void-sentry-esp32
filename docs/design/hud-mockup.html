@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- HUD design reference (2026-10-26). Open in a browser; the bar on top switches viewports, states and the style proposals. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Void Sentry HUD mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+    /* Layout: device frame preview (desktop / phone / landscape) under a mockup review bar; the HUD is dark-only by design. */
+    :root {
+        color-scheme: dark;
+        --bg: #0a0b0d;
+        --panel: #14161a;
+        --panel-2: #1b1e23;
+        --border: #2a2e35;
+        --border-hi: #3a3f48;
+        --text: #e6e7e9;
+        --muted: #8b919a;
+        --accent: #ff6b00;
+        --accent-soft: rgba(255, 107, 0, 0.14);
+        --ok: #3ddc84;
+        --warn: #ffb020;
+        --err: #ff4d4d;
+        --ret: #ff2d2d;
+        --focus: #38d4ff;
+        --manual: #7aa7ff;
+        --radius: 8px;
+        --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+        margin: 0;
+        background: #050506;
+        color: var(--text);
+        font: 14px/1.4 system-ui, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+    }
+
+    /* ---------- Mockup review bar (not part of the HUD) ---------- */
+    .review {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        align-items: center;
+        padding-block: 8px;
+        background: #101114;
+        border-bottom: 1px dashed #444;
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .review strong { color: #ccc; font-weight: 600; margin-right: 4px; }
+    .review .grp { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+    .review button {
+        font: inherit;
+        color: #bbb;
+        background: #1a1c20;
+        border: 1px solid #333;
+        border-radius: 5px;
+        padding: 3px 8px;
+        cursor: pointer;
+    }
+
+    .review button[aria-pressed="true"] { color: #000; background: #ddd; border-color: #ddd; }
+    .review .ret-btn { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 3px; }
+    .review .ret-btn canvas { width: 30px; height: 30px; border-radius: 4px; display: block; }
+    .review .ret-btn[aria-pressed="true"] { background: var(--ret); border-color: var(--ret); color: #000; }
+    .review .tag { margin-left: auto; font-style: italic; }
+
+    .stage { flex: 1; min-height: 0; position: relative; }
+
+    .device {
+        container: device / size;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform-origin: center;
+        border: 1px solid #333;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .device-label { position: absolute; bottom: 6px; right: 12px; font-size: 11px; color: #555; }
+
+    /* ---------- HUD ---------- */
+    .hud {
+        position: relative;
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        background: var(--bg);
+        touch-action: manipulation;
+    }
+
+    .statusbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 52px;
+        padding: 6px 12px;
+        background: linear-gradient(180deg, #16181c, #101114);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; align-items: center; gap: 8px; margin-right: 6px; flex-shrink: 0; }
+    .brand img { height: 36px; width: auto; }
+
+    .brand span {
+        font-weight: 800;
+        font-style: italic;
+        letter-spacing: 2px;
+        font-size: 15px;
+        background: linear-gradient(180deg, #fff 35%, var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        white-space: nowrap;
+    }
+
+    .chips { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; min-width: 0; }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 15px;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        white-space: nowrap;
+        color: var(--text);
+        text-decoration: none;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+    }
+
+    .chip b { font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .chip.ok .dot { background: var(--ok); }
+    .chip.warn { border-color: rgba(255, 176, 32, 0.5); }
+    .chip.warn .dot { background: var(--warn); }
+    .chip.err { border-color: rgba(255, 77, 77, 0.6); }
+    .chip.err .dot { background: var(--err); }
+    .chip.mode-ai { border-color: var(--accent); background: var(--accent-soft); }
+    .chip.mode-ai .dot { background: var(--accent); }
+    .chip.mode-user { border-color: var(--manual); background: rgba(122, 167, 255, 0.12); }
+    .chip.mode-user .dot { background: var(--manual); }
+    .chip.mode-calibrate { border-color: var(--warn); background: rgba(255, 176, 32, 0.12); }
+    .chip.mode-calibrate .dot { background: var(--warn); }
+    .chip.armed { border-color: var(--err); background: rgba(255, 77, 77, 0.14); color: #ffb3b3; }
+    .chip.armed .dot { background: var(--err); animation: blink 1s steps(2) infinite; }
+    @keyframes blink { 50% { opacity: 0.2; } }
+    a.chip:hover { border-color: var(--accent); }
+
+    .bar-actions { margin-left: auto; display: flex; gap: 2px; flex-shrink: 0; }
+
+    .icon-btn {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    .icon-btn:hover { color: var(--text); border-color: var(--border); }
+    .icon-btn[aria-expanded="true"] { color: var(--focus); border-color: var(--focus); }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    .badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
+        background: var(--err);
+        color: #fff;
+        font: 700 10px/16px system-ui, sans-serif;
+        text-align: center;
+    }
+
+    :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .main {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 10px;
+        padding: 10px;
+        min-height: 0;
+    }
+
+    /* Video */
+    .viewport {
+        container-type: size;
+        position: relative;
+        display: grid;
+        place-items: center;
+        background: #000;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .frame { position: relative; width: min(100cqw, 133.333cqh); max-width: 100%; aspect-ratio: 4 / 3; }
+    .frame.tapmode { cursor: crosshair; touch-action: none; }
+    .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #scene { image-rendering: pixelated; transition: filter 0.3s; }
+    .frame.stale #scene { filter: grayscale(1) brightness(0.45); }
+
+    .frame::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% 100%, rgba(255, 220, 140, 0.55), transparent 60%);
+        opacity: 0;
+        transition: opacity 0.12s;
+    }
+
+    .frame.flash::after { opacity: 1; transition: none; }
+    .frame.shutter::after { background: rgba(255, 255, 255, 0.8); opacity: 1; transition: none; }
+
+    .ov {
+        position: absolute;
+        font: 600 12px var(--mono);
+        letter-spacing: 0.5px;
+        padding: 4px 8px;
+        border-radius: 5px;
+        background: rgba(0, 0, 0, 0.62);
+        color: var(--text);
+        pointer-events: none;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .ov.tl { top: 10px; left: 10px; }
+    .ov.tr { top: 10px; right: 10px; }
+    .ov.bl { bottom: 10px; left: 10px; color: var(--warn); border: 1px solid rgba(255, 176, 32, 0.6); }
+    .track-word.locked { color: #ff6b6b; }
+    .track-word.coasting { color: var(--warn); }
+    .track-word.tentative { color: #ddd; }
+    .track-word.idle { color: var(--muted); }
+    .stale-badge { color: var(--warn); border: 1px solid rgba(255, 176, 32, 0.6); }
+
+    .card {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(5, 6, 8, 0.82);
+        text-align: center;
+        padding: 20px;
+    }
+
+    .card div { max-width: 340px; }
+    .card h2 { margin: 8px 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); }
+    .card svg { width: 40px; height: 40px; color: var(--warn); }
+
+    .snap-card {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 6px 10px 6px 6px;
+        background: rgba(20, 22, 26, 0.95);
+        border: 1px solid var(--border-hi);
+        border-radius: 8px;
+        font-size: 12px;
+        z-index: 3;
+        animation: toast-in 0.18s ease-out;
+    }
+
+    .snap-card img { width: 72px; height: 54px; border-radius: 4px; display: block; }
+    .snap-card small { display: block; color: var(--muted); font-family: var(--mono); }
+
+    .toasts {
+        position: absolute;
+        left: 50%;
+        bottom: 46px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+        width: max-content;
+        max-width: 92%;
+        z-index: 3;
+    }
+
+    .toast {
+        padding: 8px 14px;
+        border-radius: 18px;
+        background: rgba(20, 22, 26, 0.95);
+        border: 1px solid var(--border-hi);
+        font-size: 13px;
+        animation: toast-in 0.18s ease-out;
+    }
+
+    .toast.ok { border-color: var(--ok); }
+    .toast.warn { border-color: var(--warn); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
+
+    /* Side panel */
+    .panel { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; }
+
+    .box { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+
+    .box h3 {
+        margin: 0 0 10px;
+        font-size: 11px;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #0d0e11; padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+
+    .seg button {
+        position: relative;
+        height: 44px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--muted);
+        font: 700 12px system-ui, sans-serif;
+        letter-spacing: 1px;
+        cursor: pointer;
+    }
+
+    .seg button:hover { color: var(--text); background: #181a1f; }
+    .seg button[aria-pressed="true"][data-mode="ai"] { background: var(--accent); color: #140700; }
+    .seg button[aria-pressed="true"][data-mode="user"] { background: var(--manual); color: #050a18; }
+    .seg button[aria-pressed="true"][data-mode="calibrate"] { background: var(--warn); color: #1a1000; }
+    .seg button[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+
+    .seg button.pending::after {
+        content: "";
+        position: absolute;
+        left: 20%;
+        right: 20%;
+        bottom: 6px;
+        height: 2px;
+        background: currentColor;
+        animation: pend 0.6s linear infinite alternate;
+    }
+
+    @keyframes pend { from { opacity: 0.2; } to { opacity: 1; } }
+
+    .seg.small button { height: 34px; font-size: 11px; letter-spacing: 0.5px; }
+    .seg.small button[aria-pressed="true"] { background: #2b3038; color: var(--text); }
+
+    .hint { margin: 8px 0 0; font-size: 12px; color: var(--muted); min-height: 1.4em; }
+    .hint.warn { color: var(--warn); }
+
+    .callout {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 176, 32, 0.45);
+        background: rgba(255, 176, 32, 0.07);
+        border-radius: var(--radius);
+        font-size: 13px;
+    }
+
+    .callout p { margin: 0; flex: 1; }
+
+    .btn-sm {
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 7px;
+        border: 1px solid var(--border-hi);
+        background: var(--panel-2);
+        color: var(--text);
+        font: 600 13px system-ui, sans-serif;
+        cursor: pointer;
+    }
+
+    .btn-sm:hover { border-color: var(--accent); }
+    .btn-sm.primary { background: var(--warn); color: #1a1000; border-color: var(--warn); }
+    .btn-sm.danger { background: var(--err); color: #1a0000; border-color: var(--err); }
+    .btn-sm[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+
+    /* Controls */
+    .controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+    .dpad {
+        display: grid;
+        grid-template-columns: repeat(3, 60px);
+        grid-template-rows: repeat(3, 60px);
+        gap: 6px;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+    }
+
+    .dpad button {
+        position: relative;
+        border-radius: 10px;
+        border: 1px solid var(--border-hi);
+        background: linear-gradient(160deg, #24272d, #17191d);
+        box-shadow: 0 3px 0 #000;
+        color: #cfd3d8;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: transform 0.06s, background 0.06s, opacity 0.2s;
+    }
+
+    @media (hover: hover) { .dpad button:hover { border-color: var(--manual); } }
+    .dpad button svg { width: 26px; height: 26px; }
+    .dpad button.held { background: var(--manual); color: #050a18; transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+    .dpad .up { grid-area: 1 / 2; }
+    .dpad .left { grid-area: 2 / 1; }
+    .dpad .right { grid-area: 2 / 3; }
+    .dpad .down { grid-area: 3 / 2; }
+    .dpad .center { grid-area: 2 / 2; border-radius: 50%; margin: 8px; background: #121418; box-shadow: none; color: var(--muted); }
+    .dpad .center svg { width: 20px; height: 20px; }
+    .dpad.locked button { opacity: 0.35; }
+    .dpad button.at-limit:not(.center) { opacity: 0.4; border-bottom-color: var(--err); }
+    .dpad.shake { animation: shake 0.3s; }
+    @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    .fire-wrap { flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 6px; max-width: 150px; }
+
+    .fire {
+        position: relative;
+        overflow: hidden;
+        height: 120px;
+        border-radius: 14px;
+        border: 1px solid #ff7a3d;
+        background: radial-gradient(circle at 50% 35%, #ff5a1f, #a80d0d 80%);
+        box-shadow: 0 5px 0 #4a0505, 0 0 24px rgba(255, 60, 0, 0.25);
+        color: #fff;
+        cursor: pointer;
+        font: 900 20px system-ui, sans-serif;
+        letter-spacing: 3px;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        --cd: 0;
+    }
+
+    .fire:active { transform: translateY(3px); box-shadow: 0 2px 0 #4a0505; }
+
+    .fire::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: conic-gradient(rgba(0, 0, 0, 0.55) calc(var(--cd) * 360deg), transparent 0);
+        pointer-events: none;
+    }
+
+    .fire[aria-disabled="true"] { filter: grayscale(1) brightness(0.5); cursor: not-allowed; }
+    .fire.ready { border-color: #fff; animation: ready 0.8s ease-in-out infinite alternate; } /* 1.6 s cycle, same as the brackets */
+
+    @keyframes ready {
+        from { box-shadow: 0 5px 0 #4a0505, 0 0 10px rgba(255, 90, 0, 0.4); }
+        to { box-shadow: 0 5px 0 #4a0505, 0 0 34px rgba(255, 120, 0, 0.95); }
+    }
+
+    .ctrl-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+    .ctrl-row .seg { flex: 1; }
+
+    .switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .switch small { color: var(--muted); margin-left: auto; }
+
+    /* Calibration wizard */
+    .wizard { border-color: rgba(255, 176, 32, 0.55); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+    .step { font-size: 11px; color: var(--muted); border-top: 3px solid var(--border-hi); padding-top: 5px; }
+    .step.cur { color: var(--warn); border-color: var(--warn); font-weight: 600; }
+    .step.done { color: var(--ok); border-color: var(--ok); }
+    .wizard p.instr { margin: 0 0 10px; font-size: 13px; }
+    .checks { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 4px; font-size: 12px; }
+    .checks li::before { content: "\2715"; display: inline-block; width: 18px; color: var(--err); font-weight: 700; }
+    .checks li.yes::before { content: "\2713"; color: var(--ok); }
+    .wizard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .wizard .err-box { padding: 8px 10px; border-radius: 6px; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.5); font-size: 12px; margin-bottom: 10px; }
+    .wizard .confirm { padding: 10px; border-radius: 6px; background: #0f1013; border: 1px solid var(--border-hi); }
+    .wizard .confirm p { margin: 0 0 8px; font-size: 13px; }
+
+    /* Telemetry */
+    details.tele summary { cursor: pointer; list-style: none; }
+    details.tele summary::-webkit-details-marker { display: none; }
+    details.tele summary h3 { margin: 0; }
+    details.tele summary h3::after { content: "+"; }
+    details.tele[open] summary h3::after { content: "\2212"; }
+    details.tele[open] summary { margin-bottom: 10px; }
+    .tgrid { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 12px; margin: 0; }
+    .tgrid dt { color: var(--muted); }
+    .tgrid dd { margin: 0; font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Event log drawer: opens over the side panel, takes no space while closed */
+    .drawer {
+        position: absolute;
+        top: 62px;
+        right: 10px;
+        bottom: 10px;
+        width: 320px;
+        z-index: 4;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(20, 22, 26, 0.97);
+        border: 1px solid var(--border-hi);
+        border-radius: var(--radius);
+        padding: 12px;
+        box-shadow: -12px 0 30px rgba(0, 0, 0, 0.5);
+        animation: drawer-in 0.16s ease-out;
+    }
+
+    @keyframes drawer-in { from { opacity: 0; transform: translateX(12px); } }
+    .drawer header { display: flex; align-items: center; gap: 6px; }
+    .drawer header h3 { margin: 0; flex: 1; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+    .filters { display: flex; gap: 4px; }
+
+    .filters button {
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 15px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font: 600 12px system-ui, sans-serif;
+        cursor: pointer;
+    }
+
+    .filters button[aria-pressed="true"] { background: var(--panel-2); color: var(--text); border-color: var(--border-hi); }
+    .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0; flex: 1; font-size: 13px; }
+    .log li { display: grid; grid-template-columns: 16px 1fr auto; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 6px; }
+    .log li.warn { background: rgba(255, 176, 32, 0.07); }
+    .log li.err { background: rgba(255, 77, 77, 0.09); }
+    .log li svg { width: 16px; height: 16px; color: var(--muted); }
+    .log li.ok svg { color: var(--ok); }
+    .log li.warn svg { color: var(--warn); }
+    .log li.err svg { color: var(--err); }
+    .log li.hit svg { color: var(--accent); }
+    .log time { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+    .log .count { color: var(--muted); font-size: 11px; margin-left: 6px; }
+    .log .empty { display: block; color: var(--muted); padding: 8px; }
+
+    /* ---------- Button style proposals (switch with "Buttons" in the review bar) ---------- */
+    @keyframes ready-glow {
+        from { filter: brightness(1); }
+        to { filter: brightness(1.3) drop-shadow(0 0 10px rgba(255, 120, 0, 0.8)); }
+    }
+
+    .hud.st-tactical .fire.ready, .hud.st-glass .fire.ready, .hud.st-hw .fire.ready { animation: ready-glow 0.8s ease-in-out infinite alternate; }
+
+    /* A. Tactical: flat plates with cut corners, mono labels, a hazard-striped FIRE frame */
+    .hud.st-tactical {
+        --cut: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+        --cut-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    }
+    .hud.st-tactical .seg { border-radius: 0; clip-path: var(--cut); background: #0b0c0e; padding: 3px; }
+    .hud.st-tactical .seg button { border-radius: 0; clip-path: var(--cut); font-family: var(--mono); letter-spacing: 2px; }
+    .hud.st-tactical .seg button[aria-pressed="true"] { box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35); }
+    .hud.st-tactical .dpad { gap: 4px; }
+    .hud.st-tactical .dpad button { border-radius: 0; clip-path: var(--cut); background: #16181c; border: 1px solid #343a44; box-shadow: none; }
+    .hud.st-tactical .dpad button.held { background: var(--manual); transform: none; }
+    .hud.st-tactical .dpad .center { clip-path: none; border-radius: 50%; }
+    .hud.st-tactical .fire {
+        border-radius: 0;
+        clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+        border: 6px solid transparent;
+        background: linear-gradient(160deg, #c3170f, #6e0707) padding-box,
+            repeating-linear-gradient(45deg, #ffb020 0 7px, #141414 7px 14px) border-box;
+        box-shadow: none;
+        font-family: var(--mono);
+        letter-spacing: 5px;
+    }
+    .hud.st-tactical .fire:active { transform: none; filter: brightness(1.25); }
+    .hud.st-tactical .btn-sm, .hud.st-tactical .icon-btn { border-radius: 0; clip-path: var(--cut-sm); }
+    .hud.st-tactical .icon-btn { background: #121418; border-color: var(--border); }
+    .hud.st-tactical .chip { border-radius: 3px; }
+
+    /* B. Glass: frosted translucent panels, round keys, coloured glow for the active state */
+    .hud.st-glass .box { background: rgba(28, 31, 37, 0.55); backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.08); border-radius: 14px; }
+    .hud.st-glass .seg { border-radius: 999px; background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.08); }
+    .hud.st-glass .seg button { border-radius: 999px; }
+    .hud.st-glass .seg button[aria-pressed="true"][data-mode="ai"] { box-shadow: 0 0 16px rgba(255, 107, 0, 0.55); }
+    .hud.st-glass .seg button[aria-pressed="true"][data-mode="user"] { box-shadow: 0 0 16px rgba(122, 167, 255, 0.55); }
+    .hud.st-glass .seg button[aria-pressed="true"][data-mode="calibrate"] { box-shadow: 0 0 16px rgba(255, 176, 32, 0.55); }
+    .hud.st-glass .dpad button {
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(6px);
+    }
+    .hud.st-glass .dpad button.held { background: rgba(122, 167, 255, 0.85); box-shadow: 0 0 18px rgba(122, 167, 255, 0.6); transform: scale(0.94); }
+    .hud.st-glass .fire {
+        height: auto;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 40%, rgba(255, 90, 40, 0.95), rgba(160, 10, 10, 0.85) 70%);
+        border: 1px solid rgba(255, 180, 150, 0.5);
+        box-shadow: 0 0 0 6px rgba(255, 60, 0, 0.12), 0 0 30px rgba(255, 60, 0, 0.35);
+    }
+    .hud.st-glass .fire:active { transform: scale(0.95); }
+    .hud.st-glass .btn-sm { border-radius: 999px; }
+    .hud.st-glass .btn-sm:not(.primary):not(.danger) { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); }
+    .hud.st-glass .icon-btn { border-radius: 50%; }
+    .hud.st-glass .icon-btn:hover { background: rgba(255, 255, 255, 0.06); }
+
+    /* C. Hardware: physical keys with a lip that sink when pressed, a one-piece cross pad, an arcade FIRE */
+    .hud.st-hw .seg { background: #08090b; border-radius: 8px; padding: 5px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6); }
+    .hud.st-hw .seg button { border-radius: 6px; background: linear-gradient(#2a2e35, #1d2026); box-shadow: 0 3px 0 #050506, inset 0 1px 0 rgba(255, 255, 255, 0.07); color: #aab0b8; }
+    .hud.st-hw .seg button[aria-pressed="true"] { transform: translateY(2px); box-shadow: 0 1px 0 #050506, inset 0 2px 4px rgba(0, 0, 0, 0.35); }
+    .hud.st-hw .seg button[aria-pressed="true"][data-mode="ai"] { background: linear-gradient(#ff8a2b, #e25c00); color: #140700; }
+    .hud.st-hw .seg button[aria-pressed="true"][data-mode="user"] { background: linear-gradient(#9bbcff, #6a95f0); color: #050a18; }
+    .hud.st-hw .seg button[aria-pressed="true"][data-mode="calibrate"] { background: linear-gradient(#ffc650, #e89a10); color: #1a1000; }
+    .hud.st-hw .seg.small button[aria-pressed="true"] { background: linear-gradient(#3a414b, #2b3038); color: var(--text); }
+    /* Sized so pad + FIRE + its rim fit the 320 px side panel: 3 x 52 + 12 gap + 86 + 2 x 8 rim = 270 of 272 px. */
+    .hud.st-hw .dpad { position: relative; gap: 0; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); }
+    .hud.st-hw .dpad::before, .hud.st-hw .dpad::after {
+        content: "";
+        position: absolute;
+        background: linear-gradient(#2b2f36, #1b1e23);
+        box-shadow: 0 4px 0 #050506, inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+    }
+    .hud.st-hw .dpad::before { left: 33.33%; width: 33.34%; top: 0; bottom: 0; }
+    .hud.st-hw .dpad::after { top: 33.33%; height: 33.34%; left: 0; right: 0; }
+    .hud.st-hw .dpad.locked::before, .hud.st-hw .dpad.locked::after { opacity: 0.45; }
+    .hud.st-hw .dpad button { z-index: 1; background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+    .hud.st-hw .dpad button.held { background: rgba(122, 167, 255, 0.22); color: var(--manual); transform: none; box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.5); }
+    .hud.st-hw .dpad button.at-limit:not(.center) { color: var(--err); }
+    .hud.st-hw .dpad .center { margin: 14px; border-radius: 50%; background: radial-gradient(#23262c, #121418); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7); }
+    .hud.st-hw .fire-wrap { align-items: center; }
+    .hud.st-hw .fire {
+        flex-shrink: 0;
+        width: 86px;
+        height: 86px;
+        border-radius: 50%;
+        border: 0;
+        font-size: 14px;
+        letter-spacing: 2px;
+        background: radial-gradient(circle at 50% 30%, #ff7a4a 0, #e0261a 35%, #8f0b0b 75%);
+        box-shadow: 0 0 0 7px #1a1c20, 0 0 0 8px #3a3f48, 0 7px 0 7px #0a0b0d, inset 0 -6px 10px rgba(0, 0, 0, 0.35);
+    }
+    .hud.st-hw .fire:active { transform: translateY(4px); box-shadow: 0 0 0 7px #1a1c20, 0 0 0 8px #3a3f48, 0 3px 0 7px #0a0b0d, inset 0 -3px 8px rgba(0, 0, 0, 0.4); }
+    .hud.st-hw .btn-sm:not(.primary):not(.danger), .hud.st-hw .icon-btn { background: linear-gradient(#262a30, #1a1d21); border-color: #2c3038; box-shadow: 0 2px 0 #050506; }
+    .hud.st-hw .btn-sm:active, .hud.st-hw .icon-btn:active { transform: translateY(2px); box-shadow: none; }
+
+    /* Help and confirm dialogs */
+    dialog {
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--border-hi);
+        border-radius: 12px;
+        padding: 18px 20px;
+        width: min(420px, 92vw);
+    }
+
+    dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+    dialog h2 { margin: 0 0 12px; font-size: 16px; }
+    dialog table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    dialog td { padding: 5px 0; border-bottom: 1px solid var(--border); }
+    dialog td:last-child { text-align: right; }
+    dialog p { font-size: 12px; color: var(--muted); }
+    dialog.arm { border-color: rgba(255, 77, 77, 0.6); }
+    dialog.arm h2 { color: #ffb3b3; }
+    dialog.arm p.lead { color: var(--text); font-size: 13px; }
+    dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
+
+    kbd {
+        font: 600 11px var(--mono);
+        padding: 1px 5px;
+        border-radius: 4px;
+        border: 1px solid var(--border-hi);
+        background: #0f1013;
+        color: #cfd3d8;
+    }
+
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .haptic-sink { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+
+    /* ---------- Phone portrait ---------- */
+    @container device (max-width: 700px) {
+        .brand span, .chip b, .chip.wifi, .chip.cal, #btn-fs { display: none; }
+        .chip.viewers:not(.warn):not(.err) { display: none; }
+        .statusbar { gap: 6px; padding-inline: 8px; }
+        .chip { padding: 0 8px; }
+        .icon-btn { width: 36px; height: 36px; }
+        .main { grid-template-columns: 1fr; grid-template-rows: auto; align-content: start; overflow-y: auto; padding: 8px; gap: 8px; }
+        .viewport { aspect-ratio: 4 / 3; }
+        .panel { overflow: visible; }
+        .fire-wrap { max-width: 140px; }
+        .fire { height: 132px; }
+        .p-tele { order: 9; }
+        .drawer { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 62%; }
+        /* Full width on a phone: room for the full-size pad and arcade button. */
+        .hud.st-hw .dpad { grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); }
+        .hud.st-hw .fire { width: 112px; height: 112px; font-size: 17px; letter-spacing: 3px; }
+    }
+
+    /* ---------- Phone landscape ---------- */
+    @container device (max-height: 500px) {
+        .statusbar { min-height: 40px; padding-top: 3px; padding-bottom: 3px; }
+        .brand span, .chip b, .chip.wifi, .chip.cal, #btn-fs { display: none; }
+        .chip.viewers:not(.warn):not(.err) { display: none; }
+        .brand img { height: 28px; }
+        .chip { height: 26px; }
+        .icon-btn { width: 34px; height: 34px; }
+        .main { grid-template-columns: 1fr 300px; padding: 6px; gap: 6px; }
+        .box { padding: 8px; }
+        .box h3 { display: none; }
+        .seg button { height: 40px; }
+        .dpad { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 50px); gap: 5px; }
+        .fire { height: 100px; }
+        .p-tele, .hint:empty { display: none; }
+        .drawer { top: 46px; bottom: 6px; right: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+    }
+
+    .reduced * { animation: none !important; transition: none !important; }
+</style>
+
+<!-- Mockup-only controls: preview viewports and states. Not part of the HUD. -->
+<div class="review" aria-label="Mockup controls">
+    <div class="grp"><strong>Viewport</strong>
+        <button data-vp="desktop" aria-pressed="true">Desktop</button>
+        <button data-vp="phone" aria-pressed="false">Phone</button>
+        <button data-vp="land" aria-pressed="false">Phone landscape</button>
+    </div>
+    <div class="grp"><strong>Video</strong>
+        <button data-video="live" aria-pressed="true">Live</button>
+        <button data-video="stale" aria-pressed="false">Frozen</button>
+        <button data-video="busy" aria-pressed="false">Busy</button>
+    </div>
+    <div class="grp"><strong>Viewers</strong>
+        <button data-viewers="1" aria-pressed="true">1</button>
+        <button data-viewers="2" aria-pressed="false">2</button>
+    </div>
+    <div class="grp"><strong>Light</strong>
+        <button data-light="normal" aria-pressed="true">Normal</button>
+        <button data-light="dark" aria-pressed="false">Dark</button>
+    </div>
+    <div class="grp"><strong>Link</strong>
+        <button data-link="ok" aria-pressed="true">OK</button>
+        <button data-link="lost" aria-pressed="false">Lost</button>
+    </div>
+    <div class="grp"><strong>Board</strong>
+        <button id="rv-cal" aria-pressed="true">Calibrated</button>
+        <button id="rv-motion" aria-pressed="false">Reduced motion</button>
+        <button id="rv-haptic">Test haptic</button>
+    </div>
+    <div class="grp"><strong>Buttons</strong>
+        <button data-st="" aria-pressed="false">Current</button>
+        <button data-st="tactical" aria-pressed="false">A Tactical</button>
+        <button data-st="glass" aria-pressed="false">B Glass</button>
+        <button data-st="hw" aria-pressed="true">C Hardware</button>
+    </div>
+    <div class="grp" id="ret-grp"><strong>Reticle</strong></div>
+    <div class="grp"><strong>Brackets</strong>
+        <button data-br="red" aria-pressed="false">Red</button>
+        <button data-br="white" aria-pressed="true">White</button>
+    </div>
+    <span class="tag">Mockup: simulated feed, no board. Press ? for the shortcuts.</span>
+</div>
+
+<div class="stage" id="stage">
+    <div class="device" id="device">
+        <div class="hud st-hw" id="hud">
+            <header class="statusbar">
+                <div class="brand">
+                    <img src="data:image/webp;base64,UklGRt4MAABXRUJQVlA4WAoAAAAQAAAAXwAAXwAAQUxQSDcIAAAB8L9t2zql/v/v63rQ3d3dYNFhF2F3t9i6ltiK2N3d8nziSru7iQXKZoGUTXf3zPnD1GMe84iICSBOMxKJh3Wde01ZfShR4pF10/q46vOHXve5p5ILmyFjS/F/5xYGGfCAfu9tydUAhLVfUm9ePLBn5849+y9cT86vFgCoTd870EihGI+VyY1Ax9fb28b72+iqkkQVHetuoxOu57UBLRnxfsqKohp6/BfQ+u7gUHs1YlXVOnJXRhNQcqGPuiIwwf+rBn6cjjIluRr1P5wP1F/uo8I5l4PlwPvVbgzJ32FpuhA1Z3y4pRWbC3xcZkUcNZ2bAXxfrs8hn386UJxgSxw2j/sG4d1ArihPzEf7v/7Ece8LzfgVq84J/e2N+DFPkzivNikXbUdNOWDzJ/DYnxTS6zpwx01uHk/QccKMFNRgVwvSe8jJLwONazRIYVUWVOFzmFz83qByjhIp8tgi5ITKwTkFlZNIwaN/4WMX1szuomYSKXxMCZIdWNI8g+aFxIMTa3DZgJ24TsFmZT6gZW3YoczGwEr8X4d4Ue0QGsexYJOOdBsiIsaIUSBzJSIio4fIcZdJ+QDKY0NViIjChzPidJW4wuhJGDSYiIgJmPYdieqyDKrFeo11hz2ISOvQel0xoT5cceorRmPpWUMicti1Q2d+Z+sEGQyf4oUJ6R3OWWtPZP/8VoCI6wFDbmjt6iHi82eGF5HV0k+JJqRzHZlW0sUKGqKISHNpYUGCD3k8L4m3JlI6eFSbC2pbE9WIzJb/eONPbquyyjfoElFIOdZJZZGJC6okGvBPc1nS8MBTtR+W2JBr9gUL+Rke+NqDzGdn1F8KjTxb2HanF4kye1HgLM0ilPYg8eqRV+oFuUl/FSMr3ndc6at+jJxC7lfP9VyZKai8nPipo+nuSG0S71qABCnM3uIII4FILWh/nrC9BUDZ5XuoPuQhD8dtpXj+ZxGA1jZ8O9FTk6SMR4GTpOnCigCS3mpmGcQKAHyLd2TLOi4HgABi65bYMSS123fESdC8hyQVGcijrG3P0awWiM9da82G6dIPEN+We2ZLQ0MIyXoQaYbiQutaY0jW0cJvbn6+A7el1IgA76ZpyaI2Kk0I0br0vVG+Xe3eYb5MobVtMeK2I81Qplg8DyrIPBJhELrsZjEAtP3tKZ3DuSYAKL+/qqeR/97/CntfxgaZNO/hDCNi9AbxJPMC3OnVACQ5n4oN6DHvVgWArIHShKYDqHm4NLD79DM++4GOmERslInmI99WpGdjXYhsY/HUvwxIcU5D5d0QraANmZ0oGiwpNB/CrG1her5XS5Hjdhto6PkPFsrmWdIxXGQt0vRl61bzvXs60DIx6OH3v92X/znCY3oy8n3FOb7F2wWeURc3O53/9rJfZB2Q1+1da1/ZNO7iIBGp38Y+kl33mXDMRgA/p7t5ua+tR/szJ8NFX69oiaieKVxtbn6rBS07PT3dxuQCODqg5Z2ZbLQaqXpEdl+FY1igGbjd7TOA9tzUr0IAT4yIPJJGivT9pzuR9mUA+Jma3QrgV3Ai4ojFvi3lPkS9W8q82NC/J5w7rBySc/yJiIz7qhAxPa2IiDwyILl+2pjWNAs2bAqEo4jmI12fDeqSVTkiKlOc8GkPYtHzZqe4z2P7//wRQWyq30c80QH8qcQKBaRX/Oaz7MG79+/vzjYhVvUnX3///t2TNX6zCz/1JXaPIElJ9Tq2EMvWCVkPYnt6mhhpEOtqRsbuETNu5ux2IpaX4JWuQRpms0VkN2rx9EAVkqtS16mLxzkT68MEOTZ2eZ0x7Cl+SGOJr3dRYxB/uZXXRoRU18/q1UfufR1Yse3bR969xpe2xIRVo7VZ/u1rWVnS1iz3FmHzsLBqcHIjK7+DiwqgosK9GmFttfzrVkqKjJJiQW213GsFLcOCq2pH+XaVv4UE1ctXVCWZdpW73+Ci5mivosZA4nCPyqoASVx0K6sNs83tjOLSTmA3l4Ibin30UzCDQ7afgRw7Dg0RZFurXEUChyYIAMFEDi3Ecx3aiySGOwsAYAGHDiCRoTlI1eXOfJH53FG7g7VEEU0l7nxllSsYRmSdLxjOVz2bSj2IVK9hJ1/9jpc6RLQCr3T5Se0GdhMRBdfV+POT66/2KBH9FKzip5nIthSheLzU4yO16zhCYv2rmgfwkX9l8wBx6tdwRomHduClnjga11nixz8OeVhIEo1SsIt/4pBlI4lmCn96841dFlaSlMYpOKrEMwnItpWGJndU9+aXroVYRlLr3MY9fT7RuIRkU+kookK4jE+mtDUOJVk3oyiYP7xycUxFJtNneGLGF3pXkGlPsocV4Zg6PyhvRk00sTm3tX05P8xoEqxhWFHdi7rJfBBTivNaxK7BXyiNUbyeX3Hfgti2eoDCaEWLyEWqC7Hv/BSFYxRrYD7e+JE8nZ+gKlZZcZgJRUj3I/naXkXzNj1F0VxZh8fuJG/j45247K4Yduc7ccma5K8RV4WsMSrcYyIz0LBZlzgZmYmmk25cs9tbi5wxSsRRh5PNyFtkxCW9GR/QnuRB3FUdnQG8nmzAFZ2RDzvxcboGcdpy/Xd0vpxlyQXTSQ/aULzDnjjvub8Q+LgtWEc+mj02vBWg7GQ3UkTGa3M2UPd8Xbgxw5JhUNzDKqBgTzclUlTrmbcqgMZ3F5cOcDFUI4oViSVSNXDqs/BsRj1Q83CBAym0RpdlN38JgfbizDvnd90UubHj7K03ha0Aiu+v8tcixVdzHrnlVnZ1J6QW1OTe2znOXYN4U83cL3LWuv3nExMTEy8c2DA3uqulOvEywzAMcRwAVlA4IIAEAABQGgCdASpgAGAAPpFAmUolo6IhqdRq4LASCWwGfCuAGdNWMKBzHlNupfkP7V1afr/jc7weSfKk5t/6HsO/qv9u9in55/4HuD/q55yvqQ8wH2q+8t6Bf8N6gH9e/4Ho7exV6AHlsfu78Kn9y/4noyZrxQxbgFgB7uuFzaO7ban/FXyh4OM/D0Lg1JPijO8VABMDXf3fDiD5BHX8DKjjZ7LjnJ/Be35q0kypWQg1SBpUSBy5BEQFfnYP0Y4ERYNAl/op/tgjp6I2iMwppR+oB/7lT7QLewxK9ypoUAAA/vp/f/9Sf//Ua3/pzpnf1ycpdTgaX1ytEwn4dbsMXkd/CQ10W1T0g1+4yqaPr9VaKyAXt2WyWCQGEm/cbDvLKdb6uhnrczAuU/WepLFSJ3uZKalaEYIWX7itJA3HVPsLfrOTrZhfULsN+WRnd01onjRX4BmXAGacMRcjUeW2jjeeIVIYWIcPwf7k9YtwuKUEb/7kc1TepqZhpTgoqtzV4feZW3vdqVY5RE4VysD8k2Km6242McxVVvR2Cwtjl5F5k8qAWOjTnxvyPlk56zpQaQYtuO+G6aq//EcwRWhETcI6+I3l4jQNpnZaCJSh//9UpFOEXwLeE3rpkZqZleUZJvx8Z5YlmxUkadZBNPB1KSOA6svvto1a+QyFqryQ76xFv93WhZttdIZL+PKnUxu3IghB2Oo8AlH9CaLIi0IhRnKEiBrJWfUzO4FxBFuD+oiWVmzpJueyusVhNMLrvA3U8gIpuDbuwb/cFr/JycVESUaBDisfsJWgV7TqCeoXBSSUCg1QDsREvrPqHyLdJMJWayrXLKnn0VHf3yKQSbwWhLIuV6Af4WzXsWreZ12zzWDo8ZmFol/TV9hVN7buM48z8SEe3D6mbD8K9X8E2845pOY2zP2eqhsU+1kLT5qmcGjv1CmzMgaIHiAcX73J1nGxQW5tLxlvEDNQRlVmbQ0FbbepYbMy04RDtZqWqXo5DQfQahPwkAgrjbfuruQU4IPh++nT0l6BbetSmP+JgVOFmcMYUlkxd82TFUIK5mH2v7nbLB/WMEd+Bhm/311QMkFQBb9+Kk/ti4YpUPcpJmQVAmumn1GKqIEiZIb7bJV73BV0vx6d2d7dk3D9yvc8LvlF/XKx9/YeFORVHBjpf0840JwqkwxFktwQRKeZicDfvajGAuftMHb/9sUaQugWkyM0vWwn325cCmIsyzKTty8W79ojBZppz3U0Y1RIW5D+GLjhd1wvG26bolF8hhpMVV3ha9jKsbc8JJNuPtotb4Icya+gs056fVhmRwfGbyaQnddnwhWXICmw7K7dk1tGwYygym4Sarnbp/hrasf7fpL14DxITUVNangQq8UVGzxJFTf0mMY380BFiQ4rNYwueMvHR7ItwCfXu7uUUxm9z/Icb1X1NLY3mTMZEaAxRQZnqVbZuK1genLLiE4E2jB4V6+5kN//1QVVsiXW5u+YHLQKmglFA2ZQQE7F/bOY7lIEPSd1+ZB/uFb9uRgcsmg9/Gjm1vVOsAA=" alt="">
+                    <span>VOID SENTRY</span>
+                </div>
+                <div class="chips">
+                    <span class="chip mode-ai" id="chip-mode"><i class="dot"></i><b>MODE</b><span>AI</span></span>
+                    <span class="chip ok" id="chip-video"><i class="dot"></i><b>VIDEO</b><span>15 fps</span></span>
+                    <span class="chip ok" id="chip-link"><i class="dot"></i><b>LINK</b><span>23 ms</span></span>
+                    <span class="chip ok viewers" id="chip-viewers" title="Video viewers (the board allows 2)"><i class="dot"></i><b>VIEWERS</b><span>1/2</span></span>
+                    <span class="chip ok cal" id="chip-cal"><i class="dot"></i><b>CAL</b><span>OK</span></span>
+                    <span class="chip armed" id="chip-armed" hidden><i class="dot"></i><b>AUTO-FIRE</b><span>ARMED</span></span>
+                    <a class="chip ok wifi" href="#wifi" title="WiFi setup"><i class="dot"></i><b>WIFI</b><span>HomeNet-5G</span></a>
+                </div>
+                <div class="bar-actions">
+                    <button class="icon-btn" id="btn-help" aria-label="Help and shortcuts (?)" title="Help (?)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg>
+                    </button>
+                    <button class="icon-btn" id="btn-snap" aria-label="Save snapshot (P)" title="Snapshot (P)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                    </button>
+                    <button class="icon-btn" id="btn-log" aria-label="Event log" aria-expanded="false" title="Event log">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+                        <span class="badge" id="log-badge" hidden>0</span>
+                    </button>
+                    <button class="icon-btn" id="btn-fs" aria-label="Fullscreen (F)" title="Fullscreen (F)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="main">
+                <section class="viewport" aria-label="Camera view">
+                    <div class="frame" id="frame">
+                        <canvas id="scene" width="320" height="240"></canvas>
+                        <canvas id="overlay" width="640" height="480"></canvas>
+                        <div class="ov tl"><span class="track-word locked" id="ov-track">TRACKING</span></div>
+                        <div class="ov tr" id="ov-fps">15 fps</div>
+                        <div class="ov bl" id="ov-light" hidden>LOW LIGHT · tracking may miss targets</div>
+                        <div class="card" id="card-busy" hidden>
+                            <div>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="M16 10l5-3v10l-5-3"/><path d="M3 3l18 18"/></svg>
+                                <h2>Video busy</h2>
+                                <p>The turret streams to 2 viewers at most. Close another HUD tab or device. Retrying every 3 s.</p>
+                            </div>
+                        </div>
+                        <div class="card" id="card-link" hidden>
+                            <div>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg>
+                                <h2>Turret link lost</h2>
+                                <p>Controls are paused. Reconnecting (attempt <span id="link-attempt">1</span>)...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="toasts" id="toasts" aria-live="polite"></div>
+                </section>
+
+                <aside class="panel">
+                    <div class="box p-mode">
+                        <h3>Mode</h3>
+                        <div class="seg" role="group" aria-label="Control mode">
+                            <button data-mode="ai" aria-pressed="true" title="AI tracking (M)">AI</button>
+                            <button data-mode="user" aria-pressed="false" title="Manual (M)">MANUAL</button>
+                            <button data-mode="calibrate" aria-pressed="false" title="Calibrate (C)">CALIBRATE</button>
+                        </div>
+                        <p class="hint" id="mode-hint">AI is aiming at the tracked target.</p>
+                    </div>
+
+                    <div class="callout" id="uncal-callout" hidden>
+                        <p>Not calibrated. AI uses a default map, so aim may be off.</p>
+                        <button class="btn-sm primary" id="uncal-go">Calibrate</button>
+                    </div>
+
+                    <div class="box wizard" id="wizard" hidden aria-live="polite"></div>
+
+                    <div class="box p-ctrl">
+                        <h3>Controls</h3>
+                        <div class="controls">
+                            <div class="dpad locked" id="dpad">
+                                <button class="up" data-dir="up" aria-label="Jog up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 15l6-6 6 6"/></svg></button>
+                                <button class="left" data-dir="left" aria-label="Jog left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M15 6l-6 6 6 6"/></svg></button>
+                                <button class="center" id="recenter" aria-label="Recenter turret (H)" title="Recenter (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+                                <button class="right" data-dir="right" aria-label="Jog right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M9 6l6 6-6 6"/></svg></button>
+                                <button class="down" data-dir="down" aria-label="Jog down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 9l6 6 6-6"/></svg></button>
+                            </div>
+                            <div class="fire-wrap">
+                                <button class="fire" id="fire" aria-label="Fire">FIRE</button>
+                            </div>
+                        </div>
+                        <div class="ctrl-row">
+                            <span>Jog speed</span>
+                            <div class="seg small" role="group" aria-label="Jog speed">
+                                <button data-speed="slow" aria-pressed="false" title="Slow (or hold Shift)">SLOW</button>
+                                <button data-speed="normal" aria-pressed="true">NORMAL</button>
+                                <button data-speed="fast" aria-pressed="false">FAST</button>
+                            </div>
+                        </div>
+                        <label class="switch"><input type="checkbox" id="auto-fire"> Sentry auto-fire <small>AI mode</small></label>
+                    </div>
+
+                    <details class="box tele p-tele" open id="tele">
+                        <summary><h3>Telemetry</h3></summary>
+                        <dl class="tgrid">
+                            <dt>Target</dt><dd id="t-target">--</dd>
+                            <dt>Position</dt><dd id="t-pos">--</dd>
+                            <dt>Velocity</dt><dd id="t-vel">--</dd>
+                            <dt>Area</dt><dd id="t-area">--</dd>
+                            <dt>Pan / tilt</dt><dd id="t-pt">--</dd>
+                            <dt>Aim point</dt><dd id="t-aim">--</dd>
+                            <dt>Video</dt><dd id="t-fps">--</dd>
+                            <dt>Link round trip</dt><dd id="t-rtt">--</dd>
+                            <dt>Brightness</dt><dd id="t-light">--</dd>
+                            <dt>Decode errors</dt><dd id="t-dec">0</dd>
+                        </dl>
+                    </details>
+                </aside>
+            </div>
+
+            <aside class="drawer" id="drawer" hidden aria-label="Event log">
+                <header>
+                    <h3>Events</h3>
+                    <button class="btn-sm" id="log-clear">Clear</button>
+                    <button class="icon-btn" id="log-close" aria-label="Close event log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                </header>
+                <div class="filters" role="group" aria-label="Filter events">
+                    <button data-f="all" aria-pressed="true">All</button>
+                    <button data-f="target" aria-pressed="false">Targets</button>
+                    <button data-f="system" aria-pressed="false">System</button>
+                </div>
+                <ol class="log" id="log"></ol>
+            </aside>
+        </div>
+        <span class="device-label" id="device-label">1280 x 800</span>
+    </div>
+</div>
+
+<dialog id="help" aria-labelledby="help-title">
+    <h2 id="help-title">Controls</h2>
+    <table>
+        <tr><td>Jog (Manual, Calibrate)</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows</td></tr>
+        <tr><td>Slow jog while held</td><td><kbd>Shift</kbd></td></tr>
+        <tr><td>Recenter turret</td><td><kbd>H</kbd></td></tr>
+        <tr><td>Toggle AI / Manual</td><td><kbd>M</kbd></td></tr>
+        <tr><td>Start calibration</td><td><kbd>C</kbd></td></tr>
+        <tr><td>Record calibration point</td><td><kbd>Enter</kbd></td></tr>
+        <tr><td>Cancel calibration</td><td><kbd>Esc</kbd></td></tr>
+        <tr><td>Fire</td><td><kbd>Space</kbd></td></tr>
+        <tr><td>Snapshot</td><td><kbd>P</kbd></td></tr>
+        <tr><td>Fullscreen / help</td><td><kbd>F</kbd> <kbd>?</kbd></td></tr>
+    </table>
+    <p>The joystick on the turret always wins over the HUD. Short press: AI / Manual. Hold 1.5 s: start or cancel calibration. Short press while calibrating: record a point.</p>
+    <p>The red reticle shows where the turret points; the corner brackets mark the tracked target. In Manual, tap or drag on the video to aim. Fire is a HUD effect only: it hits when the reticle is on the target.</p>
+    <form method="dialog" class="actions">
+        <button class="btn-sm" value="close" autofocus>Close</button>
+    </form>
+</dialog>
+
+<dialog id="arm-dlg" class="arm" aria-labelledby="arm-title">
+    <h2 id="arm-title">Allow automatic firing?</h2>
+    <p class="lead">In AI mode the turret will fire by itself whenever it holds a target for 0.8 s, without you pressing FIRE.</p>
+    <p>Arm it only when no people or pets are in front of the turret. It turns off again if the link drops or the page reloads.</p>
+    <form method="dialog" class="actions">
+        <button class="btn-sm" value="cancel" autofocus>Keep it off</button>
+        <button class="btn-sm danger" value="arm">Arm auto-fire</button>
+    </form>
+</dialog>
+
+<input type="checkbox" switch id="haptic-sink" class="haptic-sink" tabindex="-1" aria-hidden="true">
+<label for="haptic-sink" id="haptic-label" class="haptic-sink" aria-hidden="true"></label>
+<div class="sr" aria-live="polite" id="announce"></div>
+
+<script>
+(function () {
+    'use strict';
+    const $ = (s) => document.querySelector(s);
+    const W = 320, H = 240;
+    const scene = $('#scene').getContext('2d', { willReadFrequently: true });
+    const ov = $('#overlay').getContext('2d');
+
+    // ---------------- Reticles (black under-stroke, red on top) ----------------
+    const RET_RED = '#ff2d2d', RET_RGB = '255,45,45', RET_BLACK = 'rgba(0,0,0,0.85)';
+    const easeOutBack = (x) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+    const RETICLES = {
+        classic: { name: 'Classic', draw(g, x, y, under) {
+            g.beginPath(); g.arc(x, y, 9, 0, Math.PI * 2); g.stroke();
+            g.beginPath();
+            g.moveTo(x - 15, y); g.lineTo(x - 5, y); g.moveTo(x + 5, y); g.lineTo(x + 15, y);
+            g.moveTo(x, y - 15); g.lineTo(x, y - 5); g.moveTo(x, y + 5); g.lineTo(x, y + 15);
+            g.stroke();
+            g.beginPath(); g.arc(x, y, under ? 2.4 : 1.3, 0, Math.PI * 2); g.fill();
+        } },
+        dot: { name: 'Red dot', draw(g, x, y, under) {
+            for (let i = 0; i < 4; i++) {
+                g.beginPath(); g.arc(x, y, 11, i * Math.PI / 2 + 0.35, (i + 1) * Math.PI / 2 - 0.35); g.stroke();
+            }
+            g.beginPath(); g.arc(x, y, under ? 3.4 : 2.2, 0, Math.PI * 2); g.fill();
+        } },
+        chevron: { name: 'Chevron', draw(g, x, y, under) {
+            g.beginPath(); g.moveTo(x - 9, y + 7); g.lineTo(x, y - 1); g.lineTo(x + 9, y + 7); g.stroke();
+            g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x, y + 13); g.stroke();
+            g.beginPath(); g.arc(x, y - 1, under ? 2.4 : 1.2, 0, Math.PI * 2); g.fill();
+        } },
+        mildot: { name: 'Mil-dot', draw(g, x, y, under) {
+            g.beginPath();
+            g.moveTo(x - 19, y); g.lineTo(x - 4, y); g.moveTo(x + 4, y); g.lineTo(x + 19, y);
+            g.moveTo(x, y - 19); g.lineTo(x, y - 4); g.moveTo(x, y + 4); g.lineTo(x, y + 19);
+            g.stroke();
+            for (const d of [-13, -8, 8, 13]) {
+                g.beginPath(); g.arc(x + d, y, under ? 2 : 1, 0, Math.PI * 2); g.fill();
+                g.beginPath(); g.arc(x, y + d, under ? 2 : 1, 0, Math.PI * 2); g.fill();
+            }
+            g.beginPath(); g.arc(x, y, under ? 2.2 : 1.1, 0, Math.PI * 2); g.fill();
+        } },
+        holo: { name: 'Holo ring', draw(g, x, y, under) {
+            g.beginPath(); g.arc(x, y, 13, 0, Math.PI * 2); g.stroke();
+            g.beginPath();
+            for (const [dx, dy] of [[0, -13], [0, 13], [-13, 0], [13, 0]]) { g.moveTo(x + dx, y + dy); g.lineTo(x + dx * 1.35, y + dy * 1.35); }
+            g.stroke();
+            g.beginPath(); g.arc(x, y, under ? 2.6 : 1.5, 0, Math.PI * 2); g.fill();
+        } }
+    };
+    function drawReticle(g, x, y, style, dashed) {
+        const pass = (under) => {
+            g.strokeStyle = g.fillStyle = under ? RET_BLACK : RET_RED;
+            g.lineWidth = under ? 3.6 : 1.5;
+            g.setLineDash(dashed && !under ? [3, 3] : []);
+            RETICLES[style].draw(g, x, y, under);
+        };
+        g.save(); g.lineCap = 'round'; pass(true); pass(false); g.restore();
+    }
+
+    const S = {
+        mode: 'ai', prevMode: 'ai', pending: null,
+        calibrated: true, link: 'ok', video: 'live', viewers: 1, light: 'normal', lowLight: false, brightness: 0,
+        reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        cal: { active: false, step: 1, p1: null, failed: '', confirm: false },
+        aim: { x: 160, y: 120 }, uiGoal: null, boardGoal: null, lastAimSend: 0, dragId: null,
+        held: new Map(), jogging: false, armed: false, speed: 'normal', shift: false,
+        ret: 'classic', brackets: 'white', lockSince: 0, acqAt: 0, idleSince: 0, homing: false,
+        cooldownUntil: 0, staleSince: 0, fx: [], boxFlashUntil: 0, charge: 0, trail: [], trailT: 0,
+        // The board still sends a track id; the HUD never shows it, it only uses a change to replay the acquire snap.
+        trk: { visible: false, state: 'idle', prevState: 'idle', id: 2, acqT: 0, lostT: 0, x: 160, y: 120, vx: 0, vy: 0, lastSeen: 0 }
+    };
+    const REACH = { x0: 18, x1: 302, y0: 22, y1: 222 }; // what the turret can physically point at
+    const SLEW_PX_S = 80;
+    const JOG_PX_S = { slow: 30, normal: 90, fast: 160 };
+    const HOME = { x: 160, y: 120 };
+    const HOME_DELAY_S = 2; // the board's return-home timer after a target is lost
+
+    // ---------------- Viewport and state preview (mockup only) ----------------
+    const VPS = { desktop: [1280, 800], phone: [390, 844], land: [844, 390] };
+    let vp = 'desktop';
+    function fitDevice() {
+        const [w, h] = VPS[vp];
+        const st = $('#stage').getBoundingClientRect();
+        const k = Math.min((st.width - 24) / w, (st.height - 24) / h, 1);
+        const d = $('#device');
+        d.style.width = w + 'px';
+        d.style.height = h + 'px';
+        d.style.transform = `translate(-50%, -50%) scale(${k})`;
+        $('#device-label').textContent = `${w} x ${h}` + (k < 1 ? ` @ ${Math.round(k * 100)}%` : '');
+    }
+    window.addEventListener('resize', fitDevice);
+    function pressGroup(attr, val) {
+        document.querySelectorAll(`.review [${attr}]`).forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute(attr) === val)));
+    }
+    document.querySelectorAll('[data-vp]').forEach(b => b.onclick = () => {
+        vp = b.dataset.vp; pressGroup('data-vp', vp);
+        $('#tele').open = vp === 'desktop';
+        fitDevice();
+    });
+    document.querySelectorAll('[data-video]').forEach(b => b.onclick = () => {
+        S.video = b.dataset.video; pressGroup('data-video', S.video);
+        S.staleSince = performance.now();
+        if (S.video === 'stale') logEvent('Video frozen', 'warn');
+        else if (S.video === 'busy') logEvent('Video busy: 2 viewers already', 'err');
+        else logEvent('Video live', 'ok');
+        renderStatus();
+    });
+    document.querySelectorAll('[data-viewers]').forEach(b => b.onclick = () => {
+        S.viewers = +b.dataset.viewers; pressGroup('data-viewers', b.dataset.viewers);
+        logEvent(S.viewers === 2 ? 'Another device is watching' : 'Other viewer left');
+        renderStatus();
+    });
+    document.querySelectorAll('[data-light]').forEach(b => b.onclick = () => { S.light = b.dataset.light; pressGroup('data-light', S.light); });
+    document.querySelectorAll('[data-link]').forEach(b => b.onclick = () => {
+        S.link = b.dataset.link; pressGroup('data-link', S.link);
+        if (S.link === 'lost') { releaseAll(); clearGoal(); disarm('Auto-fire disarmed: link lost'); }
+        logEvent(S.link === 'ok' ? 'Turret link restored' : 'Turret link lost', S.link === 'ok' ? 'ok' : 'err');
+        renderAll();
+        announce(S.link === 'ok' ? 'Turret link restored' : 'Turret link lost');
+    });
+    $('#rv-cal').onclick = () => {
+        S.calibrated = !S.calibrated;
+        $('#rv-cal').setAttribute('aria-pressed', String(S.calibrated));
+        $('#rv-cal').textContent = S.calibrated ? 'Calibrated' : 'Uncalibrated';
+        renderAll();
+    };
+    $('#rv-motion').onclick = () => {
+        S.reduced = !S.reduced;
+        $('#rv-motion').setAttribute('aria-pressed', String(S.reduced));
+        $('#hud').classList.toggle('reduced', S.reduced);
+    };
+    document.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
+        const hud = $('#hud');
+        hud.classList.remove('st-tactical', 'st-glass', 'st-hw');
+        if (b.dataset.st) hud.classList.add('st-' + b.dataset.st);
+        pressGroup('data-st', b.dataset.st);
+    });
+    $('#rv-haptic').onclick = () => { haptic([30]); toast('Haptic sent: feel it on a phone', '', 'haptic'); };
+    Object.entries(RETICLES).forEach(([k, r]) => {
+        const b = document.createElement('button');
+        b.className = 'ret-btn';
+        b.dataset.ret = k;
+        b.setAttribute('aria-pressed', String(k === S.ret));
+        const c = document.createElement('canvas');
+        c.width = 84; c.height = 84;
+        const g = c.getContext('2d');
+        g.fillStyle = '#3b4148'; g.fillRect(0, 0, 84, 84); // camera-like grey to judge contrast
+        g.scale(2, 2);
+        drawReticle(g, 21, 21, k, false);
+        b.append(c, document.createTextNode(r.name));
+        b.onclick = () => { S.ret = k; pressGroup('data-ret', k); };
+        $('#ret-grp').appendChild(b);
+    });
+    document.querySelectorAll('[data-br]').forEach(b => b.onclick = () => { S.brackets = b.dataset.br; pressGroup('data-br', S.brackets); });
+
+    // ---------------- Feedback ----------------
+    // One toast per kind: a repeat is ignored until the visible one has gone.
+    const activeToasts = new Set();
+    function toast(msg, kind, key) {
+        const k = key || msg;
+        if (activeToasts.has(k)) return;
+        activeToasts.add(k);
+        const t = document.createElement('div');
+        t.className = 'toast ' + (kind || '');
+        t.textContent = msg;
+        $('#toasts').appendChild(t);
+        setTimeout(() => { t.remove(); activeToasts.delete(k); }, 2600);
+    }
+    function announce(msg) { $('#announce').textContent = msg; }
+
+    // Phone haptics. Android: the Vibration API. iPhone: Safari has no Vibration API, but toggling a
+    // switch-style checkbox plays the system haptic (iOS 17.4+), so a hidden one is clicked. Both only
+    // work inside a tap, so this is called from tap handlers.
+    function haptic(pattern) {
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+        else $('#haptic-label').click();
+    }
+
+    // Event log: newest first, consecutive repeats folded into one row, 50 rows kept.
+    const LOG = [];
+    let logOpen = false, logFilter = 'all', unseen = 0;
+    const ICONS = {
+        ok: '<path d="M5 12l4 4 10-10"/>',
+        warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
+        err: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.5"/>',
+        hit: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+        info: '<circle cx="12" cy="12" r="2.5"/>'
+    };
+    function logEvent(text, kind, cat) {
+        kind = kind || 'info';
+        const top = LOG[0];
+        if (top && top.text === text) { top.count++; top.at = Date.now(); }
+        else {
+            LOG.unshift({ text, kind, cat: cat || 'system', at: Date.now(), count: 1 });
+            if (LOG.length > 50) LOG.length = 50;
+        }
+        if (!logOpen && (kind === 'warn' || kind === 'err')) unseen++;
+        renderLog();
+    }
+    function ago(ms) {
+        const s = Math.round((Date.now() - ms) / 1000);
+        return s < 5 ? 'now' : s < 60 ? `${s} s` : s < 3600 ? `${Math.floor(s / 60)} min` : `${Math.floor(s / 3600)} h`;
+    }
+    function renderLog() {
+        const b = $('#log-badge');
+        b.hidden = unseen === 0;
+        b.textContent = unseen > 9 ? '9+' : String(unseen);
+        if (!logOpen) return;
+        const ol = $('#log');
+        ol.textContent = '';
+        const rows = LOG.filter(e => logFilter === 'all' || e.cat === logFilter);
+        if (!rows.length) { const e = document.createElement('li'); e.className = 'empty'; e.textContent = 'Nothing yet.'; ol.appendChild(e); return; }
+        rows.forEach(e => {
+            const li = document.createElement('li');
+            li.className = e.kind;
+            li.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">${ICONS[e.kind]}</svg>`;
+            const tx = document.createElement('span');
+            tx.textContent = e.text;
+            if (e.count > 1) { const c = document.createElement('span'); c.className = 'count'; c.textContent = `x${e.count}`; tx.appendChild(c); }
+            const tm = document.createElement('time');
+            tm.textContent = ago(e.at);
+            tm.title = new Date(e.at).toLocaleTimeString();
+            li.append(tx, tm);
+            ol.appendChild(li);
+        });
+    }
+    function openLog(on) {
+        logOpen = on;
+        $('#drawer').hidden = !on;
+        $('#btn-log').setAttribute('aria-expanded', String(on));
+        if (on) unseen = 0;
+        renderLog();
+    }
+    $('#btn-log').onclick = () => openLog(!logOpen);
+    $('#log-close').onclick = () => openLog(false);
+    $('#log-clear').onclick = () => { LOG.length = 0; renderLog(); };
+    document.querySelectorAll('.filters button').forEach(b => b.onclick = () => {
+        logFilter = b.dataset.f;
+        document.querySelectorAll('.filters button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+        renderLog();
+    });
+    setInterval(() => { if (logOpen) renderLog(); }, 5000);
+
+    // ---------------- Mode ----------------
+    const MODE_NAMES = { ai: 'AI', user: 'MANUAL', calibrate: 'CALIBRATE' };
+    function requestMode(m) {
+        if (S.link !== 'ok') return toast('No turret link', 'warn');
+        if (m === 'calibrate') return startCal();
+        if (S.cal.active) return toast('Finish or cancel calibration first', 'warn');
+        if (m === S.mode || S.pending) return;
+        // The board owns the mode: show "switching" until the next reply confirms it.
+        S.pending = m;
+        renderMode();
+        setTimeout(() => {
+            S.mode = m; S.pending = null; clearGoal(); releaseAll();
+            logEvent(`Mode ${MODE_NAMES[m]}`);
+            renderAll(); announce(`Mode ${MODE_NAMES[m]}`);
+        }, 280);
+    }
+    function toggleMode() { if (!S.cal.active) requestMode(S.mode === 'ai' ? 'user' : 'ai'); }
+
+    function renderMode() {
+        document.querySelectorAll('.p-mode .seg button').forEach(b => {
+            const m = b.dataset.mode;
+            b.setAttribute('aria-pressed', String(m === S.mode));
+            b.classList.toggle('pending', m === S.pending);
+            b.setAttribute('aria-disabled', String(S.link !== 'ok' || (S.cal.active && m !== 'calibrate')));
+        });
+        const chip = $('#chip-mode');
+        chip.className = 'chip mode-' + S.mode;
+        chip.querySelector('span').textContent = MODE_NAMES[S.mode];
+        const hint = $('#mode-hint');
+        hint.className = 'hint';
+        if (S.link !== 'ok') { hint.textContent = 'Waiting for the turret link.'; hint.classList.add('warn'); }
+        else if (S.cal.active) hint.textContent = 'Calibrating. Jog with the arrows or the joystick.';
+        else if (S.mode === 'ai') hint.textContent = 'AI is aiming at the tracked target. Switch to Manual to jog.';
+        else hint.textContent = 'You are aiming. Hold an arrow, or tap or drag on the video.';
+        const can = canJog();
+        $('#dpad').classList.toggle('locked', !can);
+        document.querySelectorAll('.dpad button').forEach(b => b.setAttribute('aria-disabled', String(!can)));
+        $('#fire').setAttribute('aria-disabled', String(S.link !== 'ok'));
+        $('#frame').classList.toggle('tapmode', can);
+    }
+
+    // ---------------- Jog ----------------
+    function canJog() { return S.link === 'ok' && S.mode !== 'ai'; }
+    function atLimit(dir) {
+        return dir === 'left' ? S.aim.x <= REACH.x0 + 0.5 : dir === 'right' ? S.aim.x >= REACH.x1 - 0.5
+            : dir === 'up' ? S.aim.y <= REACH.y0 + 0.5 : S.aim.y >= REACH.y1 - 0.5;
+    }
+    function pressDir(token, dir, fromTap) {
+        if (!canJog()) {
+            if (S.link === 'ok') {
+                const d = $('#dpad');
+                d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+                toast('Switch to Manual (M) to jog', 'warn', 'jog-ai');
+            }
+            return;
+        }
+        if (atLimit(dir)) {
+            if (fromTap) haptic([30]);
+            toast(`${dir === 'left' || dir === 'right' ? 'Pan' : 'Tilt'} limit reached`, 'warn', 'limit');
+        }
+        clearGoal();
+        S.held.set(token, dir);
+        renderHeld();
+    }
+    function releaseDir(token) { S.held.delete(token); renderHeld(); }
+    function releaseAll() { S.held.clear(); renderHeld(); }
+    function renderHeld() {
+        const dirs = new Set(S.held.values());
+        document.querySelectorAll('.dpad button[data-dir]').forEach(b => b.classList.toggle('held', dirs.has(b.dataset.dir)));
+    }
+    document.querySelectorAll('.dpad button[data-dir]').forEach(b => {
+        const d = b.dataset.dir, token = 'btn:' + d;
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); pressDir(token, d, true); });
+        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => b.addEventListener(ev, () => releaseDir(token)));
+        b.addEventListener('contextmenu', (e) => e.preventDefault());
+    });
+    window.addEventListener('blur', () => { releaseAll(); S.shift = false; });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+    document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => {
+        S.speed = b.dataset.speed;
+        document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    });
+
+    // Tap or drag on the video to aim. The ghost (uiGoal) follows the finger at once. The board gets the newest
+    // point at most every 100 ms (latest wins, nothing queued), and the real turret only starts after the link
+    // delay, then moves at its slew speed.
+    function clearGoal() { S.uiGoal = null; S.boardGoal = null; S.dragId = null; }
+    function clampReach(p) {
+        return { x: Math.min(REACH.x1, Math.max(REACH.x0, p.x)), y: Math.min(REACH.y1, Math.max(REACH.y0, p.y)) };
+    }
+    function framePoint(e) {
+        const r = $('#frame').getBoundingClientRect();
+        return {
+            x: Math.min(W, Math.max(0, (e.clientX - r.left) / r.width * W)),
+            y: Math.min(H, Math.max(0, (e.clientY - r.top) / r.height * H))
+        };
+    }
+    function sendAim(force) {
+        const now = performance.now();
+        if (!S.uiGoal || (!force && now - S.lastAimSend < 100)) return;
+        S.lastAimSend = now;
+        const g = clampReach(S.uiGoal);
+        setTimeout(() => { if (S.uiGoal) S.boardGoal = g; }, rtt / 2 + 40); // command travel + motor start
+    }
+    function aimAt(p) {
+        if (!canJog()) return toast('Switch to Manual (M) to aim', 'warn', 'tap-ai');
+        releaseAll();
+        S.uiGoal = { x: p.x, y: p.y };
+        S.fx.push({ type: 'ping', t0: performance.now(), x: p.x, y: p.y });
+        sendAim(true);
+    }
+    const frameEl = $('#frame');
+    frameEl.addEventListener('pointerdown', (e) => {
+        if (S.link !== 'ok') return toast('No turret link', 'warn');
+        if (S.mode === 'ai') return toast('Switch to Manual (M) to aim by tapping', 'warn', 'tap-ai');
+        e.preventDefault();
+        frameEl.setPointerCapture(e.pointerId);
+        aimAt(framePoint(e));
+        S.dragId = e.pointerId;
+    });
+    frameEl.addEventListener('pointermove', (e) => {
+        if (S.dragId !== e.pointerId || !S.uiGoal) return;
+        S.uiGoal = framePoint(e);
+        sendAim(false);
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => frameEl.addEventListener(ev, (e) => {
+        if (S.dragId !== e.pointerId) return;
+        S.dragId = null;
+        sendAim(true); // the release point always reaches the board
+    }));
+    function recenter() { if (S.link === 'ok') aimAt(HOME); }
+    $('#recenter').addEventListener('click', recenter);
+
+    // ---------------- Fire (HUD effect) ----------------
+    function onTarget() {
+        const t = S.trk;
+        const usable = t.state === 'locked' || t.state === 'coasting';
+        return usable && Math.abs(S.aim.x - t.x) <= 22 + 6 && Math.abs(S.aim.y - t.y) <= 37 + 6;
+    }
+    function fire(fromTap) {
+        const now = performance.now();
+        if (S.link !== 'ok') return toast('No turret link', 'warn');
+        if (now < S.cooldownUntil) return;
+        S.cooldownUntil = now + 700;
+        S.charge = 0;
+        const hit = onTarget();
+        const at = { x: S.aim.x, y: S.aim.y };
+        const t1 = S.reduced ? now : now + 120;
+        if (!S.reduced) {
+            const f = $('#frame');
+            f.classList.add('flash');
+            setTimeout(() => f.classList.remove('flash'), 70);
+            S.fx.push({ type: 'tracer', t0: now, x0: 160, y0: 244, x1: at.x, y1: at.y });
+        }
+        if (hit) {
+            if (fromTap) haptic([18, 40, 18]);
+            if (!S.reduced) {
+                S.fx.push({ type: 'ring', t0: t1, x: at.x, y: at.y });
+                for (let i = 0; i < 9; i++) {
+                    const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 70;
+                    S.fx.push({ type: 'spark', t0: t1, x: at.x, y: at.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp });
+                }
+                S.boxFlashUntil = t1 + 160;
+            }
+            S.fx.push({ type: 'hit', t0: t1 });
+            logEvent('Target hit', 'hit', 'target');
+        }
+    }
+    $('#fire').addEventListener('pointerdown', (e) => { e.preventDefault(); fire(true); });
+    $('#fire').addEventListener('click', (e) => { if (e.detail === 0) fire(true); }); // keyboard activation
+    $('#fire').addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Arming auto-fire always asks first.
+    const autoBox = $('#auto-fire');
+    autoBox.addEventListener('click', (e) => {
+        if (autoBox.checked) { e.preventDefault(); $('#arm-dlg').showModal(); }
+        else disarm('Auto-fire off');
+    });
+    $('#arm-dlg').addEventListener('close', () => {
+        if ($('#arm-dlg').returnValue === 'arm') {
+            S.armed = true;
+            autoBox.checked = true;
+            $('#chip-armed').hidden = false;
+            toast('Auto-fire armed', 'warn');
+            logEvent('Auto-fire armed', 'warn');
+        }
+        $('#arm-dlg').returnValue = '';
+    });
+    function disarm(msg) {
+        if (!S.armed) return;
+        S.armed = false;
+        S.charge = 0;
+        autoBox.checked = false;
+        $('#chip-armed').hidden = true;
+        if (msg) { toast(msg, ''); logEvent(msg); }
+    }
+
+    // ---------------- Snapshot ----------------
+    function snapshot() {
+        const c = document.createElement('canvas');
+        c.width = 640; c.height = 480;
+        const g = c.getContext('2d');
+        g.imageSmoothingEnabled = false;
+        g.drawImage($('#scene'), 0, 0, 640, 480);
+        g.drawImage($('#overlay'), 0, 0);
+        const url = c.toDataURL('image/png');
+        const d = new Date(), p = (n) => String(n).padStart(2, '0');
+        const name = `void-sentry_${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}.png`;
+        // In the HUD this downloads the PNG (an <a download> click). The mockup frame blocks downloads, so it only previews.
+        const f = $('#frame');
+        f.classList.add('shutter');
+        setTimeout(() => f.classList.remove('shutter'), 90);
+        document.querySelectorAll('.snap-card').forEach(x => x.remove());
+        const card = document.createElement('div');
+        card.className = 'snap-card';
+        card.innerHTML = `<img alt="Snapshot preview"><div>Snapshot saved<small></small></div>`;
+        card.querySelector('img').src = url;
+        card.querySelector('small').textContent = name;
+        $('.viewport').appendChild(card);
+        setTimeout(() => card.remove(), 3200);
+        logEvent('Snapshot saved');
+    }
+    $('#btn-snap').onclick = snapshot;
+
+    // ---------------- Calibration wizard ----------------
+    function startCal() {
+        if (S.link !== 'ok') return toast('No turret link', 'warn');
+        if (S.cal.active) return;
+        S.prevMode = S.mode;
+        S.mode = 'calibrate';
+        S.cal = { active: true, step: 1, p1: null, failed: '', confirm: false };
+        logEvent('Calibration started', 'warn');
+        announce('Calibration started, step 1 of 2');
+        renderAll();
+    }
+    function trackUsable() { return S.trk.state === 'locked' || S.trk.state === 'coasting'; }
+    function recordBlock() {
+        if (S.link !== 'ok') return 'No turret link';
+        if (!trackUsable()) return 'No target visible: wave at the spot';
+        if (S.jogging) return 'Wait for the turret to stop';
+        return '';
+    }
+    function record() {
+        if (!S.cal.active || S.cal.confirm || S.cal.step === 3) return;
+        if (S.cal.failed) { S.cal.failed = ''; S.cal.step = 1; S.cal.p1 = null; renderWizard(); return; }
+        const why = recordBlock();
+        if (why) return toast(why, 'warn', 'rec');
+        const p = { x: Math.round(S.trk.x), y: Math.round(S.trk.y) };
+        if (S.cal.step === 1) {
+            S.cal.p1 = p; S.cal.step = 2;
+            announce('Point 1 recorded. Step 2 of 2');
+        } else {
+            const dx = Math.abs(p.x - S.cal.p1.x), dy = Math.abs(p.y - S.cal.p1.y);
+            if (dx < 80 || dy < 60) {
+                S.cal.failed = `Points too close: ${dx} px apart in x, ${dy} px in y. Need 80 and 60.`;
+                logEvent('Calibration failed: points too close', 'err');
+                announce('Calibration failed');
+            } else {
+                S.cal.step = 3;
+                S.calibrated = true;
+                $('#rv-cal').setAttribute('aria-pressed', 'true');
+                $('#rv-cal').textContent = 'Calibrated';
+                setTimeout(() => {
+                    S.cal.active = false; S.mode = 'ai'; releaseAll();
+                    toast('Calibration saved. AI tracking on.', 'ok');
+                    logEvent('Calibration saved', 'ok');
+                    announce('Calibration saved');
+                    renderAll();
+                }, 1600);
+            }
+        }
+        renderWizard();
+    }
+    function askCancel() { if (S.cal.active && S.cal.step !== 3) { S.cal.confirm = true; renderWizard(); } }
+    function cancelCal() {
+        S.cal.active = false; S.cal.confirm = false; S.mode = S.prevMode; releaseAll();
+        toast(S.calibrated ? 'Calibration cancelled. Previous calibration kept.' : 'Calibration cancelled.', '');
+        logEvent('Calibration cancelled');
+        renderAll();
+    }
+
+    function renderWizard() {
+        const w = $('#wizard');
+        w.hidden = !S.cal.active;
+        if (!S.cal.active) return;
+        const c = S.cal;
+        const stepCls = (n) => c.step > n || c.step === 3 ? 'step done' : c.step === n ? 'step cur' : 'step';
+        let body = '';
+        if (c.step === 3) {
+            body = `<p class="instr" style="color:var(--ok)">&#10003; Saved to the turret. Switching to AI tracking...</p>`;
+        } else if (c.confirm) {
+            body = `<div class="confirm"><p>Discard this calibration? ${S.calibrated ? 'The previous calibration is kept.' : ''}</p>
+                <div class="row"><button class="btn-sm danger" id="w-discard">Discard</button>
+                <button class="btn-sm" id="w-keep">Keep calibrating</button></div></div>`;
+        } else if (c.failed) {
+            body = `<div class="err-box">${c.failed}</div>
+                <div class="row"><button class="btn-sm primary" id="w-rec">Restart</button>
+                <button class="btn-sm" id="w-cancel">Cancel</button></div>`;
+        } else {
+            const instr = c.step === 1
+                ? 'Get the target brackets to lock on a spot near one corner (wave there). Tap it or jog until the reticle sits on it, then record.'
+                : 'Now a spot near the <b>opposite</b> corner, outside the shaded zone. Lock, aim, record.';
+            const why = recordBlock();
+            body = `<p class="instr">${instr}</p>
+                <ul class="checks">
+                    <li class="${trackUsable() ? 'yes' : ''}" id="ck-target">Target locked</li>
+                    <li class="${!S.jogging ? 'yes' : ''}" id="ck-still">Turret still</li>
+                </ul>
+                <div class="row"><button class="btn-sm primary" id="w-rec" aria-disabled="${!!why}" title="${why || 'Record point'}">Record point</button>
+                <button class="btn-sm" id="w-cancel">Cancel</button></div>
+                <p class="hint warn" id="w-why">${why}</p>`;
+        }
+        w.innerHTML = `<h3>Calibration <span>${c.step === 3 ? 'done' : 'step ' + c.step + ' of 2'}</span></h3>
+            <div class="steps"><div class="${stepCls(1)}">1 &middot; First corner</div><div class="${stepCls(2)}">2 &middot; Opposite corner</div><div class="${c.step === 3 ? 'step done' : 'step'}">3 &middot; Saved</div></div>${body}`;
+        const on = (id, fn) => { const el = w.querySelector(id); if (el) el.onclick = fn; };
+        on('#w-rec', record); on('#w-cancel', askCancel); on('#w-discard', cancelCal);
+        on('#w-keep', () => { c.confirm = false; renderWizard(); });
+        if (c.confirm) { const k = w.querySelector('#w-keep'); if (k) k.focus(); }
+    }
+    // Cheap live refresh of the checklist without rebuilding the buttons.
+    function refreshChecks() {
+        if (!S.cal.active || S.cal.confirm || S.cal.failed || S.cal.step === 3) return;
+        const ck = $('#ck-target'), st = $('#ck-still'), rec = $('#w-rec'), why = $('#w-why');
+        if (!ck) return;
+        ck.className = trackUsable() ? 'yes' : '';
+        st.className = !S.jogging ? 'yes' : '';
+        const r = recordBlock();
+        rec.setAttribute('aria-disabled', String(!!r));
+        rec.title = r || 'Record point';
+        why.textContent = r;
+    }
+
+    // ---------------- Status ----------------
+    function setChip(id, cls, text) {
+        const c = $(id);
+        const keep = ['cal', 'viewers', 'wifi'].filter(x => c.classList.contains(x)).join(' ');
+        c.className = 'chip ' + cls + (keep ? ' ' + keep : '');
+        c.querySelector('span').textContent = text;
+    }
+    function renderStatus() {
+        const now = performance.now();
+        const staleS = (now - S.staleSince) / 1000;
+        const vid = S.video;
+        if (vid === 'live') setChip('#chip-video', 'ok', `${fps} fps`);
+        else if (vid === 'stale') setChip('#chip-video', 'warn', `FROZEN ${staleS.toFixed(1)} s`);
+        else setChip('#chip-video', 'err', 'BUSY');
+        $('#frame').classList.toggle('stale', vid !== 'live');
+        // Top-right corner: fps while live, the frozen timer when frames stop.
+        const fpsEl = $('#ov-fps');
+        fpsEl.classList.toggle('stale-badge', vid === 'stale');
+        fpsEl.textContent = vid === 'live' ? `${fps} fps`
+            : vid === 'stale' ? `FROZEN ${staleS.toFixed(1)} s` + (staleS > 4 ? ' · reconnecting' : '') : '0 fps';
+        $('#card-busy').hidden = vid !== 'busy';
+        $('#t-fps').textContent = vid === 'live' ? `${fps} fps` : vid === 'stale' ? 'frozen' : 'busy';
+        if (vid === 'busy') setChip('#chip-viewers', 'err', '2/2');
+        else setChip('#chip-viewers', S.viewers === 2 ? 'warn' : 'ok', `${S.viewers}/2`);
+        $('#chip-viewers').title = S.viewers === 2 || vid === 'busy'
+            ? 'Both video slots are taken: a third device will get "Video busy"' : 'Video viewers (the board allows 2)';
+
+        if (S.link === 'ok') setChip('#chip-link', 'ok', `${rtt} ms`);
+        else setChip('#chip-link', 'err', 'OFFLINE');
+        $('#card-link').hidden = S.link === 'ok' || vid === 'busy';
+        $('#t-rtt').textContent = S.link === 'ok' ? `${rtt} ms` : 'offline';
+        setChip('#chip-cal', S.calibrated ? 'ok' : 'warn', S.calibrated ? 'OK' : 'UNCALIBRATED');
+        $('#uncal-callout').hidden = S.calibrated || S.cal.active;
+        $('#ov-light').hidden = !(S.lowLight && vid === 'live');
+        $('#t-light').textContent = vid === 'live' ? `${Math.round(S.brightness)} / 255` : '--';
+    }
+    function renderAll() { renderMode(); renderWizard(); renderStatus(); }
+
+    $('#uncal-go').onclick = startCal;
+    document.querySelectorAll('.p-mode .seg button').forEach(b => b.onclick = () => requestMode(b.dataset.mode));
+    $('#btn-help').onclick = () => $('#help').showModal();
+    $('#btn-fs').onclick = () => {
+        if (!document.fullscreenElement) $('#device').requestFullscreen().catch(() => {});
+        else document.exitFullscreen();
+    };
+
+    // ---------------- Keyboard ----------------
+    const KEYS = { KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right' };
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift') { S.shift = true; return; }
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if ($('#help').open || $('#arm-dlg').open) return;
+        const dir = KEYS[e.code];
+        if (dir) { e.preventDefault(); if (!e.repeat) pressDir('key:' + e.code, dir, false); return; }
+        if (e.repeat) return;
+        if (e.code === 'Space') { e.preventDefault(); fire(false); }
+        else if (e.code === 'KeyM') toggleMode();
+        else if (e.code === 'KeyC') startCal();
+        else if (e.code === 'KeyH') recenter();
+        else if (e.code === 'KeyP') snapshot();
+        else if (e.code === 'Enter' && S.cal.active && document.activeElement.tagName !== 'BUTTON') { e.preventDefault(); record(); }
+        else if (e.code === 'Escape' && logOpen) openLog(false);
+        else if (e.code === 'Escape' && S.cal.active) { if (S.cal.confirm) { S.cal.confirm = false; renderWizard(); } else askCancel(); }
+        else if (e.code === 'KeyF') $('#btn-fs').click();
+        else if (e.key === '?') $('#help').showModal();
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'Shift') S.shift = false;
+        if (KEYS[e.code]) releaseDir('key:' + e.code);
+    });
+
+    // ---------------- Simulation ----------------
+    const grain = document.createElement('canvas');
+    grain.width = W; grain.height = H;
+    (function () {
+        const g = grain.getContext('2d'), d = g.createImageData(W, H);
+        for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 18; }
+        g.putImageData(d, 0, 0);
+    })();
+
+    let fps = 15, rtt = 23, lastT = performance.now(), simT = 0, attempt = 1, lightT = 0;
+
+    function moveToward(goal, speed, dt) {
+        const dx = goal.x - S.aim.x, dy = goal.y - S.aim.y, d = Math.hypot(dx, dy), step = speed * dt;
+        if (d <= step) { S.aim.x = goal.x; S.aim.y = goal.y; return false; }
+        S.aim.x += dx / d * step; S.aim.y += dy / d * step;
+        return true;
+    }
+
+    function updateSim(dt, now) {
+        simT += dt;
+        const t = S.trk;
+        // A person walks a loop and leaves the frame for 4 s out of every 20.
+        const cyc = simT % 20;
+        const visible = cyc < 16;
+        const nx = 160 + 112 * Math.sin(simT * 0.33), ny = 128 + 46 * Math.sin(simT * 0.57 + 1);
+        if (visible) {
+            if (!t.visible) { t.acqT = simT; t.id++; S.acqAt = now; logEvent('Target acquired', 'ok', 'target'); }
+            t.vx = (nx - t.x) / Math.max(dt, 1e-3) / 15; t.vy = (ny - t.y) / Math.max(dt, 1e-3) / 15;
+            t.x = nx; t.y = ny; t.lastSeen = simT;
+            t.state = simT - t.acqT < 0.6 ? 'tentative' : 'locked';
+        } else {
+            if (t.visible) t.lostT = simT;
+            t.state = simT - t.lostT < 1.0 ? 'coasting' : 'idle';
+            if (t.state === 'coasting') { t.x += t.vx * dt * 15; t.y += t.vy * dt * 15; }
+        }
+        if (t.state === 'idle' && t.prevState !== 'idle') { S.idleSince = simT; if (t.prevState === 'coasting') logEvent('Target lost', 'warn', 'target'); }
+        t.prevState = t.state;
+        t.visible = visible;
+
+        // Trail: about one second of target positions.
+        if (t.state === 'locked' || t.state === 'coasting') {
+            if (simT - S.trailT > 0.05) { S.trail.push({ x: t.x, y: t.y, t: simT }); S.trailT = simT; }
+            while (S.trail.length && simT - S.trail[0].t > 1.2) S.trail.shift();
+        } else if (t.state === 'idle') {
+            S.trail = [];
+        }
+
+        // Turret aim.
+        let jx = 0, jy = 0;
+        const dirs = new Set(S.held.values());
+        if (canJog()) {
+            jx = (dirs.has('right') ? 1 : 0) - (dirs.has('left') ? 1 : 0);
+            jy = (dirs.has('down') ? 1 : 0) - (dirs.has('up') ? 1 : 0);
+        }
+        let moving = jx !== 0 || jy !== 0;
+        S.homing = false;
+        if (S.link === 'ok') {
+            if (S.mode === 'ai') {
+                const tracking = t.state === 'locked' || t.state === 'coasting';
+                if (tracking) {
+                    const k = 1 - Math.exp(-dt * 5);
+                    S.aim.x += (t.x - S.aim.x) * k; S.aim.y += (t.y - S.aim.y) * k;
+                } else if (t.state === 'idle' && simT - S.idleSince >= HOME_DELAY_S) {
+                    S.homing = moveToward(HOME, SLEW_PX_S, dt);
+                }
+            } else if (S.boardGoal) {
+                const b = S.boardGoal;
+                if (moveToward(b, SLEW_PX_S, dt)) moving = true;
+                else if (S.dragId === null) {
+                    if (S.uiGoal && Math.hypot(S.uiGoal.x - b.x, S.uiGoal.y - b.y) > 3) toast('Out of reach: stopped at the limit', 'warn', 'reach');
+                    S.uiGoal = null; S.boardGoal = null;
+                }
+            } else {
+                const v = JOG_PX_S[S.shift ? 'slow' : S.speed];
+                S.aim.x = Math.min(REACH.x1, Math.max(REACH.x0, S.aim.x + jx * v * dt));
+                S.aim.y = Math.min(REACH.y1, Math.max(REACH.y0, S.aim.y + jy * v * dt));
+            }
+        }
+        S.jogging = moving || !!S.uiGoal; // a pending tap counts as moving for the calibration check
+
+        // Auto-fire after holding the target for 0.8 s in AI mode.
+        if (S.armed && S.mode === 'ai' && S.link === 'ok' && onTarget() && now >= S.cooldownUntil) {
+            S.charge = Math.min(1, S.charge + dt / 0.8);
+            if (S.charge >= 1) fire(false);
+        } else if (!onTarget()) {
+            S.charge = 0;
+        }
+
+        if (Math.random() < dt) { fps = 14 + Math.round(Math.random() * 3); rtt = 18 + Math.round(Math.random() * 14); }
+        if (S.link === 'lost' && Math.random() < dt / 2) { attempt++; $('#link-attempt').textContent = attempt; }
+    }
+
+    function drawScene() {
+        const g = scene;
+        const wall = g.createLinearGradient(0, 0, 0, 150);
+        wall.addColorStop(0, '#3b4148'); wall.addColorStop(1, '#2c3137');
+        g.fillStyle = wall; g.fillRect(0, 0, W, 150);
+        const floor = g.createLinearGradient(0, 150, 0, H);
+        floor.addColorStop(0, '#24282d'); floor.addColorStop(1, '#16191c');
+        g.fillStyle = floor; g.fillRect(0, 150, W, H - 150);
+        g.fillStyle = '#4a4239'; g.fillRect(18, 58, 58, 96);          // shelf
+        g.fillStyle = '#5a5046'; for (let i = 0; i < 3; i++) g.fillRect(18, 80 + i * 26, 58, 3);
+        g.fillStyle = '#20252a'; g.fillRect(238, 36, 52, 118);         // door
+        g.fillStyle = '#6d7680'; g.fillRect(280, 96, 4, 6);
+        g.fillStyle = 'rgba(255,240,200,0.07)'; g.beginPath(); g.ellipse(150, 20, 80, 30, 0, 0, Math.PI * 2); g.fill();
+        const t = S.trk;
+        if (t.visible) {
+            g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(t.x, t.y + 36, 18, 5, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = '#8a8f96'; g.beginPath(); g.ellipse(t.x, t.y + 6, 15, 28, 0, 0, Math.PI * 2); g.fill();
+            g.fillStyle = '#b9a58e'; g.beginPath(); g.arc(t.x, t.y - 27, 9, 0, Math.PI * 2); g.fill();
+        }
+        if (S.light === 'dark') { g.fillStyle = 'rgba(0,0,0,0.8)'; g.fillRect(0, 0, W, H); }
+        g.drawImage(grain, ((Math.random() * 6) | 0) - 3, 0);
+    }
+
+    // Low-light check: average brightness of a sparse sample of the frame, twice a second.
+    function measureLight() {
+        const d = scene.getImageData(0, 0, W, H).data;
+        let s = 0, n = 0;
+        for (let i = 0; i < d.length; i += 4 * 37) { s += d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114; n++; }
+        S.brightness = s / n;
+        const low = S.brightness < 25;
+        if (low && !S.lowLight) logEvent('Low light: tracking may miss targets', 'warn');
+        S.lowLight = low;
+    }
+
+    function bracket(g, x, y, w, h, len) {
+        g.beginPath();
+        g.moveTo(x, y + len); g.lineTo(x, y); g.lineTo(x + len, y);
+        g.moveTo(x + w - len, y); g.lineTo(x + w, y); g.lineTo(x + w, y + len);
+        g.moveTo(x + w, y + h - len); g.lineTo(x + w, y + h); g.lineTo(x + w - len, y + h);
+        g.moveTo(x + len, y + h); g.lineTo(x, y + h); g.lineTo(x, y + h - len);
+        g.stroke();
+    }
+
+    function drawOverlay(now) {
+        const g = ov;
+        g.setTransform(2, 0, 0, 2, 0, 0);
+        g.clearRect(0, 0, W, H);
+        g.lineCap = 'round';
+        g.lineJoin = 'round';
+        const t = S.trk;
+
+        // Calibration aids: point 1 and the zone point 2 must stay out of.
+        if (S.cal.active && S.cal.p1) {
+            const p = S.cal.p1;
+            if (S.cal.step === 2 && !S.cal.failed) {
+                g.fillStyle = 'rgba(255,77,77,0.12)';
+                g.fillRect(p.x - 80, p.y - 60, 160, 120);
+                g.setLineDash([4, 3]); g.strokeStyle = 'rgba(255,77,77,0.6)'; g.lineWidth = 1;
+                g.strokeRect(p.x - 80, p.y - 60, 160, 120); g.setLineDash([]);
+                g.fillStyle = 'rgba(255,120,120,0.9)'; g.font = '600 7px ui-monospace, monospace';
+                g.fillText('TOO CLOSE FOR POINT 2', Math.max(2, p.x - 78), Math.max(8, p.y - 52));
+            }
+            g.strokeStyle = '#ffb020'; g.lineWidth = 2;
+            g.beginPath(); g.moveTo(p.x - 5, p.y - 5); g.lineTo(p.x + 5, p.y + 5); g.moveTo(p.x + 5, p.y - 5); g.lineTo(p.x - 5, p.y + 5); g.stroke();
+            g.fillStyle = '#ffb020'; g.font = '700 8px ui-monospace, monospace'; g.fillText('P1', p.x + 7, p.y - 5);
+        }
+
+        // A thin, soft trail of the last second; low contrast so it is easy to watch for long.
+        for (let i = 1; i < S.trail.length; i++) {
+            const a = S.trail[i - 1], b = S.trail[i];
+            const age = (simT - b.t) / 1.2;
+            g.strokeStyle = `rgba(214,196,178,${0.3 * (1 - age)})`;
+            g.lineWidth = 1.2;
+            g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke();
+        }
+
+        // Target brackets. A new target replays a short snap (from 1.4x size, ease-out with overshoot) instead of
+        // showing a number.
+        const on = onTarget();
+        if (t.state !== 'idle') {
+            const ae = now - S.acqAt;
+            const grow = S.reduced || ae > 280 ? 1 : 1.4 - 0.4 * easeOutBack(ae / 280);
+            const bw = 44 * grow, bh = 74 * grow, bx = t.x - bw / 2, by = t.y - 1 - bh / 2;
+            const white = S.brackets === 'white';
+            const flash = now < S.boxFlashUntil;
+            const col = flash ? (white ? '#ff4d4d' : '#ffffff')
+                : t.state === 'locked' ? (white ? '#f2f2f2' : '#ff4d4d') : t.state === 'coasting' ? '#ffb020' : '#d0d0d0';
+            g.setLineDash(t.state === 'coasting' ? [5, 4] : t.state === 'tentative' ? [2, 3] : []);
+            g.strokeStyle = 'rgba(0,0,0,0.65)'; g.lineWidth = 4; bracket(g, bx, by, bw, bh, 10);
+            g.strokeStyle = col; g.lineWidth = 2; bracket(g, bx, by, bw, bh, 10);
+            g.setLineDash([]);
+            // On-target cue: snap in once (300 ms ease-out with a small overshoot), then breathe
+            // (symmetric sine ease-in-out, 1.6 s per cycle, 3 px of travel).
+            if (on) {
+                if (!S.lockSince) S.lockSince = now;
+                const el = now - S.lockSince;
+                let ins;
+                if (S.reduced) ins = 6;
+                else if (el < 300) ins = 6 * easeOutBack(el / 300);
+                else ins = 6 + 1.5 * (1 - Math.cos(((el - 300) / 1600) * 2 * Math.PI));
+                g.globalAlpha = S.reduced ? 1 : Math.min(1, el / 200);
+                g.strokeStyle = white ? RET_RED : '#ffffff'; g.lineWidth = 1.5;
+                bracket(g, bx + ins, by + ins, bw - 2 * ins, bh - 2 * ins, 6);
+                g.font = '800 8px system-ui, sans-serif';
+                const txt = 'ON TARGET', w2 = g.measureText(txt).width + 8;
+                g.fillStyle = '#d61f1f'; g.fillRect(t.x - w2 / 2, by + bh + 4, w2, 11);
+                g.fillStyle = '#fff'; g.fillText(txt, t.x - w2 / 2 + 4, by + bh + 12.5);
+                g.globalAlpha = 1;
+            }
+        }
+        if (!on) S.lockSince = 0;
+        $('#fire').classList.toggle('ready', on && S.link === 'ok');
+
+        // Ghost reticle where you asked, a line to the real reticle, and the time left.
+        if (S.dragId !== null) {
+            g.strokeStyle = 'rgba(255,255,255,0.12)'; g.lineWidth = 1; g.setLineDash([4, 4]);
+            g.strokeRect(REACH.x0, REACH.y0, REACH.x1 - REACH.x0, REACH.y1 - REACH.y0);
+            g.setLineDash([]);
+        }
+        if (S.uiGoal) {
+            const q = S.uiGoal;
+            const stop = clampReach(q);
+            const out = Math.hypot(stop.x - q.x, stop.y - q.y) > 0.5;
+            const col = out ? '255,176,32' : RET_RGB;
+            g.strokeStyle = `rgba(${col},0.6)`; g.lineWidth = 1; g.setLineDash([2, 3]);
+            g.beginPath(); g.moveTo(S.aim.x, S.aim.y); g.lineTo(q.x, q.y); g.stroke();
+            g.beginPath(); g.arc(q.x, q.y, 9, 0, Math.PI * 2); g.stroke();
+            g.setLineDash([]);
+            g.beginPath(); g.moveTo(q.x - 3, q.y); g.lineTo(q.x + 3, q.y); g.moveTo(q.x, q.y - 3); g.lineTo(q.x, q.y + 3); g.stroke();
+            if (out) {
+                // Where the turret will actually stop: the nearest point it can reach.
+                g.strokeStyle = 'rgba(255,176,32,0.95)'; g.lineWidth = 1.5;
+                g.beginPath(); g.moveTo(stop.x - 4, stop.y - 4); g.lineTo(stop.x + 4, stop.y + 4); g.moveTo(stop.x + 4, stop.y - 4); g.lineTo(stop.x - 4, stop.y + 4); g.stroke();
+            }
+            const left = Math.hypot(stop.x - S.aim.x, stop.y - S.aim.y);
+            if (left > 3 || out) {
+                const eta = left / SLEW_PX_S + (S.boardGoal ? 0 : rtt / 2000);
+                const label = out ? `OUT OF REACH · ${eta.toFixed(1)} s` : `${eta.toFixed(1)} s`;
+                g.font = '700 7.5px ui-monospace, monospace';
+                const lw = g.measureText(label).width + 6;
+                const lx = Math.min(W - lw - 2, q.x + 12), ly = Math.max(10, q.y - 12);
+                g.fillStyle = 'rgba(0,0,0,0.72)'; g.fillRect(lx, ly - 8, lw, 10);
+                g.fillStyle = `rgb(${col})`; g.fillText(label, lx + 3, ly - 0.5);
+            }
+        }
+
+        // Aim reticle: where the turret points (inverse calibration map).
+        const a = S.aim;
+        g.globalAlpha = S.calibrated ? 1 : 0.6;
+        drawReticle(g, a.x, a.y, S.ret, !S.calibrated);
+        if (!S.calibrated) {
+            // Approximate aim without a calibration: dashed reticle plus a "~".
+            g.font = '800 9px ui-monospace, monospace';
+            g.lineWidth = 2.5; g.strokeStyle = RET_BLACK; g.strokeText('~', a.x + 14, a.y + 16);
+            g.fillStyle = RET_RED; g.fillText('~', a.x + 14, a.y + 16);
+        }
+        g.globalAlpha = 1;
+        // Charge ring before an automatic shot.
+        if (S.charge > 0) {
+            g.strokeStyle = '#ff6b00'; g.lineWidth = 2.5;
+            g.beginPath(); g.arc(a.x, a.y, 16, -Math.PI / 2, -Math.PI / 2 + S.charge * Math.PI * 2); g.stroke();
+        }
+
+        // Shot effects.
+        S.fx = S.fx.filter(f => {
+            const e = now - f.t0;
+            if (e < 0) return true;
+            if (f.type === 'tracer') {
+                if (e > 160) return false;
+                const p = Math.min(1, e / 120), q = Math.max(0, p - 0.45);
+                const hx = f.x0 + (f.x1 - f.x0) * p, hy = f.y0 + (f.y1 - f.y0) * p;
+                const tx = f.x0 + (f.x1 - f.x0) * q, ty = f.y0 + (f.y1 - f.y0) * q;
+                g.save(); g.shadowColor = '#ffd27a'; g.shadowBlur = 8;
+                g.strokeStyle = `rgba(255,240,190,${1 - Math.max(0, e - 120) / 40})`; g.lineWidth = 2;
+                g.beginPath(); g.moveTo(tx, ty); g.lineTo(hx, hy); g.stroke(); g.restore();
+                return true;
+            }
+            if (f.type === 'ring') {
+                if (e > 380) return false;
+                const p = e / 380;
+                g.strokeStyle = `rgba(255,120,60,${1 - p})`;
+                g.lineWidth = 2.5 * (1 - p) + 0.5;
+                g.beginPath(); g.arc(f.x, f.y, 3 + p * 26, 0, Math.PI * 2); g.stroke();
+                return true;
+            }
+            if (f.type === 'spark') {
+                if (e > 420) return false;
+                const s = e / 1000, p = e / 420;
+                const x = f.x + f.vx * s, y = f.y + f.vy * s + 60 * s * s;
+                g.fillStyle = `rgba(255,${Math.round(180 - 100 * p)},60,${1 - p})`;
+                g.beginPath(); g.arc(x, y, 1.6, 0, Math.PI * 2); g.fill();
+                return true;
+            }
+            if (f.type === 'hit') {
+                // "HIT!" rises from just above the target and fades out as it goes.
+                const dur = 1000;
+                if (e > dur) return false;
+                const p = e / dur;
+                const rise = S.reduced ? 0 : p * 26;
+                const pop = S.reduced ? 1 : 1 + 0.35 * Math.max(0, 1 - e / 120);
+                g.save();
+                g.globalAlpha = 1 - p * p;
+                g.translate(t.x, t.y - 38 - 16 - rise); g.scale(pop, pop);
+                g.font = '900 17px system-ui, sans-serif';
+                g.textAlign = 'center';
+                g.lineWidth = 3.5; g.strokeStyle = 'rgba(0,0,0,0.85)';
+                g.strokeText('HIT!', 0, 0);
+                const grad = g.createLinearGradient(0, -14, 0, 2);
+                grad.addColorStop(0, '#fff3c4'); grad.addColorStop(1, '#ff5a1f');
+                g.fillStyle = grad; g.fillText('HIT!', 0, 0);
+                g.restore();
+                return true;
+            }
+            if (f.type === 'ping') {
+                if (e > 500) return false;
+                const p = e / 500;
+                g.strokeStyle = `rgba(${RET_RGB},${1 - p})`; g.lineWidth = 1.5;
+                g.beginPath(); g.arc(f.x, f.y, 3 + p * 14, 0, Math.PI * 2); g.stroke();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    function renderTelemetry() {
+        const t = S.trk;
+        let word = { locked: 'TRACKING', coasting: 'COASTING', tentative: 'ACQUIRING...', idle: 'SCANNING' }[t.state];
+        // Explain the turret moving on its own: the board returns home 2 s after losing the target.
+        if (t.state === 'idle' && S.mode === 'ai' && S.link === 'ok') {
+            const left = HOME_DELAY_S - (simT - S.idleSince);
+            const atHome = Math.hypot(S.aim.x - HOME.x, S.aim.y - HOME.y) < 1;
+            if (S.homing) word = 'RETURNING HOME';
+            else if (left > 0 && !atHome) word = `SCANNING · HOME IN ${left.toFixed(1)} s`;
+        }
+        const tw = $('#ov-track');
+        tw.textContent = word;
+        tw.className = 'track-word ' + t.state;
+        const has = t.state !== 'idle';
+        $('#t-target').textContent = { locked: 'locked', coasting: 'coasting', tentative: 'acquiring', idle: 'none' }[t.state];
+        $('#t-pos').textContent = has ? `${Math.round(t.x)}, ${Math.round(t.y)}` : '--';
+        $('#t-vel').textContent = has ? `${t.vx.toFixed(1)}, ${t.vy.toFixed(1)} px/f` : '--';
+        $('#t-area').textContent = has ? '2310 px' : '--';
+        const pan = 90 + (S.aim.x - 160) * 0.42, tilt = 90 - (S.aim.y - 120) * 0.42;
+        $('#t-pt').textContent = `${pan.toFixed(1)} / ${tilt.toFixed(1)}`;
+        $('#t-aim').textContent = `${Math.round(S.aim.x)}, ${Math.round(S.aim.y)}` + (S.calibrated ? '' : ' ~');
+        document.querySelectorAll('.dpad button[data-dir]').forEach(b => b.classList.toggle('at-limit', canJog() && atLimit(b.dataset.dir)));
+        const cd = Math.max(0, S.cooldownUntil - performance.now()) / 700;
+        $('#fire').style.setProperty('--cd', cd.toFixed(3));
+    }
+
+    let statusTick = 0;
+    function loop(now) {
+        const dt = Math.min(0.1, (now - lastT) / 1000);
+        lastT = now;
+        updateSim(dt, now);
+        if (S.video === 'live') drawScene();
+        else if (S.video === 'busy') { scene.fillStyle = '#000'; scene.fillRect(0, 0, W, H); }
+        drawOverlay(now);
+        renderTelemetry();
+        refreshChecks();
+        if ((lightT += dt) > 0.5 && S.video === 'live') { lightT = 0; measureLight(); }
+        if ((statusTick += dt) > 0.1) { statusTick = 0; renderStatus(); }
+        requestAnimationFrame(loop);
+    }
+
+    fitDevice();
+    renderAll();
+    renderLog();
+    requestAnimationFrame(loop);
+})();
+</script>
+
+</html>
