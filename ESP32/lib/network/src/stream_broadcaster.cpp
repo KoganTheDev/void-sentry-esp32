@@ -83,7 +83,7 @@ void StreamBroadcaster::stop()
     viewers_ = frames::ViewerSet{};
 }
 
-size_t StreamBroadcaster::viewer_count()
+size_t StreamBroadcaster::viewer_count() const
 {
     if (mutex_ == nullptr)
     {

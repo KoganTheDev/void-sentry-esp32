@@ -59,8 +59,8 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
             return false;
         }
 
-        this->_commands_handler =
-            new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status, remote);
+        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status,
+                                                               remote, &this->_broadcaster);
         this->_commands_handler->register_endpoint();
 
         if (wifi != nullptr)
