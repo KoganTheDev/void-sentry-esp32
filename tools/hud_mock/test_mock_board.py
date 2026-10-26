@@ -463,6 +463,41 @@ class AimTests(unittest.TestCase):
         self.assertGreater(ax, 319)  # outside the frame, not clamped
 
 
+class NarrowLimitsTests(unittest.TestCase):
+    def test_reach_box_is_smaller_than_the_frame(self):
+        b, _ = board(state="idle", uncalibrated=True, narrow_limits=True)
+        d = r(b, " ", 1.0)
+        # default map: pan 0.20625 deg/px -> x in 160 +- 97; tilt 0.2083 deg/px -> y in 120 +- 72 (48..192)
+        self.assertEqual((64, 48, 256, 192), (d["rx0"], d["ry0"], d["rx1"], d["ry1"]))
+        full = r(board(state="idle", uncalibrated=True)[0], " ", 1.0)
+        self.assertEqual((0, 0, 319, 239), (full["rx0"], full["ry0"], full["rx1"], full["ry1"]))
+
+    def test_jog_hits_the_end_stops(self):
+        b, _ = board(state="idle", narrow_limits=True)
+        r(b, "mode:user", 1.0)
+        r(b, "speed:fast", 1.0)
+        t = 1.0
+        for _ in range(12):  # 1.2 s at 25 deg/s: past +20 pan; 40 deg/s up: past +105 tilt
+            r(b, "move:up-right", t)
+            t += 0.1
+        d = r(b, " ", t)
+        self.assertEqual((20.0, 105.0, 2 | 8), (d["pan"], d["tilt"], d["lim"]))
+        for _ in range(30):
+            r(b, "move:down-left", t)
+            t += 0.1
+        d = r(b, " ", t)
+        self.assertEqual((-20.0, 75.0, 1 | 4), (d["pan"], d["tilt"], d["lim"]))
+
+    def test_aim_outside_the_reach_box_stops_at_the_limit(self):
+        b, _ = board(state="idle", uncalibrated=True, narrow_limits=True)
+        r(b, "mode:user", 1.0)
+        r(b, "aim:319,239", 1.0)
+        d = r(b, " ", 8.0)
+        self.assertEqual((20.0, 75.0, 2 | 4), (d["pan"], d["tilt"], d["lim"]))
+        self.assertLessEqual(abs(d["ax"] - 256), 1)  # the aim pixel sits on the reach box edge, not at the finger
+        self.assertLessEqual(abs(d["ay"] - 192), 1)
+
+
 class AiTests(unittest.TestCase):
     def test_ai_follows_target_with_deadband(self):
         b, tgt = board(uncalibrated=True)
