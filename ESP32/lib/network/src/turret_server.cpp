@@ -38,7 +38,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     // Keep network work on core 0 so it cannot preempt detection on core 1.
     config.core_id = 0;
     // 8 KB, double the default: handlers keep their buffers on this stack (scan list and escaped SSIDs in
-    // wifi_http.cpp, the 384 B JSON reply in websockets.h, form bodies).
+    // wifi_http.cpp, the hud::kReplySize JSON reply in websockets.h, form bodies).
     config.stack_size = 8192;
     config.max_uri_handlers = 16;                   // 3 core routes + 6 WiFi routes + catch-all, with headroom
     config.uri_match_fn = httpd_uri_match_wildcard; // the WiFi catch-all "/*"; exact routes still match exactly

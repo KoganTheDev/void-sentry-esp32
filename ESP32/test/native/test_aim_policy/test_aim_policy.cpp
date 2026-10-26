@@ -84,6 +84,82 @@ void test_millis_wraparound(void)
     TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 0x000007D0u).kind == AimKind::Home); // 2256 ms later
 }
 
+void test_home_remaining_counts_down_while_idle(void)
+{
+    AimPolicy p(default_map()); // home_delay_ms = 2000
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(0));
+    TEST_ASSERT_FALSE(p.homed());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 1000);
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(1000)); // still tracking, nothing pending
+    p.update({TrackPhase::Idle, 0, 0}, 1100);
+    TEST_ASSERT_EQUAL_UINT32(1900, p.home_remaining_ms(1100));
+    TEST_ASSERT_EQUAL_UINT32(1000, p.home_remaining_ms(2000));
+    p.update({TrackPhase::Idle, 0, 0}, 2999);
+    TEST_ASSERT_EQUAL_UINT32(1, p.home_remaining_ms(2999));
+    TEST_ASSERT_FALSE(p.homed());
+}
+
+void test_home_remaining_zero_after_home_fired(void)
+{
+    AimPolicy p(default_map());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 1000);
+    p.update({TrackPhase::Idle, 0, 0}, 2500);
+    TEST_ASSERT_EQUAL_UINT32(500, p.home_remaining_ms(2500));
+    TEST_ASSERT_TRUE(p.update({TrackPhase::Idle, 0, 0}, 3000).kind == AimKind::Home);
+    TEST_ASSERT_TRUE(p.homed());
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(3000));
+    p.update({TrackPhase::Idle, 0, 0}, 3500);
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(3500));
+    TEST_ASSERT_TRUE(p.homed());
+}
+
+void test_home_remaining_clamps_to_zero_when_overdue(void)
+{
+    AimPolicy p(default_map());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 0);
+    p.update({TrackPhase::Idle, 0, 0}, 100);
+    // Queried later than the home delay without a further update(): never negative or huge.
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(5000));
+}
+
+void test_home_remaining_zero_without_a_target_or_when_not_idle(void)
+{
+    AimPolicy p(default_map());
+    p.update({TrackPhase::Idle, 0, 0}, 500); // never saw a target
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(600));
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 1000);
+    p.update({TrackPhase::Idle, 0, 0}, 1100);
+    TEST_ASSERT_TRUE(p.home_remaining_ms(1200) > 0);
+    p.update({TrackPhase::Tentative, 0, 0}, 1300); // a candidate appeared: not idle, timer paused
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(1300));
+    p.update({TrackPhase::Coasting, 300.0f, 60.0f}, 1400);
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(1400));
+}
+
+void test_home_remaining_wraparound(void)
+{
+    AimPolicy p(default_map());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 0xFFFFFF00u);
+    p.update({TrackPhase::Idle, 0, 0}, 0xFFFFFF10u);
+    TEST_ASSERT_EQUAL_UINT32(1744, p.home_remaining_ms(0x00000000u)); // 256 ms elapsed across the wrap
+    TEST_ASSERT_EQUAL_UINT32(992, p.home_remaining_ms(0x000002F0u));  // 1008 ms elapsed
+}
+
+void test_homed_clears_on_next_lock_and_on_reset(void)
+{
+    AimPolicy p(default_map());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 0);
+    p.update({TrackPhase::Idle, 0, 0}, 2500);
+    TEST_ASSERT_TRUE(p.homed());
+    p.update({TrackPhase::Locked, 300.0f, 60.0f}, 3000);
+    TEST_ASSERT_FALSE(p.homed());
+    p.update({TrackPhase::Idle, 0, 0}, 6000);
+    TEST_ASSERT_TRUE(p.homed());
+    p.reset();
+    TEST_ASSERT_FALSE(p.homed());
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(6000));
+}
+
 void test_hold_carries_commanded_pose(void)
 {
     AimPolicy p(default_map());
@@ -328,6 +404,12 @@ int main(int argc, char** argv)
     RUN_TEST(test_idle_holds_then_homes_once);
     RUN_TEST(test_relock_after_home_aims);
     RUN_TEST(test_millis_wraparound);
+    RUN_TEST(test_home_remaining_counts_down_while_idle);
+    RUN_TEST(test_home_remaining_zero_after_home_fired);
+    RUN_TEST(test_home_remaining_clamps_to_zero_when_overdue);
+    RUN_TEST(test_home_remaining_zero_without_a_target_or_when_not_idle);
+    RUN_TEST(test_home_remaining_wraparound);
+    RUN_TEST(test_homed_clears_on_next_lock_and_on_reset);
     RUN_TEST(test_hold_carries_commanded_pose);
     RUN_TEST(test_reset_forgets_setpoint);
     RUN_TEST(test_tilt_deadband);
