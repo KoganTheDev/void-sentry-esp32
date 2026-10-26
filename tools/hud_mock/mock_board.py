@@ -3,7 +3,7 @@
 Usage (repo root; needs the `websockets` package, version 13 or newer, and Pillow):
 
     python tools/hud_mock/mock_board.py [--port 8080] [--host 127.0.0.1] [--dark] [--stall-after SECONDS]
-                                        [--busy] [--uncalibrated] [--stick]
+                                        [--busy] [--uncalibrated] [--stick] [--narrow-limits]
 
 then open http://127.0.0.1:8080 (the HUD) or http://127.0.0.1:8080/wifi (WiFi setup).
 
@@ -27,6 +27,8 @@ Options:
     --stall-after N    stop sending frames N s after a viewer connects but keep the socket open (frozen video)
     --busy             accept every /stream viewer and close it at once, as the board does when full
     --uncalibrated     start with calibrated 0 and the default aim map (the default is a saved calibration)
+    --narrow-limits    shrink the soft limits to pan -20..20 deg and tilt 75..105 deg: the reach box is clearly
+                       smaller than the frame and the lim bits trigger after a short jog (out-of-reach and end-stop UI)
     --stick            the physical joystick "wins": while a HUD jog is held, stick is 1 and the jog is ignored
 
 The simulation (classes Target, Turret, Board) is pure: it takes the time as an argument, so it is deterministic and
@@ -54,6 +56,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FRAME_W, FRAME_H = 320, 240
 PAN_MIN, PAN_MAX = -90.0, 90.0
 TILT_MIN, TILT_MAX, TILT_HOME = 20.0, 160.0, 90.0
+
+
+class Limits(NamedTuple):
+    """Soft limits in degrees. The firmware's are FULL_LIMITS; --narrow-limits uses NARROW_LIMITS."""
+
+    pan_min: float = PAN_MIN
+    pan_max: float = PAN_MAX
+    tilt_min: float = TILT_MIN
+    tilt_max: float = TILT_MAX
+
+
+FULL_LIMITS = Limits()
+NARROW_LIMITS = Limits(-20.0, 20.0, 75.0, 105.0)  # makes the reach box smaller than the frame
 MIN_CAL_DX, MIN_CAL_DY = 80.0, 60.0
 CAL_TOO_CLOSE = "points too close (need 80 px apart in x and 60 px in y)"
 DEADBAND_DEG = 1.0
@@ -143,11 +158,11 @@ class AimMap:
     tilt_a: float
     tilt_b: float
 
-    def aim(self, x: float, y: float) -> tuple[float, float]:
+    def aim(self, x: float, y: float, lim: Limits = FULL_LIMITS) -> tuple[float, float]:
         """Pan and tilt degrees for an image pixel, clamped to the soft limits."""
         return (
-            clamp(self.pan_a * x + self.pan_b, PAN_MIN, PAN_MAX),
-            clamp(self.tilt_a * y + self.tilt_b, TILT_MIN, TILT_MAX),
+            clamp(self.pan_a * x + self.pan_b, lim.pan_min, lim.pan_max),
+            clamp(self.tilt_a * y + self.tilt_b, lim.tilt_min, lim.tilt_max),
         )
 
     def inverse(self, pan: float, tilt: float) -> tuple[int, int]:
@@ -156,10 +171,10 @@ class AimMap:
         y = (tilt - self.tilt_b) / self.tilt_a if abs(self.tilt_a) > 1e-9 else FRAME_H / 2
         return math.floor(x + 0.5), math.floor(y + 0.5)
 
-    def reach_box(self) -> tuple[int, int, int, int]:
+    def reach_box(self, lim: Limits = FULL_LIMITS) -> tuple[int, int, int, int]:
         """Image region whose (unclamped) aim lies inside the soft limits, clamped to the frame: rx0 ry0 rx1 ry1."""
-        rx0, rx1 = _axis_reach(self.pan_a, self.pan_b, PAN_MIN, PAN_MAX, FRAME_W - 1)
-        ry0, ry1 = _axis_reach(self.tilt_a, self.tilt_b, TILT_MIN, TILT_MAX, FRAME_H - 1)
+        rx0, rx1 = _axis_reach(self.pan_a, self.pan_b, lim.pan_min, lim.pan_max, FRAME_W - 1)
+        ry0, ry1 = _axis_reach(self.tilt_a, self.tilt_b, lim.tilt_min, lim.tilt_max, FRAME_H - 1)
         return rx0, ry0, rx1, ry1
 
 
@@ -262,7 +277,8 @@ class Target:
 # Turret (lib/motion): jog or slew to a setpoint, soft limits
 # ---------------------------------------------------------------------------------------------------------------
 class Turret:
-    def __init__(self):
+    def __init__(self, lim: Limits = FULL_LIMITS):
+        self.lim = lim
         self.pan = 0.0
         self.tilt = TILT_HOME
         self.jog_pan = 0.0  # -1..1 of full deflection
@@ -271,7 +287,7 @@ class Turret:
         self._moving_until = 0.0
 
     def set_target(self, pan: float, tilt: float):
-        self.target = (clamp(pan, PAN_MIN, PAN_MAX), clamp(tilt, TILT_MIN, TILT_MAX))
+        self.target = (clamp(pan, self.lim.pan_min, self.lim.pan_max), clamp(tilt, self.lim.tilt_min, self.lim.tilt_max))
         self.jog_pan = self.jog_tilt = 0.0
 
     def home(self):
@@ -296,8 +312,8 @@ class Turret:
         if self.jog_pan != 0.0:
             self._moving_until = t + PAN_STOP_S
         if self.jog_pan != 0.0 or self.jog_tilt != 0.0:
-            self.pan = clamp(self.pan + self.jog_pan * PAN_RATE * h, PAN_MIN, PAN_MAX)
-            self.tilt = clamp(self.tilt + self.jog_tilt * TILT_RATE * h, TILT_MIN, TILT_MAX)
+            self.pan = clamp(self.pan + self.jog_pan * PAN_RATE * h, self.lim.pan_min, self.lim.pan_max)
+            self.tilt = clamp(self.tilt + self.jog_tilt * TILT_RATE * h, self.lim.tilt_min, self.lim.tilt_max)
         elif self.target is not None:
             if abs(self.pan - self.target[0]) > 1e-3:
                 self._moving_until = t + PAN_STOP_S
@@ -306,10 +322,10 @@ class Turret:
 
     def limits(self) -> int:
         bits = 0
-        bits |= 1 if self.pan <= PAN_MIN + LIMIT_EPS_DEG else 0
-        bits |= 2 if self.pan >= PAN_MAX - LIMIT_EPS_DEG else 0
-        bits |= 4 if self.tilt <= TILT_MIN + LIMIT_EPS_DEG else 0
-        bits |= 8 if self.tilt >= TILT_MAX - LIMIT_EPS_DEG else 0
+        bits |= 1 if self.pan <= self.lim.pan_min + LIMIT_EPS_DEG else 0
+        bits |= 2 if self.pan >= self.lim.pan_max - LIMIT_EPS_DEG else 0
+        bits |= 4 if self.tilt <= self.lim.tilt_min + LIMIT_EPS_DEG else 0
+        bits |= 8 if self.tilt >= self.lim.tilt_max - LIMIT_EPS_DEG else 0
         return bits
 
 
@@ -320,11 +336,12 @@ class Board:
     """Everything /commands needs. Time (seconds, any origin) is always passed in; nothing here reads a clock."""
 
     def __init__(self, target: Optional[Target] = None, uncalibrated: bool = False, stick_mode: bool = False,
-                 viewers=lambda: 0):  # fmt: skip
+                 viewers=lambda: 0, narrow_limits: bool = False):  # fmt: skip
         self.target = target or Target()
         self.stick_mode = stick_mode
         self._viewers = viewers
-        self.turret = Turret()
+        self.lim = NARROW_LIMITS if narrow_limits else FULL_LIMITS
+        self.turret = Turret(self.lim)
         self.mode = "ai"
         self.mode_before_cal = "ai"
         self.calibrated = not uncalibrated
@@ -371,7 +388,7 @@ class Board:
             self._seen = True
             self._homed = False
             self._last_seen_ms = now_ms
-            a = self.map.aim(s.x, s.y)
+            a = self.map.aim(s.x, s.y, self.lim)
             if (not self._have_setpoint or abs(a[0] - self._setpoint[0]) > DEADBAND_DEG
                     or abs(a[1] - self._setpoint[1]) > DEADBAND_DEG):  # fmt: skip
                 self._setpoint = a
@@ -462,7 +479,7 @@ class Board:
         elif c.kind == "aim":
             if self.mode in ("user", "calibrate"):
                 self._move = None  # cancels an active HUD jog
-                self.turret.set_target(*self.map.aim(c.x, c.y))
+                self.turret.set_target(*self.map.aim(c.x, c.y, self.lim))
         # fire and poll: nothing
 
     def _tick(self, t: float):
@@ -505,7 +522,7 @@ class Board:
     def reply_dict(self, t: float) -> dict:
         s = self.target.sample(t)
         ax, ay = self.map.inverse(self.turret.pan, self.turret.tilt)
-        rx0, ry0, rx1, ry1 = self.map.reach_box()
+        rx0, ry0, rx1, ry1 = self.map.reach_box(self.lim)
         d = {
             "detected": int(s.detected), "x": s.x, "y": s.y, "width": FRAME_W, "height": FRAME_H,
             "pixels": s.pixels, "state": s.state, "id": s.id, "bx": s.bx, "by": s.by, "bw": s.bw, "bh": s.bh,
@@ -625,7 +642,8 @@ class Server:
         self.t0 = time.monotonic()
         self.viewers: set = set()
         self.wifi = WifiState()
-        self.board = Board(uncalibrated=args.uncalibrated, stick_mode=args.stick, viewers=lambda: len(self.viewers))
+        self.board = Board(uncalibrated=args.uncalibrated, stick_mode=args.stick, viewers=lambda: len(self.viewers),
+                           narrow_limits=args.narrow_limits)
         self.renderer = FrameRenderer(dark=args.dark)
         self.inner_port = 0
 
@@ -772,6 +790,8 @@ def main(argv=None):
                     help="stop sending frames this long after a viewer connects, keep the socket open")  # fmt: skip
     ap.add_argument("--busy", action="store_true", help="accept every /stream viewer and close it at once")
     ap.add_argument("--uncalibrated", action="store_true", help="start with calibrated 0 and the default map")
+    ap.add_argument("--narrow-limits", action="store_true",
+                    help="soft limits pan -20..20, tilt 75..105 (small reach box, easy to hit the end stops)")  # fmt: skip
     ap.add_argument("--stick", action="store_true", help="the joystick overrides HUD jogs (stick = 1 while held)")
     args = ap.parse_args(argv)
     try:
