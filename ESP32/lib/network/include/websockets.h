@@ -7,6 +7,7 @@
 #include "handshake_guard.h"
 #include "remote_command.h"
 #include "reply_json.h"
+#include "stream_broadcaster.h"
 #include "track_snapshot.h"
 #include "tracking_types.h"
 #include <cstdio>
@@ -32,11 +33,14 @@ public:
      * @param detection Optional detection module for the tracker fields.
      * @param status Optional controller status for the mode/calibration fields.
      * @param remote Optional sink that receives the parsed commands (the Controller).
+     * @param stream Optional /stream broadcaster whose viewer count is sent as "vw" (0 when null). Must outlive the
+     * handler; StreamBroadcaster::viewer_count() is safe to call from the httpd task.
      */
     CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri, BaseDetectionModule* detection = nullptr,
-                             const BaseStatusProvider* status = nullptr, remote::BaseRemoteSink* remote = nullptr)
+                             const BaseStatusProvider* status = nullptr, remote::BaseRemoteSink* remote = nullptr,
+                             const StreamBroadcaster* stream = nullptr)
         : _server_handle(server_handle), _uri(uri), _detection_instance(detection), _status_provider(status),
-          _remote(remote)
+          _remote(remote), _stream(stream)
     {
     }
 
@@ -158,7 +162,7 @@ private:
         {
             ESP_LOGW(TAG_WEBSOCKETS, "No detection module connected, sending fallback metrics");
         }
-        in.viewers = 0; // TODO(HUD task B): the /stream viewer count
+        in.viewers = this->_stream != nullptr ? static_cast<uint32_t>(this->_stream->viewer_count()) : 0;
         return hud::format_reply(in, out, size);
     }
 
@@ -167,4 +171,5 @@ private:
     BaseDetectionModule* _detection_instance;
     const BaseStatusProvider* _status_provider;
     remote::BaseRemoteSink* _remote;
+    const StreamBroadcaster* _stream;
 };

@@ -58,7 +58,7 @@ public:
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }
 
     /** @brief Number of currently connected /stream viewers. */
-    size_t viewer_count() { return _broadcaster.viewer_count(); }
+    size_t viewer_count() const { return _broadcaster.viewer_count(); }
 
     /**
      * @brief Shut down the server and unregister all URI handlers.

@@ -38,7 +38,15 @@ public:
     static void on_session_closed(httpd_handle_t server, int sockfd);
 
     uint32_t frames_sent() const { return sent_.load(); }
-    size_t viewer_count();
+
+    /**
+     * @brief Connected /stream viewers (0 to frames::kMaxViewers).
+     * @details Safe from any task, including the httpd task (the /commands reply): it takes the broadcaster mutex,
+     * which every holder keeps for a few microseconds only and never while calling back into this method, so the
+     * caller cannot deadlock and waits at most that long (the FreeRTOS mutex has priority inheritance). Returns 0
+     * before start() and after stop().
+     */
+    size_t viewer_count() const;
 
 private:
     struct SendJob {
