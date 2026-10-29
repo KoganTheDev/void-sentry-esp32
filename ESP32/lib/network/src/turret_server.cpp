@@ -115,6 +115,10 @@ esp_err_t HttpServer::index_handler(httpd_req_t* req)
     }
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    // Forbid framing by any site (clickjacking: a hidden HUD under a decoy page could be clicked to move the turret).
+    // No script-src: the page uses inline scripts.
+    httpd_resp_set_hdr(req, "Content-Security-Policy", "frame-ancestors 'none'");
+    httpd_resp_set_hdr(req, "X-Frame-Options", "DENY");
 
     return httpd_resp_send(req, (const char*)HTML_PAGE_GZ, HTML_PAGE_GZ_LEN);
 }

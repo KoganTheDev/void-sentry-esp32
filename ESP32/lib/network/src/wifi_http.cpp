@@ -130,6 +130,9 @@ esp_err_t page_handler(httpd_req_t* req)
 {
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    // Forbid framing by any site (clickjacking on the setup form). No script-src: the page uses inline scripts.
+    httpd_resp_set_hdr(req, "Content-Security-Policy", "frame-ancestors 'none'");
+    httpd_resp_set_hdr(req, "X-Frame-Options", "DENY");
     return httpd_resp_send(req, (const char*)WIFI_PAGE_GZ, WIFI_PAGE_GZ_LEN);
 }
 
