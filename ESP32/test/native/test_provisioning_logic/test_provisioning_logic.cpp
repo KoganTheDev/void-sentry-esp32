@@ -890,6 +890,145 @@ void test_form_has_key_tells_missing_from_invalid(void)
     TEST_ASSERT_FALSE(form_has_key({"password", 8}, "password"));
 }
 
+void test_pin_lockout_stays_capped_after_many_lockouts(void)
+{
+    // k saturates internally (32 lockouts); the length must stay at the 1 h cap, with no overflow of 60 s * 2^k.
+    PinGuard g = make_guard();
+    uint32_t t = 0;
+    for (int k = 0; k < 50; ++k)
+    {
+        five_wrong(g, t);
+        const PinResult r = chk(g, "1234", t);
+        TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::LockedOut), static_cast<int>(r.status));
+        const uint32_t expect = k >= 6 ? 3600u : (60u << k);
+        TEST_ASSERT_EQUAL_UINT32(expect, r.seconds_left);
+        t += expect * 1000u;
+    }
+}
+
+void test_pin_cap_boundary_is_exact(void)
+{
+    // 60 * 2^6 = 3840 s exceeds the cap, so the 7th lockout (k = 6) is clamped to exactly 3600 s, not 3840.
+    PinGuard g = make_guard();
+    uint32_t t = 0;
+    for (int k = 0; k < 6; ++k)
+    {
+        five_wrong(g, t);
+        t += (60000u << k);
+    }
+    five_wrong(g, t);
+    PinResult r = chk(g, "1234", t);
+    TEST_ASSERT_EQUAL_UINT32(3600, r.seconds_left);
+    r = chk(g, "1234", t + 3600000u - 1u);
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::LockedOut), static_cast<int>(r.status));
+    TEST_ASSERT_EQUAL_UINT32(1, r.seconds_left); // 1 ms left rounds up to 1 s
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Ok), static_cast<int>(chk(g, "1234", t + 3600000u).status));
+}
+
+void test_pin_success_after_expiry_resets_k_and_failures(void)
+{
+    PinGuard g = make_guard();
+    five_wrong(g, 0);     // first lockout, 60 s
+    five_wrong(g, 60000); // second lockout, 120 s
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Ok), static_cast<int>(chk(g, "1234", 60000 + 120000).status));
+    // After a success the next lockout starts again at 60 s and needs a full 5 failures.
+    const uint32_t t = 300000;
+    for (int i = 0; i < 4; ++i)
+    {
+        TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(chk(g, "0000", t).status));
+    }
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(chk(g, "0000", t).status));
+    const PinResult r = chk(g, "1234", t);
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::LockedOut), static_cast<int>(r.status));
+    TEST_ASSERT_EQUAL_UINT32(60, r.seconds_left);
+}
+
+void test_pin_wrong_after_expiry_counts_from_zero(void)
+{
+    PinGuard g = make_guard();
+    five_wrong(g, 0);
+    // Exactly at expiry the guard evaluates again; a wrong PIN is Wrong (not locked) and 4 more are needed.
+    for (int i = 0; i < 4; ++i)
+    {
+        TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(chk(g, "0000", 60000).status));
+    }
+    const PinResult r = chk(g, "0000", 60000); // 5th failure of the new window: second lockout, 120 s
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(r.status));
+    TEST_ASSERT_EQUAL_UINT32(120, chk(g, "1234", 60000).seconds_left);
+}
+
+void test_pin_null_and_malformed_pins_count_as_wrong(void)
+{
+    PinGuard g = make_guard();
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(g.check(nullptr, 4, 0).status));
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(g.check("123", 3, 0).status));
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(g.check("123456789", 9, 0).status));
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(g.check("12a4", 4, 0).status));
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::Wrong), static_cast<int>(g.check("1234", 0, 0).status));
+    // The 5th failure locks even though none of the first five could have matched.
+    TEST_ASSERT_EQUAL(static_cast<int>(PinCheck::LockedOut), static_cast<int>(chk(g, "1234", 1).status));
+}
+
+void test_form_escape_edge_cases(void)
+{
+    char out[40];
+    size_t n = 0;
+    TEST_ASSERT_TRUE(field("ssid=%41", "ssid", out, sizeof(out), &n)); // escape ends exactly at the end of the body
+    TEST_ASSERT_EQUAL_STRING("A", out);
+    TEST_ASSERT_TRUE(field("ssid=%41&x=1", "ssid", out, sizeof(out), &n)); // ...or at a '&'
+    TEST_ASSERT_EQUAL_STRING("A", out);
+    TEST_ASSERT_FALSE(
+        field("ssid=a%4&x=1", "ssid", out, sizeof(out))); // cut short by '&', not completed by what follows
+    TEST_ASSERT_FALSE(field("ssid=a%&x=11", "ssid", out, sizeof(out)));
+    TEST_ASSERT_FALSE(field("ssid=%", "ssid", out, sizeof(out)));
+    TEST_ASSERT_FALSE(field("ssid=%4", "ssid", out, sizeof(out)));
+    TEST_ASSERT_FALSE(field("ssid=%4G", "ssid", out, sizeof(out)));  // bad low nibble
+    TEST_ASSERT_FALSE(field("ssid=%G4", "ssid", out, sizeof(out)));  // bad high nibble
+    TEST_ASSERT_FALSE(field("ssid=%+1", "ssid", out, sizeof(out)));  // '+' is not a hex digit
+    TEST_ASSERT_FALSE(field("ssid=%%41", "ssid", out, sizeof(out))); // '%' is not a hex digit
+    TEST_ASSERT_FALSE(field("ssid=%00", "ssid", out, sizeof(out)));  // a decoded NUL is rejected
+    TEST_ASSERT_FALSE(field("ssid=ab%00cd", "ssid", out, sizeof(out)));
+    TEST_ASSERT_TRUE(field("ssid=%01", "ssid", out, sizeof(out), &n)); // other control bytes decode (validated later)
+    TEST_ASSERT_EQUAL_size_t(1, n);
+    TEST_ASSERT_TRUE(field("ssid=%2B", "ssid", out, sizeof(out), &n)); // an escaped '+' stays a plus
+    TEST_ASSERT_EQUAL_STRING("+", out);
+    TEST_ASSERT_TRUE(field("ssid=+", "ssid", out, sizeof(out), &n)); // a bare '+' is a space
+    TEST_ASSERT_EQUAL_STRING(" ", out);
+    TEST_ASSERT_TRUE(field("ssid=%2b%2B", "ssid", out, sizeof(out), &n));
+    TEST_ASSERT_EQUAL_STRING("++", out);
+}
+
+void test_form_duplicate_and_missing_keys(void)
+{
+    char out[40];
+    TEST_ASSERT_TRUE(field("ssid=first&ssid=second", "ssid", out, sizeof(out)));
+    TEST_ASSERT_EQUAL_STRING("first", out); // first occurrence wins
+    // A malformed first occurrence is an error, not a fall-through to the second.
+    TEST_ASSERT_FALSE(field("ssid=%G1&ssid=ok", "ssid", out, sizeof(out)));
+    TEST_ASSERT_TRUE(form_has_key("ssid=%G1&ssid=ok", "ssid"));
+    TEST_ASSERT_FALSE(field("&&&", "ssid", out, sizeof(out)));
+    TEST_ASSERT_FALSE(field("=value", "ssid", out, sizeof(out)));
+    TEST_ASSERT_FALSE(field("ssid", "ssid", out, 0)); // zero capacity
+    TEST_ASSERT_FALSE(field("ssid=a", "ssid", nullptr, 10));
+    TEST_ASSERT_FALSE(form_has_key("", "ssid"));
+    TEST_ASSERT_FALSE(form_has_key("ssid", "ssid"));
+    TEST_ASSERT_TRUE(form_has_key("a=1&ssid=", "ssid"));
+}
+
+void test_form_out_cap_boundaries(void)
+{
+    char out[4];
+    size_t n = 0;
+    TEST_ASSERT_TRUE(field("k=abc", "k", out, 4, &n)); // value + NUL exactly fits
+    TEST_ASSERT_EQUAL_STRING("abc", out);
+    TEST_ASSERT_FALSE(field("k=abcd", "k", out, 4, &n)); // one byte too long
+    TEST_ASSERT_FALSE(field("k=a", "k", out, 1, &n));    // room for the NUL only
+    TEST_ASSERT_TRUE(field("k=", "k", out, 1, &n));
+    TEST_ASSERT_EQUAL_size_t(0, n);
+    TEST_ASSERT_TRUE(field("k=%41%42%43", "k", out, 4, &n)); // the cap applies to decoded bytes, not input bytes
+    TEST_ASSERT_EQUAL_STRING("ABC", out);
+}
+
 int main(int, char**)
 {
     UNITY_BEGIN();
@@ -910,6 +1049,11 @@ int main(int, char**)
     RUN_TEST(test_pin_ok_after_lockout_resets_k);
     RUN_TEST(test_pin_lockout_wrap_safe);
     RUN_TEST(test_pin_failures_accumulate_across_callers);
+    RUN_TEST(test_pin_lockout_stays_capped_after_many_lockouts);
+    RUN_TEST(test_pin_cap_boundary_is_exact);
+    RUN_TEST(test_pin_success_after_expiry_resets_k_and_failures);
+    RUN_TEST(test_pin_wrong_after_expiry_counts_from_zero);
+    RUN_TEST(test_pin_null_and_malformed_pins_count_as_wrong);
     RUN_TEST(test_pin_record_round_trip);
     RUN_TEST(test_form_plain_field);
     RUN_TEST(test_form_empty_value);
@@ -920,6 +1064,9 @@ int main(int, char**)
     RUN_TEST(test_form_malformed_escapes);
     RUN_TEST(test_form_body_size_limit);
     RUN_TEST(test_form_out_cap);
+    RUN_TEST(test_form_escape_edge_cases);
+    RUN_TEST(test_form_duplicate_and_missing_keys);
+    RUN_TEST(test_form_out_cap_boundaries);
     RUN_TEST(test_validate_ssid);
     RUN_TEST(test_validate_password);
     RUN_TEST(test_validate_pin);
