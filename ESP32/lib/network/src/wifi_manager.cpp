@@ -107,6 +107,7 @@ void WifiManager::begin()
     vsync::MutexLock lock(this->_mutex);
     const uint32_t now = millis();
     this->apply(this->_plan.start(this->_list.size() > 0, now), now);
+    this->publish_status_locked();
 }
 
 void WifiManager::maintain()
@@ -156,6 +157,9 @@ void WifiManager::maintain()
                 this->stop_hotspot();
             }
         }
+        // Every status() field (plan state, failure, SSIDs, IP, hotspot flag) changes only inside this block,
+        // begin() or add(), so publishing here keeps status() at most one pass behind without it taking the mutex.
+        this->publish_status_locked();
     }
 
     if (this->_hotspot_running)
@@ -462,10 +466,13 @@ prov::PlanState WifiManager::plan_state()
     return this->_plan.state();
 }
 
-WifiManager::Status WifiManager::status()
+WifiManager::Status WifiManager::status() { return this->_status_snap.load(); }
+
+void WifiManager::publish_status_locked() { this->_status_snap.store(this->build_status_locked()); }
+
+WifiManager::Status WifiManager::build_status_locked() const
 {
     Status s;
-    vsync::MutexLock lock(this->_mutex);
     const prov::PlanState st = this->_plan.state();
     s.mode = this->mode_name_locked();
     s.pin_set = this->_pin.record().set;
@@ -580,6 +587,7 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
             this->_pin = prov::PinGuard(prov::PinRecord{});
             return out;
         }
+        this->publish_status_locked(); // pin_set just became true; the setup page reads it right after this reply
     } else
     {
         const prov::PinResult r = this->_pin.check(pin, pin_len, now_ms);

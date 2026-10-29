@@ -93,7 +93,10 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
         const TrackSnapshot snapshot = make_snapshot(missed, frame.width, frame.height);
         this->_published.update([&](Published& p) {
             ++p.stats.decode_failures;
-            p.snapshot = snapshot;
+            if (!this->_reset_requested.load())
+            {
+                p.snapshot = snapshot; // pending reset: this frame came from the old pipeline, keep reset()'s Idle
+            }
         });
         ESP_LOGD(TAG, "JPEG decode failed (%u bytes)", (unsigned)frame.length);
         return tracking::direction_for(missed);
@@ -106,7 +109,10 @@ std::tuple<MoveX, MoveY> CameraDiffDetection::detect_object(camera_buffer_t fram
     const TrackSnapshot snapshot = make_snapshot(track, frame.width, frame.height);
     this->_published.update([&](Published& p) {
         DetectionStats& stats = p.stats;
-        p.snapshot = snapshot;
+        if (!this->_reset_requested.load())
+        {
+            p.snapshot = snapshot; // pending reset: this frame came from the old pipeline, keep reset()'s Idle
+        }
         ++stats.frames;
         if (detection.scene_change)
         {
@@ -186,9 +192,18 @@ void CameraDiffDetection::apply_reset()
 
 void CameraDiffDetection::reset()
 {
-    this->_reset_requested.store(true);
-    // Wake the detect task (priority 3) so it preempts the caller on core 1, applies the reset and publishes Idle
-    // before this returns; otherwise a caller in the same loop() pass could still read a stale Locked snapshot.
+    // Raise the flag and publish Idle in one critical section. detect_object() checks the flag under the same lock
+    // before it writes a snapshot, so a frame the old pipeline is still analysing cannot overwrite this Idle, and a
+    // caller that reads the snapshot right after reset() (Controller::set_mode, same loop() pass) sees Idle. Only
+    // the detect task clears the flag, at the top of its loop, just before apply_reset().
+    this->_published.update([this](Published& p) {
+        this->_reset_requested.store(true);
+        TrackSnapshot idle;
+        idle.frame_width = p.snapshot.frame_width;
+        idle.frame_height = p.snapshot.frame_height;
+        p.snapshot = idle;
+    });
+    // Wake the detect task so the pipeline itself is reset before the next frame instead of at the 200 ms timeout.
     if (this->_task)
     {
         xTaskNotifyGive(this->_task);

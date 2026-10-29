@@ -18,7 +18,9 @@
 
 namespace frames
 {
-// one writing + one latest + readers holding older frames (up to two viewers plus the detect task)
+// One writing + one latest + two readers holding older frames. Up to three readers exist (two queued /stream sends
+// plus the detect task); if all three hold frames older than the latest, begin_write() finds no Free slot and the
+// new camera frame is dropped and counted in dropped_no_slot rather than rewriting a leased slot.
 constexpr size_t kSlotCount = 4;
 
 struct FrameMeta {
