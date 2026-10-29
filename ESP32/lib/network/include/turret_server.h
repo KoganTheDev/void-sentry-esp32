@@ -57,6 +57,9 @@ public:
     /** @brief Frames successfully sent to /stream viewers since boot. */
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }
 
+    /** @brief /stream send timing (see StreamBroadcaster::SendStats); resets the window max. */
+    StreamBroadcaster::SendStats take_send_stats() { return _broadcaster.take_send_stats(); }
+
     /** @brief Number of currently connected /stream viewers. */
     size_t viewer_count() const { return _broadcaster.viewer_count(); }
 
