@@ -53,6 +53,14 @@ jobs:
                   key: pio-core3-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO
               run: pip install -U platformio
+            # The platform builds the libs inside its own venv ~/.platformio/penv with the PyPI core "pioarduino>=6.2.0".
+            # pioarduino 6.2.0.post1 reads as semver 6.2.0-post.1, a prerelease below 6.2.0, so the platform rejects its
+            # own core in the second build phase (IncompatiblePlatform). Pre-create the venv with 6.2.0: the platform
+            # installs only packages whose installed version fails its spec. Drop this once upstream fixes it.
+            - name: Pin the pioarduino core in the platform venv
+              run: |
+                  [ -x ~/.platformio/penv/bin/python ] || python -m venv ~/.platformio/penv
+                  ~/.platformio/penv/bin/python -m pip install "pioarduino==6.2.0"
             - name: Build turret firmware (Arduino core 3.3.12)
               working-directory: ESP32
               run: pio run -e freenove_esp32_wrover
