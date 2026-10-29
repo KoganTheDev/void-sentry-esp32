@@ -1,5 +1,6 @@
 #pragma once
 
+#include "log_sanitize.h"
 #include "origin_check.h"
 #include <esp32-hal-log.h> // route the refusal log through Arduino's logger (otherwise silenced)
 #include <esp_http_server.h>
@@ -70,7 +71,9 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
     }
     if (!remote::origin_allowed({origin, origin_len}, {host, host_len}))
     {
-        ESP_LOGW(tag, "request refused: Origin %.*s", (int)origin_len, origin);
+        char safe[kHdrBuf]; // the Origin is attacker-controlled: no control bytes into the serial log
+        remote::sanitize_for_log(origin, origin_len, safe, sizeof(safe));
+        ESP_LOGW(tag, "request refused: Origin %s", safe);
         return false;
     }
     return true;
