@@ -45,10 +45,13 @@ public:
     bool start_task(FrameStore& store);
 
     /**
-     * @brief Request a reset of detector and tracker plus an Idle snapshot.
-     * @details Sets a flag and wakes the detection task. Safe from any task. Called from loop() (core 1, priority 1)
-     * the higher-priority detect task preempts the caller, applies the reset and publishes Idle before reset()
-     * returns, so it is synchronous in practice. The task's 200 ms wait timeout remains a backstop.
+     * @brief Publish an Idle snapshot now and request a reset of detector and tracker.
+     * @details Safe from any task. The Idle snapshot and the request flag are written in one critical section of the
+     * published-state lock, so get_track_snapshot() returns Idle as soon as reset() returns. While the flag is set,
+     * detect_object() still counts stats but does not write the snapshot (checked under the same lock), so a frame
+     * that the old pipeline was analysing cannot replace the Idle snapshot with a stale Locked one. The detection task
+     * clears the flag and resets the pipeline before its next frame; reset() wakes it, and its 200 ms wait timeout
+     * is a backstop. The pipeline reset itself is therefore asynchronous, the snapshot is not.
      */
     void reset() override;
 
