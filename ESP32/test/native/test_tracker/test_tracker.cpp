@@ -322,9 +322,48 @@ void test_direction_for(void)
     TEST_ASSERT_TRUE(std::get<1>(d) == MoveY::None);
 }
 
+static void assert_box(const Box& b, int x0, int y0, int x1, int y1)
+{
+    TEST_ASSERT_EQUAL_INT(x0, b.x0);
+    TEST_ASSERT_EQUAL_INT(y0, b.y0);
+    TEST_ASSERT_EQUAL_INT(x1, b.x1);
+    TEST_ASSERT_EQUAL_INT(y1, b.y1);
+}
+
+void test_box_merge_with_empty_is_noop(void)
+{
+    Box b{2, 3, 5, 7};
+    b.merge(Box{}); // default box is empty
+    assert_box(b, 2, 3, 5, 7);
+    b.merge(Box{4, 4, 1, 1}); // inverted (empty) box is also ignored
+    assert_box(b, 2, 3, 5, 7);
+}
+
+void test_box_merge_into_empty_copies_other(void)
+{
+    Box b;
+    b.merge(Box{1, 2, 3, 4});
+    assert_box(b, 1, 2, 3, 4);
+    Box both;
+    both.merge(Box{});
+    TEST_ASSERT_TRUE(both.empty());
+}
+
+void test_box_merge_grows_to_cover_both(void)
+{
+    Box b{5, 5, 8, 8};
+    b.merge(Box{2, 6, 6, 12});
+    assert_box(b, 2, 5, 8, 12);
+    b.merge(Box{3, 6, 4, 7}); // fully inside: unchanged
+    assert_box(b, 2, 5, 8, 12);
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
+    RUN_TEST(test_box_merge_with_empty_is_noop);
+    RUN_TEST(test_box_merge_into_empty_copies_other);
+    RUN_TEST(test_box_merge_grows_to_cover_both);
     RUN_TEST(test_locks_after_confirm_frames);
     RUN_TEST(test_tracks_constant_velocity);
     RUN_TEST(test_locks_on_fast_target);

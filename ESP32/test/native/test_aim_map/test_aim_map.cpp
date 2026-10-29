@@ -6,6 +6,7 @@
 #include <unity.h>
 
 #include "aim_map.h"
+#include "blob_frame.h"
 #include "calibration_blob.h"
 
 #include <algorithm>
@@ -219,6 +220,122 @@ void test_fit_overflow_gives_finite_or_nothing(void)
     }
 }
 
+void test_blob_rejects_other_version_with_valid_crc(void)
+{
+    // A future (or corrupt-but-reframed) version must be refused even though magic and CRC check out.
+    const Blob good = serialize(default_map());
+    for (const uint8_t version : {uint8_t{0}, uint8_t{2}, uint8_t{255}})
+    {
+        Blob b = good;
+        b[4] = version; // little-endian u16 at offset 4
+        b[5] = 0;
+        checksum::frame_blob(b, 0x314D4941u); // re-stamp the CRC so only the version is wrong
+        TEST_ASSERT_FALSE(deserialize(b).has_value());
+    }
+    Blob high = good;
+    high[4] = 1;
+    high[5] = 1; // 0x0101
+    checksum::frame_blob(high, 0x314D4941u);
+    TEST_ASSERT_FALSE(deserialize(high).has_value());
+    // Control: the unmodified version with a re-stamped CRC still loads.
+    Blob same = good;
+    checksum::frame_blob(same, 0x314D4941u);
+    TEST_ASSERT_TRUE(deserialize(same).has_value());
+}
+
+void test_blob_ignores_reserved_field_but_checks_every_float_byte(void)
+{
+    const Blob good = serialize(default_map());
+    Blob b = good;
+    b[6] = 0xAA; // reserved bytes are not interpreted; the CRC still covers them
+    TEST_ASSERT_FALSE(deserialize(b).has_value());
+    checksum::frame_blob(b, 0x314D4941u);
+    TEST_ASSERT_TRUE(deserialize(b).has_value());
+    for (size_t off = 8; off < 24; ++off)
+    {
+        Blob c = good;
+        c[off] ^= 0x80;
+        TEST_ASSERT_FALSE(deserialize(c).has_value()); // CRC catches a single flipped bit in any float byte
+    }
+}
+
+void test_fit_rejects_overflowing_deltas_on_each_axis(void)
+{
+    // dy overflows to inf while dx is fine.
+    TEST_ASSERT_FALSE(fit({40, 3e38f, 0, 100}, {280, -3e38f, 10, 70}).has_value());
+    // Tilt delta overflows: tilt_a would be inf.
+    TEST_ASSERT_FALSE(fit({40, 50, 0, 3e38f}, {280, 200, 10, -3e38f}).has_value());
+    // Offsets overflow although the slopes are finite: pan_a * x1 = inf.
+    TEST_ASSERT_FALSE(fit({3e38f, 50, -3e38f, 100}, {3.1e38f, 200, 3e38f, 70}).has_value());
+    TEST_ASSERT_FALSE(fit({40, 3e38f, 0, -3e38f}, {280, 3.1e38f, 10, 3e38f}).has_value());
+}
+
+void test_reach_box_negative_slope_is_ordered(void)
+{
+    // Image down -> smaller angle (the default tilt sign) and a mirrored pan: the corners must still be ordered.
+    const AimMap m{.pan_a = -0.5f, .pan_b = 80.0f, .tilt_a = -1.0f, .tilt_b = 200.0f};
+    const ReachBox b = reach_box(m); // pan -90..90 -> x 340..-20 (clamped 0..319 -> 0..319); tilt 20..160 -> y 180..40
+    TEST_ASSERT_TRUE(b.x0 <= b.x1);
+    TEST_ASSERT_TRUE(b.y0 <= b.y1);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(40, b.y0);
+    TEST_ASSERT_EQUAL_INT(180, b.y1);
+}
+
+void test_reach_box_non_finite_offset_or_infinite_slope(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    // Infinite slope: whole frame on that axis (documented), the other axis is computed normally.
+    const AimMap inf_pan{.pan_a = inf, .pan_b = 0.0f, .tilt_a = 1.0f, .tilt_b = -40.4f};
+    ReachBox b = reach_box(inf_pan);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(60, b.y0);
+    TEST_ASSERT_EQUAL_INT(200, b.y1);
+    const AimMap neg_inf_tilt{.pan_a = 1.0f, .pan_b = -100.6f, .tilt_a = -inf, .tilt_b = 90.0f};
+    b = reach_box(neg_inf_tilt);
+    TEST_ASSERT_EQUAL_INT(11, b.x0);
+    TEST_ASSERT_EQUAL_INT(191, b.x1);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+    // A NaN offset with a finite slope: the inverse is undefined, so it falls back to pixel 0 for both ends.
+    const AimMap nan_offset{.pan_a = 1.0f, .pan_b = nan, .tilt_a = 1.0f, .tilt_b = nan};
+    b = reach_box(nan_offset);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(0, b.x1);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(0, b.y1);
+    // A NaN slope on both axes: whole frame.
+    const AimMap nan_both{.pan_a = nan, .pan_b = 0.0f, .tilt_a = nan, .tilt_b = 0.0f};
+    b = reach_box(nan_both);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+}
+
+void test_to_pixel_overflowing_quotient_gives_frame_centre(void)
+{
+    // (angle - offset) / slope overflows float: the result is not finite, so the centre is returned.
+    const AimMap tiny{.pan_a = 1e-30f, .pan_b = 0.0f, .tilt_a = 1e-30f, .tilt_b = 0.0f};
+    const Pixel p = tiny.to_pixel(Angles{3e30f, 3e30f});
+    TEST_ASSERT_EQUAL_FLOAT(kFrameW / 2.0f, p.x);
+    TEST_ASSERT_EQUAL_FLOAT(kFrameH / 2.0f, p.y);
+}
+
+void test_aim_with_degenerate_map_stays_finite_and_in_range(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const AimMap zero_slope{.pan_a = 0.0f, .pan_b = 200.0f, .tilt_a = 0.0f, .tilt_b = -50.0f};
+    Angles a = zero_slope.aim(100.0f, 100.0f);
+    TEST_ASSERT_EQUAL_FLOAT(kPanMaxDeg, a.pan);
+    TEST_ASSERT_EQUAL_FLOAT(kTiltMinDeg, a.tilt);
+    const AimMap bad{.pan_a = nan, .pan_b = nan, .tilt_a = nan, .tilt_b = nan};
+    a = bad.aim(10.0f, 10.0f);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, a.pan);
+    TEST_ASSERT_EQUAL_FLOAT(kTiltHomeDeg, a.tilt);
+}
+
 static void expect_round_trip(const AimMap& m, Angles a)
 {
     const Pixel px = m.to_pixel(a);
@@ -424,5 +541,12 @@ int main(int argc, char** argv)
     RUN_TEST(test_reach_box_degenerate_slope_is_whole_frame);
     RUN_TEST(test_limit_bits);
     RUN_TEST(test_limit_bits_threshold_is_half_a_degree);
+    RUN_TEST(test_blob_rejects_other_version_with_valid_crc);
+    RUN_TEST(test_blob_ignores_reserved_field_but_checks_every_float_byte);
+    RUN_TEST(test_fit_rejects_overflowing_deltas_on_each_axis);
+    RUN_TEST(test_reach_box_negative_slope_is_ordered);
+    RUN_TEST(test_reach_box_non_finite_offset_or_infinite_slope);
+    RUN_TEST(test_to_pixel_overflowing_quotient_gives_frame_centre);
+    RUN_TEST(test_aim_with_degenerate_map_stays_finite_and_in_range);
     return UNITY_END();
 }
