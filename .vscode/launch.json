@@ -13,30 +13,6 @@
       "justMyCode": "true"
     },
     {
-      "name": "Python Debugger: Compressor with Fixed Test File",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "args": ["test/test.html"], 
-      "purpose": [
-        "debug-test"
-      ],
-      "justMyCode": "true"
-    },
-    {
-      "name": "Python Debugger: Decompressor with Fixed Test File",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${file}",
-      "console": "integratedTerminal",
-      "args": ["test/test.h"], 
-      "purpose": [
-        "debug-test"
-      ],
-      "justMyCode": "true"
-    },
-    {
       "name": "Python Debugger: Current File (No Args)",
       "type": "debugpy",
       "request": "launch",

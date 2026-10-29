@@ -271,8 +271,6 @@ ControlStatus Controller::control_status() const { return this->_status.load(); 
 
 void Controller::run()
 {
-    ESP_LOGV(TAG, "Controller::run() called");
-
     const uint32_t now = millis();
     const bool held = this->_joystick.is_z_held();
     if (held && !this->_prev_held)

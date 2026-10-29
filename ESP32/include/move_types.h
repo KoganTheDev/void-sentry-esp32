@@ -46,12 +46,6 @@ public:
     /** @brief Checks if the movement state is None (0). @return true if no movement. */
     bool is_none() const { return static_cast<uint8_t>(_value) == 0; }
 
-    /** @brief Gets the underlying enum value. @return EnumType. */
-    EnumType get_value() const { return _value; }
-
-    /** @brief Logical NOT operator. @return true if direction is None. */
-    bool operator!() const { return is_none(); }
-
     /** @brief Implicit conversion to uint8_t for hardware drivers. @return uint8_t value. */
     operator uint8_t() const { return static_cast<uint8_t>(_value); }
 

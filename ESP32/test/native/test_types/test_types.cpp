@@ -22,7 +22,6 @@ void test_move_defaults_to_none(void)
     MoveY y;
     TEST_ASSERT_TRUE(x.is_none());
     TEST_ASSERT_TRUE(y.is_none());
-    TEST_ASSERT_TRUE(!x); // operator! means "no movement"
 }
 
 void test_move_compares_with_enum(void)
