@@ -16,6 +16,7 @@ This document records the main design decisions and one debugging story from bui
 10. [How correctness is checked](#10-how-correctness-is-checked)
 11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
 12. [The HUD redesign: showing latency, not hiding it](#12-the-hud-redesign-showing-latency-not-hiding-it)
+13. [Stream freezes: a TCP retransmit timer on a shared task](#13-stream-freezes-a-tcp-retransmit-timer-on-a-shared-task)
 
 ---
 
@@ -196,3 +197,39 @@ The board has no ASan, so most of the effort goes into making logic testable on 
 **The aim-hold rule.** The controller arbitrates each pass: the stick wins, then a HUD jog, otherwise idle. An idle pass used to send a jog of (0,0), which stops the motors. The HUD aim is an absolute `set_target_deg` move, so at 25 Hz that idle (0,0) would cancel it on the next pass. Considered: skipping the idle jog always (then a lost dead man would never stop a jog) or tracking "motors are moving" (racy against the motor task). Won: an `_aim_hold` flag set by `aim:` and cleared only when the stick or a real HUD jog takes over (and on mode changes), so the idle pass does nothing while a HUD aim is in flight.
 
 **Evidence.** The parser, inbox, inverse map, reach box, status fields and reply formatter are pure and native-tested: 307 cases in 17 suites, also under ASan and UBSan. The reply buffer `hud::kReplySize` is 832 B; `test_reply_json` builds the worst case at 739 B and the typical reply is about 330 B, so the cap has headroom and the formatter falls back to `{"detected":0}` on overflow rather than overrunning. The page was exercised against `tools/hud_mock/mock_board.py` in a browser at 1440x900, 390x844 and 844x390, and `web/test_web_ui.py` checks no external resources, balanced markup and only known commands. **Not yet verified on hardware:** HUD calibration, tap-to-aim, the reticle matching the real aim, the reach box and the new status fields; the success criteria in the spec (including `idle0` of at least 60% with one HUD) are still to be measured on the board.
+
+## 13. Stream freezes: a TCP retransmit timer on a shared task
+
+**Symptom.** With the HUD open, the video froze for about 1-2 s every few seconds, and sometimes for longer.
+
+**Instrument first.** A capture client ran on the PC for 2-3 minutes. It was a second `/stream` viewer plus a 25 Hz `/commands` poll. It logged on one clock every frame arrival, every poll round trip, a ping to the board 4 times a second and the board's serial stats. Then a `[net]` stats line was added to the firmware. It times every `httpd_ws_send_frame_async` call and reports the longest send in the window (`snd_max_ms`), the slow and failed sends, and the share of time spent sending.
+
+**What the timeline showed** (first run: 63 gaps over 400 ms in 180 s):
+- Every video gap matched a `/commands` round trip of the same length, with a median of 78 ms but a p95 of 1.34 s.
+- Ping to the board stayed at 5-10 ms through the gaps.
+- `idle0` stayed between 54 and 91%.
+
+So the WiFi link was up and the CPU was not saturated. What stalled was the single httpd task, which runs every `/stream` send and every `/commands` reply. On the board, `snd_max_ms` hit 1,000-1,600 ms exactly when the video froze.
+
+**Wrong first hypotheses.**
+- **Nagle.** httpd never sets `TCP_NODELAY`, and each frame goes out as a 4-byte header send and then the payload. Setting it on the stream sockets cut the average send from about 10 ms to 6-8 ms, but the long blocks remained. It was kept as a free gain.
+- **The send buffer.** A roughly 5.4 KB frame nearly filled the 5,744 B TCP send buffer (4 segments), so the theory was that a lost tail segment had nothing behind it to trigger a fast retransmit. Doubling the buffer to 11,488 B (with 3.5 KB frames, three frames fit) left the 1-2.7 s blocks as frequent as before. It also cost a lot: `heap_min` fell from about 80 KB to 38 KB, because lwIP also allocates pbufs for every queued segment. It was reverted.
+
+**The real cause: lwIP's minimum retransmit timeout.** lwIP measures RTT in slow-timer ticks of `2 x TCP_TMR_INTERVAL` (500 ms by default).
+- A LAN round trip of 5-10 ms always measures as 0 ticks.
+- The variance term `sv` starts at 3000/500 = 6 ticks and decays by `sv >> 2` per sample (6, 5, 4, 3). It sticks at 3, because `3 >> 2` is 0.
+- So the RTO never drops below 3 ticks, or 1.5 s. Depending on the timer phase, the real wait is 1.0-1.5 s, which is exactly the measured blocks.
+- A second loss doubles it (`tcp_backoff`) to 3 s. That passes the 2 s `send_wait_timeout`, so the send fails mid-frame, the browser sees a corrupt frame (`1002 incorrect masking`) and the viewer is dropped.
+
+**The fix: `CONFIG_LWIP_TCP_TMR_INTERVAL=100`.** The tick becomes 200 ms, so the floor is 0.6 s and one backoff is 1.2 s, under the send timeout. It was not set lower because ping spikes reach 450-540 ms, and a shorter RTO would retransmit segments that are only late.
+
+| Metric | 250 ms timer (3 runs) | 100 ms timer |
+|---|---|---|
+| `snd_max_ms` per window | 1,000-2,800 | 636-1,188 |
+| failed sends (viewer dropped) | 1-2 per run | 0 |
+| longest video gap | 2.7-7.9 s | 1.6 s |
+| `/commands` round trip, max | 1.8-4.7 s | 1.6 s |
+
+**What it does not fix.** The number of stalls depends on how many segments the link loses, and that varied a lot between runs. The board's RSSI moved from -61 to -80 dBm as it was moved, while the PC sat on 5 GHz at 95%. The fix bounds each stall; it does not prevent them.
+
+**Open.** Where the segments are lost (the ESP32 TX queue in bursts, 2.4 GHz contention or the AP) needs a packet capture on the PC. The structural fix is to stop blocking: send `/stream` from its own server task, or use non-blocking writes that drop a frame for a busy viewer, so that a stalled video socket can never delay HUD control.
