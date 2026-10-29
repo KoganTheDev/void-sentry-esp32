@@ -619,6 +619,95 @@ void test_plan_setup_rescan_every_30s(void)
     expect_action(ActionKind::StartScan, p.tick(1000 + 60000));
 }
 
+void test_plan_transient_retries_same_candidate_then_joins(void)
+{
+    WifiPlan p = joining_plan(1000); // candidate 2 first
+    Action a = p.on_join_failed(JoinFail::Transient, 6700);
+    expect_action(ActionKind::Join, a);
+    TEST_ASSERT_EQUAL_UINT8(2, a.network);
+    expect_state(PlanState::Joining, p);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::None), static_cast<int>(p.last_failure()));
+    // The retry does not restart the 15 s budget.
+    expect_action(ActionKind::None, p.tick(1000 + 14999));
+    expect_action(ActionKind::Join, p.on_join_failed(JoinFail::Transient, 9000));
+    expect_action(ActionKind::None, p.on_joined(9500));
+    expect_state(PlanState::Connected, p);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::None), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_transient_retries_exhausted_next_candidate(void)
+{
+    WifiPlan p = joining_plan(0);
+    expect_action(ActionKind::Join, p.on_join_failed(JoinFail::Transient, 1000));
+    expect_action(ActionKind::Join, p.on_join_failed(JoinFail::Transient, 2000));
+    const Action a = p.on_join_failed(JoinFail::Transient, 3000); // third failure: give up on candidate 2
+    expect_action(ActionKind::Join, a);
+    TEST_ASSERT_EQUAL_UINT8(0, a.network);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::Transient), static_cast<int>(p.last_failure()));
+    // The next candidate has its own retry budget.
+    const Action b = p.on_join_failed(JoinFail::Transient, 4000);
+    expect_action(ActionKind::Join, b);
+    TEST_ASSERT_EQUAL_UINT8(0, b.network);
+}
+
+void test_plan_transient_after_join_timeout_budget_fails_over(void)
+{
+    WifiPlan p = joining_plan(0);
+    const Action a = p.on_join_failed(JoinFail::Transient, WifiPlan::kJoinTimeoutMs); // budget spent
+    expect_action(ActionKind::Join, a);
+    TEST_ASSERT_EQUAL_UINT8(0, a.network);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::Transient), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_transient_exhausted_never_wrong_password(void)
+{
+    WifiPlan p = joining_plan(0);
+    p.on_join_failed(JoinFail::NotFound, 100); // candidate 0 now
+    p.on_join_failed(JoinFail::Transient, 200);
+    p.on_join_failed(JoinFail::Transient, 300);
+    expect_action(ActionKind::StartHotspot, p.on_join_failed(JoinFail::Transient, 400));
+    expect_state(PlanState::Setup, p);
+    TEST_ASSERT_EQUAL(static_cast<int>(JoinFail::Transient), static_cast<int>(p.last_failure()));
+}
+
+void test_plan_wrong_password_and_notfound_do_not_retry(void)
+{
+    WifiPlan p = joining_plan(0);
+    expect_action(ActionKind::Join, p.on_join_failed(JoinFail::WrongPassword, 100));
+    expect_action(ActionKind::StartHotspot, p.on_join_failed(JoinFail::NotFound, 200));
+}
+
+void test_plan_first_setup_rescan_after_join_failure_is_5s(void)
+{
+    WifiPlan p = joining_plan(0);
+    p.on_join_failed(JoinFail::NotFound, 1000);
+    expect_action(ActionKind::StartHotspot, p.on_join_failed(JoinFail::WrongPassword, 10000));
+    expect_action(ActionKind::None, p.tick(10000 + 4999));
+    expect_action(ActionKind::StartScan, p.tick(10000 + 5000));
+    // Later rescans keep 30 s.
+    expect_action(ActionKind::None, p.tick(15000 + 29999));
+    expect_action(ActionKind::StartScan, p.tick(15000 + 30000));
+}
+
+void test_plan_first_setup_rescan_5s_wrap_safe(void)
+{
+    const uint32_t t = UINT32_MAX - 1000u;
+    WifiPlan p = joining_plan(t);
+    p.on_join_failed(JoinFail::NotFound, t);
+    p.on_join_failed(JoinFail::Other, t);
+    expect_action(ActionKind::None, p.tick(t + 4999u));
+    expect_action(ActionKind::StartScan, p.tick(t + 5000u));
+}
+
+void test_plan_setup_join_failure_keeps_30s_rescan(void)
+{
+    WifiPlan p = setup_plan(0); // hotspot already up
+    p.on_scan_done(cands({1}), 30000);
+    p.on_join_failed(JoinFail::WrongPassword, 31000);
+    expect_action(ActionKind::None, p.tick(31000 + 29999));
+    expect_action(ActionKind::StartScan, p.tick(31000 + 30000));
+}
+
 void test_plan_setup_rescan_wrap_safe(void)
 {
     const uint32_t t = UINT32_MAX - 100u;
@@ -849,6 +938,14 @@ int main(int, char**)
     RUN_TEST(test_plan_lost_reconnect);
     RUN_TEST(test_plan_joined_from_setup_join_stops_hotspot);
     RUN_TEST(test_plan_setup_rescan_every_30s);
+    RUN_TEST(test_plan_transient_retries_same_candidate_then_joins);
+    RUN_TEST(test_plan_transient_retries_exhausted_next_candidate);
+    RUN_TEST(test_plan_transient_after_join_timeout_budget_fails_over);
+    RUN_TEST(test_plan_transient_exhausted_never_wrong_password);
+    RUN_TEST(test_plan_wrong_password_and_notfound_do_not_retry);
+    RUN_TEST(test_plan_first_setup_rescan_after_join_failure_is_5s);
+    RUN_TEST(test_plan_first_setup_rescan_5s_wrap_safe);
+    RUN_TEST(test_plan_setup_join_failure_keeps_30s_rescan);
     RUN_TEST(test_plan_setup_rescan_wrap_safe);
     RUN_TEST(test_plan_setup_scan_finds_saved_network);
     RUN_TEST(test_plan_setup_empty_scan_changes_nothing);

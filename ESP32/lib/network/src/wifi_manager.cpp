@@ -31,8 +31,11 @@ bool classify_reason(uint8_t reason, prov::JoinFail& out)
 {
     switch (reason)
     {
-    case WIFI_REASON_AUTH_FAIL:
     case WIFI_REASON_AUTH_EXPIRE:
+        // Seen ~6 s after the first WiFi.begin() of a boot with a correct password; an immediate retry works.
+        out = prov::JoinFail::Transient;
+        return true;
+    case WIFI_REASON_AUTH_FAIL:
     case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
     case WIFI_REASON_HANDSHAKE_TIMEOUT:
         out = prov::JoinFail::WrongPassword;
@@ -492,6 +495,7 @@ WifiManager::Status WifiManager::status()
             s.failure = "not found";
             break;
         case prov::JoinFail::Other:
+        case prov::JoinFail::Transient:
             s.failure = "failed";
             break;
         case prov::JoinFail::None:
