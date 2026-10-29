@@ -58,8 +58,11 @@ void Controller::jog_from_inputs(uint32_t now, bool force_stop)
         this->_turret.jog(sx / 255.0f, sy / 255.0f);
         return;
     }
+    // Read the clock inside the lock: submit() stamps its move before taking the lock, so any stamp visible here is
+    // <= this millis(). Using the pass-start `now` could be older than the stamp (preemption), and the unsigned age
+    // would wrap to ~4e9 and drop a live jog for one pass.
     const remote::Jog jog =
-        this->_remote_inbox.inspect([now](const remote::RemoteInbox& inbox) { return inbox.jog(now); });
+        this->_remote_inbox.inspect([](const remote::RemoteInbox& inbox) { return inbox.jog(millis()); });
     if (jog.pan != 0.0f || jog.tilt != 0.0f)
     {
         this->_aim_hold = false;

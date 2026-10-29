@@ -34,6 +34,7 @@ Action WifiPlan::join_next(uint32_t now_ms)
 {
     _state = PlanState::Joining;
     _join_ms = now_ms;
+    _retries = 0;
     return make(ActionKind::Join, _cand.idx[_next++]);
 }
 
@@ -91,12 +92,14 @@ Action WifiPlan::fail_over(uint32_t now_ms)
         return join_next(now_ms);
     }
     _state = PlanState::Setup;
-    _scan_ms = now_ms;
     if (!_hotspot)
     {
+        // First time in Setup: the failure may have been a hiccup, so look again soon instead of after 30 s.
+        _scan_ms = now_ms - (kSetupRescanMs - kSetupFirstRescanMs);
         _hotspot = true;
         return make(ActionKind::StartHotspot);
     }
+    _scan_ms = now_ms;
     return Action{};
 }
 
@@ -105,6 +108,12 @@ Action WifiPlan::on_join_failed(JoinFail why, uint32_t now_ms)
     if (_state != PlanState::Joining)
     {
         return Action{};
+    }
+    if (why == JoinFail::Transient && _retries < kTransientRetries &&
+        static_cast<uint32_t>(now_ms - _join_ms) < kJoinTimeoutMs)
+    {
+        ++_retries; // _join_ms stays: the 15 s budget covers the first attempt and its retries
+        return make(ActionKind::Join, _cand.idx[_next - 1]);
     }
     _last_fail = why;
     return fail_over(now_ms);

@@ -180,6 +180,8 @@ The board has no ASan, so most of the effort goes into making logic testable on 
 
 **Same host checks as the HUD.** `/api/wifi/*` requires an IPv4-literal Host header (DNS rebinding, section 9) and POSTs are origin-checked.
 
+**Transient join failures.** The first join after boot failed with disconnect reason 2 (AUTH_EXPIRE) about 5.7 s after `WiFi.begin`, although the same password worked 35 s later. It was classified as a wrong password, so the plan failed over to Setup, waited the 30 s rescan period, then spent about 4 s scanning before rejoining: roughly 10 + 30 + 4.5 = 45 s to get online. Reason 2 is transient, so it is now `JoinFail::Transient` (AUTH_FAIL and the handshake timeouts stay `WrongPassword`). The plan retries the same candidate up to 2 times inside the 15 s join budget (measured from the first attempt), and a join failure that opens the hotspot for the first time schedules the first rescan after 5 s (`kSetupFirstRescanMs`) instead of 30 s; later rescans keep 30 s, so a wrong password does not make the hotspot rescan every few seconds. Expected cost of one hiccup is now about 6 s, not 45 s. If retries run out the HUD shows a generic "failed", not "wrong password".
+
 **Not yet verified on hardware:** calibration save and reload across a reboot, HUD jog hands-on in a browser, and the HUD redesign features (section 12).
 
 ## 12. The HUD redesign: showing latency, not hiding it
