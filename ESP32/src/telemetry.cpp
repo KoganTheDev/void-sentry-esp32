@@ -3,6 +3,7 @@
 #include "windowed_counter.h"
 #include <Arduino.h>
 #include <WiFi.h>
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 #include <esp_timer.h>
 
@@ -86,9 +87,12 @@ void log_stats(const Sources& src)
         (unsigned)src.turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
     // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
     ESP_LOGI(TAG,
-             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s",
+             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s "
+             "heap_largest=%u",
              (unsigned)det_frames, (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free, idle_pct[0],
-             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name());
+             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name(),
+             // Largest contiguous internal block: heap_min can look fine while fragmentation blocks a big allocation.
+             (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
     // Third line: how long /stream sends block the httpd task, which also serves /commands (a long send freezes the
     // video for every viewer and delays HUD replies). snd_busy is the share of the window spent inside sends.
     const StreamBroadcaster::SendStats snd = src.http_server.take_send_stats();
