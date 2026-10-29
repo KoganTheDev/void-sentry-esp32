@@ -1,6 +1,6 @@
-"""Summarise an lcov tracefile per firmware library and fail when pure-library line coverage drops below a floor.
+"""Summarise an lcov tracefile per firmware library and fail when pure-library line or branch coverage drops below a floor.
 
-Usage: coverage_gate.py <coverage.info> [--floor PERCENT]
+Usage: coverage_gate.py <coverage.info> [--floor PERCENT] [--branch-floor PERCENT]
 
 Only ESP32/lib/<name>/ sources are counted. The pure libraries (no Arduino/ESP-IDF headers, natively tested) are
 gated; any other library that shows up is reported but not gated. Prints a Markdown table, also appended to
@@ -14,6 +14,10 @@ import sys
 from dataclasses import dataclass
 
 PURE_LIBS = ("aiming", "checksum", "frames", "hud", "jpeg_gray", "provisioning", "remote", "stats", "tracking")
+# Pure-library branch coverage was 89.4% (lcov BRDA totals, same file filter as the line gate) when this floor was
+# set; the floor is that value minus 2 points, rounded down, so CI stays green but a real drop is caught. Raise it
+# when branch coverage improves.
+BRANCH_FLOOR_PERCENT = 87.0
 _LIB_RE = re.compile(r"ESP32[/\\]lib[/\\]([^/\\]+)[/\\]")
 
 
@@ -75,10 +79,21 @@ def report(libs: dict[str, Counts]) -> tuple[str, float]:
     return "\n".join(rows), total
 
 
+def pure_counts(libs: dict[str, Counts]) -> Counts:
+    """Combined counts of the gated (pure) libraries."""
+    pure = Counts()
+    for name, c in libs.items():
+        if name in PURE_LIBS:
+            pure.add(c)
+    return pure
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("tracefile")
     parser.add_argument("--floor", type=float, default=0.0, help="minimum pure-library line coverage, percent")
+    parser.add_argument("--branch-floor", type=float, default=BRANCH_FLOOR_PERCENT,
+                        help="minimum pure-library branch coverage, percent (default %(default)s)")
     args = parser.parse_args(argv)
 
     with open(args.tracefile, encoding="utf-8") as f:
@@ -96,7 +111,13 @@ def main(argv: list[str]) -> int:
     if total < args.floor:
         print(f"FAIL: pure-library line coverage {total:.1f}% is below the floor {args.floor:.1f}%")
         return 1
-    print(f"OK: pure-library line coverage {total:.1f}% (floor {args.floor:.1f}%)")
+    pure = pure_counts(libs)
+    branch_total = pct(pure.branches_hit, pure.branches_found)
+    if branch_total < args.branch_floor:
+        print(f"FAIL: pure-library branch coverage {branch_total:.1f}% is below the floor {args.branch_floor:.1f}%")
+        return 1
+    print(f"OK: pure-library line coverage {total:.1f}% (floor {args.floor:.1f}%), "
+          f"branch coverage {branch_total:.1f}% (floor {args.branch_floor:.1f}%)")
     return 0
 
 
