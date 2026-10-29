@@ -38,6 +38,6 @@ public:
      */
     String hotspot_password();
 
-    /** @brief Erases the saved networks and the PIN (the hotspot password is kept). */
+    /** @brief Erases the saved networks, the PIN and the hotspot password (a new one is generated on demand). */
     void erase_all();
 };

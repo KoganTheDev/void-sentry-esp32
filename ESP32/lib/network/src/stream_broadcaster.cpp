@@ -177,10 +177,17 @@ void StreamBroadcaster::remove_viewer(int fd)
     {
         return;
     }
-    vsync::MutexLock lock(mutex_);
-    if (viewers_.index_of(fd))
+    bool removed = false;
     {
-        viewers_.remove(fd);
+        vsync::MutexLock lock(mutex_);
+        if (viewers_.index_of(fd))
+        {
+            viewers_.remove(fd);
+            removed = true;
+        }
+    } // log outside the lock: serial output is slow and would stall every task waiting on the broadcaster mutex
+    if (removed)
+    {
         ESP_LOGI(TAG_STREAM, "Viewer disconnected (fd %d)", fd);
     }
 }
@@ -296,12 +303,12 @@ void StreamBroadcaster::send_job(void* arg)
     const auto send_us = static_cast<uint32_t>(esp_timer_get_time() - send_start_us);
     job->lease.reset(); // release the slot before touching the broadcaster mutex
 
-    // Only this task writes the counters, so a plain load/store max is enough; a take_send_stats() between the two
-    // can lose one window's max, which is fine for a diagnostic.
+    // This task raises the max while take_send_stats() (stats line, loop task) resets it with exchange(0): a CAS loop
+    // keeps a concurrent reset from being overwritten by a stale larger value.
     self->send_us_total_.fetch_add(send_us);
-    if (send_us > self->send_us_max_.load())
+    uint32_t cur = self->send_us_max_.load();
+    while (send_us > cur && !self->send_us_max_.compare_exchange_weak(cur, send_us))
     {
-        self->send_us_max_.store(send_us);
     }
     if (send_us >= kSlowSendUs)
     {
