@@ -18,7 +18,7 @@
 
 ## What it does
 
-Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.
+Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick or from the HUD. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.
 
 ## Highlights
 
@@ -100,9 +100,17 @@ Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extensi
 
 Open `http://<board-ip>/` in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.
 
-- **Modes:** AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.
-- **HUD controls:** the mode button toggles AI and manual. In manual mode, WASD, the arrow keys or the on-screen buttons jog the turret (resent every 100 ms, with a 300 ms dead man on the board). A deflected joystick always wins over the HUD.
-- **Calibration:** hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.
+- **Modes:** AI (the turret follows the tracked target), User (manual), Calibrate. The segmented AI / MANUAL / CALIBRATE control shows "switching..." until the board confirms. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.
+- **Jogging:** WASD, the arrow keys or the on-screen cross jog the turret in manual mode (resent every 100 ms, with a 300 ms dead man on the board). Slow / Normal / Fast sets the jog speed (holding Shift means slow). An arrow dims when the turret is at that end stop, and pressing it toasts. A deflected joystick always wins over the HUD.
+- **Aiming at a point:** tap or drag on the video in manual mode and the turret goes there. Because the camera is fixed, the board knows which image point the turret points at and sends it, so the solid red reticle is the real aim. A dashed ghost reticle follows your finger instantly, with a dotted line and a time-left estimate, so the motor lag is visible instead of hidden. If the point is outside what the turret can reach, the ghost turns amber and shows where it will stop. The recenter button (or `H`) aims at the middle of the image.
+- **Calibration:** from the HUD, press C (or the CALIBRATE segment) and follow the wizard: it checks that a target is locked and the turret is still, then records point 1 and point 2 near opposite corners of the view. Success is shown when the board saves. The joystick works too: hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner and short-press, then the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.
+- **FIRE:** a HUD effect only, there is no firing hardware (all free GPIOs are used). The tracer shows a HIT when the real reticle is inside the box of a locked target, otherwise a miss. Sentry auto-fire is opt-in: off by default, a confirm dialog arms it, a blinking chip shows while armed, and it disarms on link loss or reload. The board is never sent `fire:*`.
+- **Status and tools:** chips for mode, video (fps, or `FROZEN n s` when frames stop, `BUSY` if you are a refused third viewer), link round trip, viewers (n/2, the board streams to 2) and calibration; a LOW LIGHT indicator; an event log drawer (filter, folded repeats); and a snapshot button (`P`) that saves the frame with the overlay as a PNG.
+- **Phones:** the layout adapts to desktop, phone portrait (video, mode, controls with no scrolling) and phone landscape. Android gets vibration feedback on hits and end stops. iPhone has no Vibration API, so the HUD uses the iOS 17.4+ switch-checkbox click trick, which is best effort and may not work on newer iOS versions.
+
+### Developing the HUD without hardware
+
+`python tools/hud_mock/mock_board.py` runs a fake board that serves `web/*.html`, `/commands` and `/stream`; open `http://127.0.0.1:8080`. Flags are in its docstring. `web/test_web_ui.py` checks the page statically, and the visual reference is `docs/design/hud-mockup.html`.
 
 ## Testing and CI
 
@@ -111,7 +119,7 @@ pio test -e native                         # host unit tests, no board needed
 pio test -e native_sanitize                # ASan + UBSan (Linux / CI)
 pio check --severity=high --severity=medium   # cppcheck
 python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool tests
-python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
+python -m unittest discover -s web -p "test_*.py"              # HUD generator and page tests
 ```
 
 CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (99% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against `.expect` files and records cachegrind instruction counts per frame. Doxygen output is published to [GitHub Pages](https://koganthedev.github.io/void-sentry-esp32/) from `main`. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.
@@ -141,7 +149,7 @@ docs/                  specs, plans and engineering notes
 
 ## Roadmap status
 
-Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client).
+Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. The HUD UI/UX overhaul (design in `docs/superpowers/specs/2026-10-26-hud-ux-overhaul-design.md`) is implemented, natively tested and exercised against the mock board. Implemented but not yet verified on hardware: calibration save and reload across a reboot, HUD jogging in a browser (the protocol and dead man were checked from a PC client), HUD calibration, tap-to-aim, and the new status fields (reticle position, reach box, viewer count).
 
 More detail: [engineering notes](docs/engineering-notes.md) (design decisions and debugging stories) and the [API documentation](https://koganthedev.github.io/void-sentry-esp32/).
 
