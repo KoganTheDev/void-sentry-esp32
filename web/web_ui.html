@@ -147,21 +147,6 @@
         .icon-btn svg { width: 20px; height: 20px; }
         .icon-btn[hidden] { display: none; }
 
-        .badge {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            min-width: 16px;
-            height: 16px;
-            padding: 0 4px;
-            border-radius: 8px;
-            background: var(--err);
-            color: #fff;
-            font: 700 10px/16px system-ui, sans-serif;
-            text-align: center;
-        }
-
-        .badge[hidden] { display: none; }
 
         :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
@@ -415,6 +400,7 @@
             position: relative;
             z-index: 1;
             border: 0;
+            padding: 0; /* the default padding left the centre button too small for its icon, pushing it off centre */
             border-radius: 0;
             background: transparent;
             color: #cfd3d8;
@@ -698,7 +684,6 @@
                 </button>
                 <button class="icon-btn" id="btn-log" aria-label="Event log" aria-expanded="false" title="Event log">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
-                    <span class="badge" id="log-badge" hidden>0</span>
                 </button>
                 <button class="icon-btn" id="btn-fs" aria-label="Fullscreen (F)" title="Fullscreen (F)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -919,7 +904,7 @@
 
             // Event log: newest first, consecutive repeats folded into one row, 50 rows kept.
             const LOG = [];
-            let logOpen = false, logFilter = 'all', unseen = 0;
+            let logOpen = false, logFilter = 'all';
             const ICONS = {
                 ok: '<path d="M5 12l4 4 10-10"/>',
                 warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',
@@ -935,7 +920,6 @@
                     LOG.unshift({ text, kind, cat: cat || 'system', at: Date.now(), count: 1 });
                     if (LOG.length > 50) LOG.length = 50;
                 }
-                if (!logOpen && (kind === 'warn' || kind === 'err')) unseen++;
                 renderLog();
             }
             function ago(ms) {
@@ -943,9 +927,6 @@
                 return s < 5 ? 'now' : s < 60 ? `${s} s` : s < 3600 ? `${Math.floor(s / 60)} min` : `${Math.floor(s / 3600)} h`;
             }
             function renderLog() {
-                const b = $('#log-badge');
-                b.hidden = unseen === 0;
-                b.textContent = unseen > 9 ? '9+' : String(unseen);
                 if (!logOpen) return;
                 const ol = $('#log');
                 ol.textContent = '';
@@ -980,7 +961,6 @@
                 logOpen = on;
                 $('#drawer').hidden = !on;
                 $('#btn-log').setAttribute('aria-expanded', String(on));
-                if (on) unseen = 0;
                 renderLog();
             }
             $('#btn-log').onclick = () => openLog(!logOpen);
