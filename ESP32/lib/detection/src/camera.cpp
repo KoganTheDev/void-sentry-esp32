@@ -39,7 +39,7 @@ bool Camera::begin()
     sensor_t* s = esp_camera_sensor_get();
     if (s == NULL)
     {
-        Serial.println("ERROR: Failed to get sensor. Camera module not detected.");
+        ESP_LOGE(TAG, "ERROR: Failed to get sensor. Camera module not detected.");
         return false;
     }
 

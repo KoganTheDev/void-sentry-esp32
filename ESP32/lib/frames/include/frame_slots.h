@@ -25,7 +25,6 @@ struct FrameMeta {
     size_t length = 0;
     uint16_t width = 0;
     uint16_t height = 0;
-    uint32_t timestamp_ms = 0;
     uint32_t sequence = 0; // assigned by FrameSlots::publish()
 };
 

@@ -55,39 +55,3 @@ int Joystick::_map_speed(int val, int min_out, int max_out) const
     // Map the 12-bit range to your desired speed range
     return map(val, -2048, 2048, min_out, max_out);
 }
-
-bool Joystick::is_z_pressed()
-{
-    bool current_reading = digitalRead(this->_pin_z);
-    bool pressed = false;
-
-    // 1. If the physical state changed, reset the timer
-    if (current_reading != _last_btn_state)
-    {
-        _last_debounce_time = millis();
-    }
-
-    // 2. Check if the state has been stable for long enough
-    if ((millis() - _last_debounce_time) > BUTTON_DEBOUNCE_MS)
-    {
-        // We only care if the confirmed stable state is different from
-        // what we previously processed.
-        static bool confirmed_state = HIGH;
-
-        if (current_reading != confirmed_state)
-        {
-            confirmed_state = current_reading;
-
-            // Trigger only when the confirmed state goes LOW (Pressed)
-            if (confirmed_state == LOW)
-            {
-                pressed = true;
-            }
-        }
-    }
-
-    _last_btn_state = current_reading; // Always track the very last reading
-    return pressed;
-}
-
-bool Joystick::is_active() const { return (get_x() != 0 || get_y() != 0); }

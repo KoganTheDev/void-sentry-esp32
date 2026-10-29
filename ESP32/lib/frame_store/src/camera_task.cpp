@@ -52,7 +52,6 @@ void camera_task(void*)
                 meta.length = fb->len;
                 meta.width = static_cast<uint16_t>(fb->width);
                 meta.height = static_cast<uint16_t>(fb->height);
-                meta.timestamp_ms = static_cast<uint32_t>(esp_timer_get_time() / 1000);
                 g_context.store->publish(*slot, meta);
             }
         }
