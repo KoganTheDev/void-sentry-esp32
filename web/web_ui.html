@@ -100,6 +100,14 @@
 
         .chip[hidden] { display: none; }
         .chip b { font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+        /* Fixed pill widths: each value carries every text it can show in data-w, laid out as hidden zero-height lines,
+           so the value is always as wide as its widest state. A changing number (fps, round trip) then never resizes
+           its pill and the header never reflows. Digits are tabular, so 0 stands for any digit. */
+        .chip > span { display: inline-flex; flex-direction: column; align-items: flex-start; }
+        .chip > span::after { content: attr(data-w); height: 0; overflow: hidden; visibility: hidden; white-space: pre; }
+        /* The SSID is free text up to 32 characters: a fixed width, cut with an ellipsis (the full name is the title). */
+        .chip.wifi > span { display: block; width: 92px; overflow: hidden; text-overflow: ellipsis; }
+        .chip.wifi > span::after { content: none; }
         .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
         .chip.ok .dot { background: var(--ok); }
         .chip.warn { border-color: rgba(255, 176, 32, 0.5); }
@@ -619,7 +627,10 @@
             .brand span, .chip b, .chip.wifi, .chip.cal, #chip-mode, #btn-fs { display: none; }
             .chip.viewers:not(.warn):not(.err) { display: none; }
             .statusbar { gap: 6px; padding-left: 8px; padding-right: 8px; }
-            .chip { padding: 0 8px; }
+            .chip { padding: 0 7px; gap: 5px; }
+            /* The bar has about 200 px for chips here: the long states use the short words in data-wc (COMPACT_BAR). */
+            .chip > span[data-wc]::after { content: attr(data-wc); }
+            .chips { gap: 5px; }
             .icon-btn { width: 36px; height: 36px; }
             .main { grid-template-columns: 1fr; grid-template-rows: auto; align-content: start; overflow-y: auto; padding: 8px; gap: 8px; }
             .viewport { aspect-ratio: 4 / 3; }
@@ -670,11 +681,11 @@
                 <span>VOID SENTRY</span>
             </div>
             <div class="chips">
-                <span class="chip" id="chip-mode"><i class="dot"></i><b>MODE</b><span>--</span></span>
-                <span class="chip" id="chip-video"><i class="dot"></i><b>VIDEO</b><span>--</span></span>
-                <span class="chip" id="chip-link"><i class="dot"></i><b>LINK</b><span>CONNECTING</span></span>
-                <span class="chip viewers" id="chip-viewers" title="Video viewers (the board allows 2)" hidden><i class="dot"></i><b>VIEWERS</b><span>--</span></span>
-                <span class="chip cal" id="chip-cal" hidden><i class="dot"></i><b>CAL</b><span>--</span></span>
+                <span class="chip" id="chip-mode"><i class="dot"></i><b>MODE</b><span data-w="AI&#10;MANUAL&#10;CALIBRATE&#10;--">--</span></span>
+                <span class="chip" id="chip-video"><i class="dot"></i><b>VIDEO</b><span data-w="00 fps&#10;FROZEN 00.0 s&#10;BUSY&#10;CONNECTING" data-wc="00 fps&#10;FROZEN&#10;BUSY&#10;...">--</span></span>
+                <span class="chip" id="chip-link"><i class="dot"></i><b>LINK</b><span data-w="0000 ms&#10;OFFLINE&#10;CONNECTING&#10;--" data-wc="0000 ms&#10;OFFLINE&#10;...&#10;--">CONNECTING</span></span>
+                <span class="chip viewers" id="chip-viewers" title="Video viewers (the board allows 2)" hidden><i class="dot"></i><b>VIEWERS</b><span data-w="0/2&#10;--">--</span></span>
+                <span class="chip cal" id="chip-cal" hidden><i class="dot"></i><b>CAL</b><span data-w="UNCALIBRATED&#10;OK&#10;--">--</span></span>
                 <span class="chip armed" id="chip-armed" hidden><i class="dot"></i><b>AUTO-FIRE</b><span>ARMED</span></span>
                 <a class="chip wifi" id="chip-wifi" href="/wifi" title="WiFi setup"><i class="dot"></i><b>WIFI</b><span>-</span></a>
             </div>
@@ -845,6 +856,8 @@
             const W = 320, H = 240;
             const HOME = { x: 160, y: 120 };
             const MODE_NAMES = { ai: 'AI', user: 'MANUAL', calibrate: 'CALIBRATE' };
+            // Phone portrait: the status bar is too narrow for the long chip states (matches the 700 px CSS block).
+            const COMPACT_BAR = window.matchMedia('(max-width: 700px)');
             const SPEEDS = ['slow', 'normal', 'fast'];
             const LIM_BITS = { left: 1, right: 2, down: 4, up: 8 }; // reply `lim`: pan min/max, tilt min/max
             const DEFAULT_SLEW_PX_S = 80;
@@ -1831,10 +1844,12 @@
                 const now = performance.now();
                 const vs = videoState(now);
                 const frozenS = (now - V.lastFrameAt) / 1000;
-                if (vs === 'live') setChip('#chip-video', 'ok', `${V.fps} fps`);
-                else if (vs === 'frozen') setChip('#chip-video', 'warn', `FROZEN ${frozenS.toFixed(1)} s`);
+                // Capped to the widths the chip reserves (data-w, or data-wc on a phone in portrait).
+                const compact = COMPACT_BAR.matches;
+                if (vs === 'live') setChip('#chip-video', 'ok', `${Math.min(V.fps, 99)} fps`);
+                else if (vs === 'frozen') setChip('#chip-video', 'warn', compact ? 'FROZEN' : `FROZEN ${Math.min(frozenS, 99.9).toFixed(1)} s`);
                 else if (vs === 'busy') setChip('#chip-video', 'err', 'BUSY');
-                else setChip('#chip-video', '', 'CONNECTING');
+                else setChip('#chip-video', '', compact ? '...' : 'CONNECTING');
                 frameEl.classList.toggle('stale', vs === 'frozen' || vs === 'busy');
                 // Top-right corner: fps while live, the frozen timer when frames stop.
                 const fpsEl = $('#ov-fps');
@@ -1854,9 +1869,9 @@
                     ? 'Both video slots are taken: a third device will get "Video busy"' : 'Video viewers (the board allows 2)';
 
                 const rtt = App.rtt === null ? null : Math.round(App.rtt);
-                if (S.link === 'ok') setChip('#chip-link', 'ok', rtt === null ? '--' : `${rtt} ms`);
+                if (S.link === 'ok') setChip('#chip-link', 'ok', rtt === null ? '--' : `${Math.min(rtt, 9999)} ms`);
                 else if (S.link === 'lost') setChip('#chip-link', 'err', 'OFFLINE');
-                else setChip('#chip-link', '', 'CONNECTING');
+                else setChip('#chip-link', '', compact ? '...' : 'CONNECTING');
                 $('#card-link').hidden = S.link !== 'lost' || vs === 'busy';
                 $('#t-rtt').textContent = S.link === 'ok' && rtt !== null ? `${rtt} ms` : S.link === 'lost' ? 'offline' : '--';
 
@@ -2218,6 +2233,7 @@
                     .then((s) => {
                         const text = s && s.ssid ? s.ssid : (s && s.mode) || '-';
                         setChip('#chip-wifi', s && s.ssid ? 'ok' : 'warn', text);
+                        $('#chip-wifi').title = `WiFi setup (${text})`; // the chip may cut a long SSID
                     })
                     .catch(() => setChip('#chip-wifi', '', '-'));
             }

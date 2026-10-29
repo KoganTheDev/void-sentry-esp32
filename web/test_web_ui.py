@@ -239,6 +239,17 @@ class WebUiTests(CommonPageChecks, unittest.TestCase):
     def test_no_console_log(self):
         self.assertNotIn("console.log(", self.text)
 
+    def test_status_chips_reserve_their_width(self):
+        # Every changing chip value reserves its widest text (data-w), so the header never reflows; the free-text
+        # WiFi SSID has a fixed CSS width instead and the AUTO-FIRE chip never changes.
+        lines = [l for l in self.text.splitlines() if re.search(r'class="chip[^"]*" id="chip-', l)]
+        self.assertGreaterEqual(len(lines), 6, "status chips not found; check is vacuous")
+        for line in lines:
+            chip = re.search(r'id="(chip-[\w-]+)"', line).group(1)
+            if chip in ("chip-wifi", "chip-armed"):
+                continue
+            self.assertIn("data-w=", line, f"{chip} value has no reserved width")
+
 
 class WifiSetupTests(CommonPageChecks, unittest.TestCase):
     page = "wifi_setup.html"
