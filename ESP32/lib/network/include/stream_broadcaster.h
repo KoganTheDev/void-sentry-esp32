@@ -44,7 +44,8 @@ public:
      * @details Safe from any task, including the httpd task (the /commands reply): it takes the broadcaster mutex,
      * which every holder keeps for a few microseconds only and never while calling back into this method, so the
      * caller cannot deadlock and waits at most that long (the FreeRTOS mutex has priority inheritance). Returns 0
-     * before start() and after stop().
+     * before start() and once stop() has returned. Like the httpd callbacks it must not run concurrently with
+     * stop() (which frees the mutex); stop() has no caller today, and httpd must be stopped first.
      */
     size_t viewer_count() const;
 

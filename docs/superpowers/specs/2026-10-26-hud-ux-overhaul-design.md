@@ -65,7 +65,7 @@ The existing keys keep their order and meaning, then the new keys. All new keys 
 | `ax`, `ay` | int | aim pixel: `AimMap` inverse of the current pose, rounded, not clamped (may be outside the frame) |
 | `lim` | uint bitmask | 1 pan at min, 2 pan at max, 4 tilt at min, 8 tilt at max (within 0.5 degrees of the soft limit) |
 | `rx0`, `ry0`, `rx1`, `ry1` | int | reachable box in pixels: the image region whose aim lies inside the soft limits, clamped to the frame, `rx0 <= rx1`, `ry0 <= ry1` |
-| `home` | uint | ms until the AI return-home fires (target lost, Idle, not yet homed); 0 when none is pending or not in AI |
+| `home` | uint | ms until the AI return-home fires (target lost, Idle or Tentative, not yet homed); 0 when none is pending or not in AI |
 | `ret` | 0/1 | the turret is travelling home after a Home command (more than 1 degree from home) |
 | `spd` | string | `slow`, `normal` or `fast` (the HUD resyncs its speed control from it after a reconnect) |
 | `vw` | uint | `/stream` viewers connected (0 to 2) |

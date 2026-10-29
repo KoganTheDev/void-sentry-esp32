@@ -1,5 +1,7 @@
 #include "remote_inbox.h"
 
+#include <utility>
+
 namespace remote
 {
 void RemoteInbox::submit(const Command& cmd, uint32_t now_ms)
@@ -61,24 +63,9 @@ Jog RemoteInbox::jog(uint32_t now_ms) const
     return Jog{mag * static_cast<float>(pan_), mag * static_cast<float>(tilt_)};
 }
 
-std::optional<RemoteMode> RemoteInbox::take_mode_request()
-{
-    const std::optional<RemoteMode> out = mode_request_;
-    mode_request_.reset();
-    return out;
-}
+std::optional<RemoteMode> RemoteInbox::take_mode_request() { return std::exchange(mode_request_, std::nullopt); }
 
-std::optional<CalAction> RemoteInbox::take_cal_request()
-{
-    const std::optional<CalAction> out = cal_request_;
-    cal_request_.reset();
-    return out;
-}
+std::optional<CalAction> RemoteInbox::take_cal_request() { return std::exchange(cal_request_, std::nullopt); }
 
-std::optional<AimPixel> RemoteInbox::take_aim_request()
-{
-    const std::optional<AimPixel> out = aim_request_;
-    aim_request_.reset();
-    return out;
-}
+std::optional<AimPixel> RemoteInbox::take_aim_request() { return std::exchange(aim_request_, std::nullopt); }
 } // namespace remote

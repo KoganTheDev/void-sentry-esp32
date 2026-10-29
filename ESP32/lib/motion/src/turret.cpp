@@ -195,6 +195,12 @@ void Turret::run()
             {
                 this->_planner.set_velocity(cmd.jog_pan * this->_planner.config().max_speed);
                 this->_tilt_rate = cmd.jog_tilt * kTiltJogRateDegS;
+                if (cmd.jog_tilt == 0.0f)
+                {
+                    // A zero tilt jog stops the servo where it is, not at an earlier aim target it is still slewing to.
+                    // During a jog current already equals target, so this changes nothing there.
+                    this->_tilt_target = this->_tilt_current;
+                }
             }
         }
 

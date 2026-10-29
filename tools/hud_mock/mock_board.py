@@ -511,7 +511,8 @@ class Board:
 
     # ---- reply ----
     def home_ms(self, t: float) -> int:
-        if self.mode != "ai" or not self._seen or self._homed or self.target.sample(t).state != "idle":
+        # Like AimPolicy: the timer also runs while a new candidate is only tentative.
+        if self.mode != "ai" or not self._seen or self._homed or self.target.sample(t).state not in ("idle", "tentative"):
             return 0
         return max(0, HOME_DELAY_MS - (int(t * 1000) - self._last_seen_ms))
 

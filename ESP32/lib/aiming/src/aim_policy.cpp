@@ -11,13 +11,13 @@ void AimPolicy::reset()
     have_setpoint_ = false;
     seen_ = false;
     homed_ = false;
-    idle_ = false;
+    searching_ = false;
 }
 
 AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
 {
     using tracking::TrackPhase;
-    idle_ = (track.state == TrackPhase::Idle);
+    searching_ = (track.state == TrackPhase::Idle || track.state == TrackPhase::Tentative);
     if (track.state == TrackPhase::Locked || track.state == TrackPhase::Coasting)
     {
         seen_ = true;
@@ -46,7 +46,7 @@ AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
 
 uint32_t AimPolicy::home_remaining_ms(uint32_t now_ms) const
 {
-    if (!idle_ || !seen_ || homed_)
+    if (!searching_ || !seen_ || homed_)
     {
         return 0;
     }

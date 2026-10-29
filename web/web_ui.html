@@ -1054,26 +1054,35 @@
                     };
 
                     ws.onclose = () => {
-                        clearTimeout(this.pollTimer);
-                        this.pollTimer = null;
-                        this.inFlight = 0;
-                        this.sent = [];
-                        this.ws = null;
+                        this.drop();
                         setLink('lost');
                         setTimeout(() => this.connect(), 1000); // the board may have rebooted
                     };
+                },
+
+                // Forget the socket and everything awaiting a reply on it.
+                drop() {
+                    clearTimeout(this.pollTimer);
+                    this.pollTimer = null;
+                    this.inFlight = 0;
+                    this.sent = [];
+                    this.ws = null;
                 }
             };
 
-            // A lost reply would stop the loop; restart it if nothing arrived for 2 s on an open socket.
+            // No reply for 2 s on an open socket: the loop is stuck. TCP does not lose replies, so the missing one is
+            // only late. Resetting the counters on the same socket would let that late reply schedule a second poll
+            // while the restarted loop runs, and each stall would add a loop (the notes s8 storm). So the socket is
+            // abandoned and replaced: its late replies can never reach the new one.
             setInterval(() => {
                 const ws = App.ws;
                 const now = performance.now();
                 if (ws && ws.readyState === WebSocket.OPEN && now - App.lastReplyMs > 2000) {
-                    App.inFlight = 0;
-                    App.sent = [];
-                    App.lastReplyMs = now;
-                    App.schedulePoll();
+                    ws.onmessage = null;
+                    ws.onclose = null;
+                    ws.close();
+                    App.drop();
+                    App.connect();
                 }
                 // Link state: up while replies keep coming. The first 3 s after load count as "connecting".
                 const open = ws && ws.readyState === WebSocket.OPEN;
@@ -1868,9 +1877,10 @@
                 } else {
                     let word = { locked: 'TRACKING', coasting: 'COASTING', tentative: 'ACQUIRING...', idle: 'SCANNING' }[t.state] || 'SCANNING';
                     // Explain the turret moving on its own: in AI it returns home a while after losing the target.
-                    if (t.state === 'idle') {
-                        if (S.ret) word = 'RETURNING HOME';
-                        else if (S.home > 0) word = `SCANNING · HOME IN ${(S.home / 1000).toFixed(1)} s`;
+                    // The home timer keeps running while a new candidate is only tentative.
+                    if (t.state === 'idle' && S.ret) word = 'RETURNING HOME';
+                    else if ((t.state === 'idle' || t.state === 'tentative') && S.home > 0) {
+                        word = `${word} · HOME IN ${(S.home / 1000).toFixed(1)} s`;
                     }
                     tw.textContent = word;
                     tw.className = 'track-word ' + (t.state in { locked: 1, coasting: 1, tentative: 1 } ? t.state : 'idle');

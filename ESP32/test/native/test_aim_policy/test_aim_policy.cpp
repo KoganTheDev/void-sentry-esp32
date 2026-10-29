@@ -122,16 +122,18 @@ void test_home_remaining_clamps_to_zero_when_overdue(void)
     TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(5000));
 }
 
-void test_home_remaining_zero_without_a_target_or_when_not_idle(void)
+void test_home_remaining_zero_without_a_target_or_while_tracking(void)
 {
     AimPolicy p(default_map());
     p.update({TrackPhase::Idle, 0, 0}, 500); // never saw a target
     TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(600));
+    p.update({TrackPhase::Tentative, 0, 0}, 700); // a candidate before any target was seen
+    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(800));
     p.update({TrackPhase::Locked, 300.0f, 60.0f}, 1000);
     p.update({TrackPhase::Idle, 0, 0}, 1100);
     TEST_ASSERT_TRUE(p.home_remaining_ms(1200) > 0);
-    p.update({TrackPhase::Tentative, 0, 0}, 1300); // a candidate appeared: not idle, timer paused
-    TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(1300));
+    p.update({TrackPhase::Tentative, 0, 0}, 1300); // a candidate appeared: the return-home timer keeps running
+    TEST_ASSERT_EQUAL_UINT32(1700, p.home_remaining_ms(1300));
     p.update({TrackPhase::Coasting, 300.0f, 60.0f}, 1400);
     TEST_ASSERT_EQUAL_UINT32(0, p.home_remaining_ms(1400));
 }
@@ -407,7 +409,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_home_remaining_counts_down_while_idle);
     RUN_TEST(test_home_remaining_zero_after_home_fired);
     RUN_TEST(test_home_remaining_clamps_to_zero_when_overdue);
-    RUN_TEST(test_home_remaining_zero_without_a_target_or_when_not_idle);
+    RUN_TEST(test_home_remaining_zero_without_a_target_or_while_tracking);
     RUN_TEST(test_home_remaining_wraparound);
     RUN_TEST(test_homed_clears_on_next_lock_and_on_reset);
     RUN_TEST(test_hold_carries_commanded_pose);

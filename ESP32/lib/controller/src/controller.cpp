@@ -18,7 +18,7 @@ void Controller::begin()
     aiming::AimMap map;
     if (cal_store::load(map))
     {
-        this->set_active_map(map);
+        this->_policy.set_map(map);
         this->_calibrated = true;
         ESP_LOGI(TAG, "Loaded saved calibration from NVS");
     } else
@@ -89,12 +89,6 @@ void Controller::set_mode(ControlMode mode)
     ESP_LOGI(TAG, "Control mode changed to: %s", to_string(this->_mode));
 }
 
-void Controller::set_active_map(const aiming::AimMap& map)
-{
-    this->_map = map;
-    this->_policy.set_map(map);
-}
-
 void Controller::enter_calibration()
 {
     this->_mode_before_cal = this->_mode;
@@ -129,7 +123,7 @@ void Controller::record_cal_point(const aiming::Angles& pose)
         {
             ESP_LOGE(TAG, "Failed to save the calibration to NVS (it stays active until reboot)");
         }
-        this->set_active_map(map);
+        this->_policy.set_map(map);
         this->_calibrated = true;
         ++this->_cal_saves; // counts the active fit even if the NVS write failed: the HUD reports the calibration
         this->_session.cancel();
@@ -228,6 +222,8 @@ void Controller::on_short_press()
     {
         // Stop at the pose being recorded; the stick resumes jogging on the next 25 Hz pass if still deflected.
         this->stop_jog();
+        // The knob press is the record: a HUD cal:point still waiting must not add a second point at this pose.
+        this->_hud_record_pending = false;
         // Record the pose captured while the knob was held and the pan was at rest, not the pose now: pressing the
         // knob deflects the stick, and the release is only classified ~50 ms later, so position_deg() may have
         // drifted away from where the user aimed. Fallback (released before the pan stopped): the current pose.
@@ -263,7 +259,7 @@ void Controller::publish_status(uint32_t now)
     st.cal_miss = this->_cal_miss;
     st.stick = !ai && this->_stick; // the stick only jogs in User and Calibrate
     st.speed = static_cast<uint8_t>(speed);
-    hud::fill_pose_fields(st, this->_map,
+    hud::fill_pose_fields(st, this->_policy.map(),
                           hud::HomeState{.ai_mode = ai,
                                          .homed = this->_policy.homed(),
                                          .home_remaining_ms = ai ? this->_policy.home_remaining_ms(now) : 0});
@@ -292,6 +288,8 @@ void Controller::run()
         this->_cal_pose_captured = true;
     }
     // A HUD mode request is dropped if calibration was active at the start of this pass, even if the button ends it.
+    // A HUD calibration request is dropped on any pass where the button produced an event: a queued cal:start after a
+    // long press that cancelled would silently restart, and cal:cancel or cal:point after a press would double up.
     const bool was_calibrating = this->_mode == ControlMode::Calibrate;
     const aiming::ButtonEvent ev = this->_button.update(held, now);
     if (ev == aiming::ButtonEvent::Long)
@@ -322,7 +320,7 @@ void Controller::run()
             this->set_mode(wanted);
         }
     }
-    if (req.cal.has_value())
+    if (req.cal.has_value() && ev == aiming::ButtonEvent::None)
     {
         this->apply_cal_request(*req.cal, now);
     }
@@ -333,7 +331,7 @@ void Controller::run()
     if (req.aim.has_value() && (this->_mode == ControlMode::User || this->_mode == ControlMode::Calibrate) && !cal_stop)
     {
         // aim() clamps to the soft limits. The hold keeps the idle jog arbiter from cancelling the move.
-        this->_turret.set_target_deg(this->_map.aim(req.aim->x, req.aim->y));
+        this->_turret.set_target_deg(this->_policy.map().aim(req.aim->x, req.aim->y));
         this->_aim_hold = true;
     }
 

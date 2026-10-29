@@ -34,7 +34,8 @@ public:
      * @param status Optional controller status for the mode/calibration fields.
      * @param remote Optional sink that receives the parsed commands (the Controller).
      * @param stream Optional /stream broadcaster whose viewer count is sent as "vw" (0 when null). Must outlive the
-     * handler; StreamBroadcaster::viewer_count() is safe to call from the httpd task.
+     * handler; StreamBroadcaster::viewer_count() is safe to call from the httpd task (but not concurrently with
+     * StreamBroadcaster::stop(), so httpd must be stopped first).
      */
     CommandsWebSocketHandler(httpd_handle_t server_handle, const char* uri, BaseDetectionModule* detection = nullptr,
                              const BaseStatusProvider* status = nullptr, remote::BaseRemoteSink* remote = nullptr,

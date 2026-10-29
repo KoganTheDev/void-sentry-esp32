@@ -80,10 +80,6 @@ private:
     /** @brief true once a saved or fresh calibration is active. */
     bool _calibrated = false;
 
-    /** @brief The active aim map, always equal to the one in _policy; HUD aims and the status (aim pixel, reach box)
-     * use it. The default map until begin() loads a saved one or a calibration succeeds. */
-    aiming::AimMap _map;
-
     /** @brief Successful calibrations since boot (button or HUD). */
     uint32_t _cal_saves = 0;
 
@@ -145,9 +141,6 @@ private:
     /** @brief Switches to a non-Calibrate mode: detection reset, policy reset, jog stop, log. */
     void set_mode(ControlMode mode);
 
-    /** @brief Makes @p map the active aim map in both the controller and the policy. */
-    void set_active_map(const aiming::AimMap& map);
-
     /** @brief Enters Calibrate at point 1, remembering the mode to restore (long press, or HUD `cal:start`). */
     void enter_calibration();
 
@@ -190,8 +183,7 @@ public:
      * @note Defaults to Ai mode with the default (uncalibrated) aim map.
      */
     Controller(BaseTurret& turret, BaseDetectionModule& detection_module, Joystick& joystick)
-        : _turret(turret), _detection_module(detection_module), _joystick(joystick), _policy(aiming::default_map()),
-          _map(aiming::default_map())
+        : _turret(turret), _detection_module(detection_module), _joystick(joystick), _policy(aiming::default_map())
     {
     }
 
