@@ -14,7 +14,7 @@ All PlatformIO commands run from `ESP32/`. `pio` is not on PATH here; use `~/.pl
 pio run -e freenove_esp32_wrover          # build the turret firmware
 pio run -e freenove_esp32_wrover -t upload
 pio run -e pin_check -t upload            # wiring bring-up test (no camera/WiFi), read serial after
-pio device monitor                        # serial @ 115200; `wifi-reset` + Enter erases saved WiFi networks and the PIN (reboots)
+pio device monitor                        # serial @ 115200; `wifi-reset` + Enter erases saved WiFi networks, the PIN and the hotspot password (a new one is generated at the next hotspot start; reboots)
 pio test -e native                        # host unit tests, no board needed
 pio test -e native_sanitize               # ASan+UBSan, Linux/CI only
 pio test -e freenove_esp32_wrover -f test_wifi_manager   # one on-device suite (board connected)

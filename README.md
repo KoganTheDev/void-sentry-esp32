@@ -91,7 +91,7 @@ Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extensi
    pio run -e freenove_esp32_wrover -t upload
    pio device monitor        # 115200 baud
    ```
-2. Set up WiFi on the device (no credentials are compiled in). With no saved network in range, the board opens a WPA2 hotspot `VoidSentry-XXXX` and prints its password on the serial log. Join it from a phone, and the setup page opens (or browse to `http://192.168.4.1/wifi`). Save your network and choose a PIN. Up to 3 networks are kept in flash, and the strongest one in range is joined. Later changes go through the same page (linked from the HUD) and need the PIN. Typing `wifi-reset` in the serial monitor erases the saved networks and the PIN.
+2. Set up WiFi on the device (no credentials are compiled in). With no saved network in range, the board opens a WPA2 hotspot `VoidSentry-XXXX` and prints its password on the serial log. Join it from a phone, and the setup page opens (or browse to `http://192.168.4.1/wifi`). Save your network and choose a PIN. Up to 3 networks are kept in flash, and the strongest one in range is joined. Later changes go through the same page (linked from the HUD) and need the PIN. Typing `wifi-reset` in the serial monitor erases the saved networks, the PIN and the hotspot password (a new one is generated).
 3. Read the board's IP address from the boot log. DHCP can hand out a new address after reflashing, so do not assume it.
 
 `pio run -e pin_check -t upload` flashes a wiring bring-up test (no camera, no WiFi) and prints the result on serial.
