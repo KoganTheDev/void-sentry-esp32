@@ -15,6 +15,7 @@ This document records the main design decisions and one debugging story from bui
 9. [WebSocket origin check and DNS rebinding](#9-websocket-origin-check-and-dns-rebinding)
 10. [How correctness is checked](#10-how-correctness-is-checked)
 11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
+12. [The HUD redesign: showing latency, not hiding it](#12-the-hud-redesign-showing-latency-not-hiding-it)
 
 ---
 
@@ -178,4 +179,20 @@ The board has no ASan, so most of the effort goes into making logic testable on 
 
 **Same host checks as the HUD.** `/api/wifi/*` requires an IPv4-literal Host header (DNS rebinding, section 9) and POSTs are origin-checked.
 
-**Not yet verified on hardware:** calibration save and reload across a reboot, and HUD jog hands-on in a browser.
+**Not yet verified on hardware:** calibration save and reload across a reboot, HUD jog hands-on in a browser, and the HUD redesign features (section 12).
+
+## 12. The HUD redesign: showing latency, not hiding it
+
+**Problem.** The HUD had grown stage by stage. An audit found controls that did nothing (`Engage Fire`: the firmware ignores `fire:*`; `CONF` and `RAM`, never written), fake values before the first reply, no way to calibrate or aim from the screen, and video health that was invisible (a frozen frame looked live, a third viewer was silently dropped). The design contract is `docs/superpowers/specs/2026-10-26-hud-ux-overhaul-design.md`; the firmware, a mock board and the page were built against it in parallel.
+
+**Events over a polled channel: counters, not flags.** The HUD polls `/commands` at about 25 Hz and the reply is built from a snapshot. A one-shot flag ("calibration just saved") is set and cleared by the controller between two polls, so a reply can be built after the flag fell and the HUD never sees the edge. Considered: holding the flag for N ms (a timing guess that breaks when the link is slow) or a queue of events (state to bound and clean up). Won: monotonically increasing counters, `cal_saves` and `cal_miss` (a calibration record ignored because no target was visible). The HUD compares with the last value it saw, so a change is never missed no matter how many polls were lost. The first reply after a reconnect just sets the baseline.
+
+**Latency: show it with a ghost reticle.** A motor takes time to arrive (a stepper at 400 steps/s needs seconds across the view). Moving the reticle optimistically to the finger would make the HUD lie, and fire and the on-target cue need to know where the turret really points. Won: the solid reticle only moves with the board-reported aim; a dashed ghost follows the finger instantly, joined by a dotted line and a time-left label (distance over the slew speed seen from the reported aim, plus half the round trip). The operator sees the lag instead of wondering whether the click registered. Sending: `aim:x,y` goes out at most every 100 ms while dragging, latest wins, and the release point is always sent. Queueing every point would make the turret replay a stale path after the finger stopped; dropping all but the newest costs nothing because only the destination matters.
+
+**The inverse aim map gives the exact aim pixel.** `AimMap` maps image pixel to pan/tilt. Because the camera is fixed on the base (section 1), the image never moves when the turret does, so inverting the map on the current pose gives the exact image point the turret aims at (`ax`, `ay`, via `AimMap::to_pixel`). With a camera on the turret this would not be possible. The same map yields the reachable box (`rx0..ry1`, the pixels whose aim lies inside the soft limits) and `lim` (end-stop bits), which drive the amber out-of-reach ghost and the dimmed arrows.
+
+**Client-side video health.** The board cannot tell that a viewer stopped receiving frames (the socket looks fine), so the HUD measures: after 1 s without a frame it shows `FROZEN n s` and greys the frame, after 4 s it closes and reopens the stream socket. The root cause of the `/stream` stalls is not fixed; this only makes them visible and self-healing. A refused third viewer looks like a socket that opens, closes and delivers no frames; three such cycles show "Video busy". The board also reports `vw` so the chip can show n/2.
+
+**The aim-hold rule.** The controller arbitrates each pass: the stick wins, then a HUD jog, otherwise idle. An idle pass used to send a jog of (0,0), which stops the motors. The HUD aim is an absolute `set_target_deg` move, so at 25 Hz that idle (0,0) would cancel it on the next pass. Considered: skipping the idle jog always (then a lost dead man would never stop a jog) or tracking "motors are moving" (racy against the motor task). Won: an `_aim_hold` flag set by `aim:` and cleared only when the stick or a real HUD jog takes over (and on mode changes), so the idle pass does nothing while a HUD aim is in flight.
+
+**Evidence.** The parser, inbox, inverse map, reach box, status fields and reply formatter are pure and native-tested: 307 cases in 17 suites, also under ASan and UBSan. The reply buffer `hud::kReplySize` is 832 B; `test_reply_json` builds the worst case at 739 B and the typical reply is about 330 B, so the cap has headroom and the formatter falls back to `{"detected":0}` on overflow rather than overrunning. The page was exercised against `tools/hud_mock/mock_board.py` in a browser at 1440x900, 390x844 and 844x390, and `web/test_web_ui.py` checks no external resources, balanced markup and only known commands. **Not yet verified on hardware:** HUD calibration, tap-to-aim, the reticle matching the real aim, the reach box and the new status fields; the success criteria in the spec (including `idle0` of at least 60% with one HUD) are still to be measured on the board.
