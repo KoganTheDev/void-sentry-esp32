@@ -438,7 +438,7 @@ void WifiManager::factory_reset()
         this->_store.erase_all();
     }
     esp_wifi_restore(); // also drop the WiFi driver's own stored STA config (older firmware used persistent(true))
-    Serial.println("[WIFI] wifi-reset: saved networks and PIN erased, restarting");
+    Serial.println("[WIFI] wifi-reset: saved networks, PIN and hotspot password erased, restarting");
     Serial.flush();
     ESP.restart();
 }
