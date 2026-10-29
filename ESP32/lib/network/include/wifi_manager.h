@@ -10,6 +10,7 @@
 #include "network_list.h"
 #include "pin_guard.h"
 #include "prov_types.h"
+#include "sync.h"
 #include "wifi_plan.h"
 #include "wifi_store.h"
 #include <Arduino.h>
@@ -22,10 +23,18 @@
 /**
  * @class WifiManager
  * @brief Glue between the pure prov::WifiPlan and the Arduino WiFi stack.
- * @details Driven only from loop() through maintain(); nothing here blocks. WiFi events (arduino_events task) only
- * set atomic flags; maintain() turns them into plan events. The httpd task (core 0) and maintain() (core 1) share the
- * network list, PIN guard, scan cache and plan state under one FreeRTOS mutex. All WiFi API calls and plan calls
- * happen in maintain()/begin(); the HTTP accessors only touch shared state and set request flags.
+ * @details Driven only from loop() through maintain(), which never waits for a join or scan to complete (scans are
+ * async, WiFi events (arduino_events task) only set atomic flags, and maintain() turns them into plan events). All WiFi
+ * API calls and plan calls happen in maintain()/begin(), and maintain() holds one FreeRTOS mutex for its whole pass,
+ * including WiFi driver calls that take a while (WiFi.mode/softAP when the hotspot starts or stops, WiFi.begin,
+ * starting a scan) and NVS writes (save_nets after a join).
+ *
+ * status() (behind /api/wifi/status, which the HUD polls) never takes that mutex: maintain(), begin() and add() publish
+ * a copy of its fields into a spinlock-guarded snapshot whenever they may have changed, and status() copies that. The
+ * rarer, user-initiated accessors (scan(), saved(), add(), forget()) still share the network list, PIN guard and scan
+ * cache with maintain() under the mutex, so a call that lands during one of those slow driver calls waits for it, and
+ * the single httpd task (every /stream send and /commands reply) waits with it. add() and forget() also hold the mutex
+ * across their own NVS writes, which blocks loop() in maintain() for that time.
  */
 class WifiManager
 {
@@ -68,7 +77,12 @@ public:
      */
     void maintain();
 
-    /** @brief Thread-safe snapshot of mode, SSID, IP, whether a PIN is set and the last failure. */
+    /**
+     * @brief Snapshot of mode, SSID, IP, whether a PIN is set and the last failure.
+     * @details Never takes the manager mutex (one short spinlock copy), so it cannot wait behind maintain(). The copy
+     * is the one published at the end of the last maintain() pass (or by begin()/add()), so it lags the live state
+     * by at most one pass. It holds no password or PIN.
+     */
     Status status();
 
     /** @brief Short mode name for logs ("sta" | "setup" | "joining" | "lost"). */
@@ -115,6 +129,10 @@ private:
     void poll_serial();
     void factory_reset();
     const char* mode_name_locked() const;
+    /** @brief Builds the /api/wifi/status fields from the live state. Caller holds _mutex. */
+    Status build_status_locked() const;
+    /** @brief Publishes build_status_locked() for status(). Caller holds _mutex. */
+    void publish_status_locked();
 
     static WifiManager* _instance;
 
@@ -131,6 +149,9 @@ private:
     std::atomic<bool> _ev_leave{false}; // ASSOC_LEAVE: kept apart from _ev_reason, see on_wifi_event()
     std::atomic<uint8_t> _ev_reason{0};
     std::atomic<bool> _hotspot_flag{false};
+
+    /** @brief Copy of the status() fields, written under _mutex by publish_status_locked(), read lock-free. */
+    vsync::SpinGuarded<Status> _status_snap;
 
     // Shared with the HTTP layer (guarded by _mutex).
     prov::ScanResult _scan[kScanCap];
