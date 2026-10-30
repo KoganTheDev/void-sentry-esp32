@@ -1654,8 +1654,8 @@
                 V.fpsWindowStart = now;
             }, 1000);
 
-            // Video health: FROZEN after 1 s without a frame; after 5 s frozen the socket is closed and reopened (past the board's 4 s send timeout; the
-            // stall's root cause is on the board; reconnecting is the HUD's part).
+            // Video health: FROZEN after 1 s without a frame; after 5 s frozen the socket is closed and reopened (just
+            // past the board's 4 s send timeout; the stall's root cause is on the board; reconnecting is the HUD's part).
             function videoState(now) {
                 if (V.busy) return 'busy';
                 if (!V.everFrame) return 'waiting';
