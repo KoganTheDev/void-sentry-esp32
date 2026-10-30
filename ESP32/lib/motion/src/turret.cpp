@@ -57,6 +57,8 @@ bool Turret::begin()
         digitalWrite(pin, LOW);
     }
     this->_coils_on = false;
+    // ESP32Servo 3.2.1 on core 3 attaches the pin twice; the second ledcAttachChannel is refused and logs two [E]
+    // lines (esp32-hal-ledc.c, ESP32PWM.cpp) on every boot. The first attach worked, so they are harmless.
     this->_servo.attach(pins::SERVO);
     this->_servo.write(this->_servo_written);
 
