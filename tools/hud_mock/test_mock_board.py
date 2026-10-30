@@ -155,6 +155,12 @@ class TargetTests(unittest.TestCase):
                 self.assertEqual((44, 74), (s.bw, s.bh))
                 self.assertTrue(0 <= s.bx and s.bx + s.bw <= 320 and 0 <= s.by and s.by + s.bh <= 240, (i, s))
 
+    def test_stay_never_leaves(self):
+        t = mb.Target(stay=True)
+        for i in range(0, 4000):
+            s = t.sample(i * 0.01)
+            self.assertEqual(("locked", 1, True), (s.state, s.id, s.visible), i)
+
     def test_detected_only_locked_or_coasting(self):
         t = mb.Target()
         self.assertFalse(t.sample(0.1).detected)

@@ -44,6 +44,19 @@ def wait_port(port, timeout=20.0):
     return False
 
 
+def wait_port_free(port, timeout=20.0):
+    """Poll until nothing accepts connections on 127.0.0.1:port. On Windows a killed Edge's child processes can keep
+    the DevTools port open for a moment; attaching to that dying browser crashed every scenario of the next run."""
+    end = time.time() + timeout
+    while time.time() < end:
+        try:
+            with socket.create_connection(("127.0.0.1", port), 0.3):
+                time.sleep(0.2)
+        except OSError:
+            return True
+    return False
+
+
 def url(n, path="/"):
     return f"http://127.0.0.1:{BASE + n}{path}"
 
@@ -134,8 +147,10 @@ async def scenario_main(tab):
     await tab.key("m", "KeyM", "m")
     ok("M switches to MANUAL", await tab.until(f"{TEXT('#chip-mode span')} === 'MANUAL'", 3))
     await tab.press('[data-dir="right"]', hold=1.0)
-    pan = await tab.js(TEXT("#t-pt"))
-    ok("hold right arrow jogs the turret", pan and not pan.strip().startswith("0.0"), f"pan/tilt {pan!r}")
+    # Poll: the telemetry text follows the board's replies, so on a slow runner the pose after release can arrive a
+    # reply or two later than the release (a single read here flaked in CI).
+    moved = await tab.until(f"!{TEXT('#t-pt')}.trim().startsWith('0.0')", 3)
+    ok("hold right arrow jogs the turret", moved, f"pan/tilt {await tab.js(TEXT('#t-pt'))!r}")
     await tab.key("h", "KeyH", "h")
     ok("H recenters (aim point 160,120)", await tab.until(f"/160\\D+120/.test({TEXT('#t-aim')})", 8), await tab.js(TEXT("#t-aim")))
     await tab.key("m", "KeyM", "m")
@@ -201,7 +216,7 @@ async def scenario_main(tab):
     rec2 = await tab.until(far, 40, 0.1)
     await tab.js("document.querySelector('#w-rec').click()")
     saved = await tab.until(f"/Calibration saved/i.test({TOASTS}) || /step 3|done/.test({TEXT('#wizard')})", 5)
-    ok("record P2 far enough -> Calibration saved", rec2 and saved, f"why-before={why!r}")
+    ok("record P2 far enough -> Calibration saved", rec2 and saved, f"why-before={why!r} rec2={rec2} p1={p1} pos-now={(await tab.js(TEXT('#t-pos')))!r} wizard={(await tab.js(TEXT('#wizard')))!r} toasts={(await tab.js(TOASTS))!r}")
     ok("after save: AI mode, CAL OK", await tab.until(f"{TEXT('#chip-mode span')} === 'AI' && {TEXT('#chip-cal span')} === 'OK'", 6))
 
     # Too close: the HUD must explain (disabled Record) or the board must fail it; either way it is not saved.
@@ -291,13 +306,15 @@ async def main(args):
     procs, edge, holder = [], None, None
     stop = asyncio.Event()
     try:
-        procs = [mock(0), mock(1, "--stall-after", "2"), mock(2, "--busy"), mock(3, "--dark"),
+        procs = [mock(0, "--stay"), mock(1, "--stall-after", "2"), mock(2, "--busy"), mock(3, "--dark"),
                  mock(4, "--uncalibrated"), mock(5, "--stick"), mock(6)]
         lost = mock(7)  # killed by scenario_link_lost
         procs.append(lost)
         for n in range(8):
             if not wait_port(BASE + n):
                 sys.exit(f"mock board on port {BASE + n} did not start")
+        if not wait_port_free(args.debug_port):
+            sys.exit(f"DevTools port {args.debug_port} is still in use (another browser?); pass --debug-port")
         cmd = [browser, "--headless=new", f"--remote-debugging-port={args.debug_port}", "--no-first-run",
                "--no-default-browser-check", f"--user-data-dir={os.path.join(out, 'profile')}"]
         if sys.platform != "win32":
@@ -332,6 +349,8 @@ async def main(args):
         for p in ([edge] if edge else []) + procs:
             p.kill()
             p.wait()
+        if edge:
+            wait_port_free(args.debug_port, 10.0)  # leave the port free for the next run
     passed = sum(r[1] for r in results)
     print(f"\n{passed}/{len(results)} passed")
     return 0 if results and passed == len(results) else 1
