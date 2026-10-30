@@ -130,6 +130,7 @@ CI runs formatting, both firmware builds, the native tests under ASan + UBSan, p
 ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)
 ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)
 ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)
+ESP32/lib/control      controller decisions: modes, calibration, jog arbitration (pure C++, host-tested)
 ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)
 ESP32/lib/provisioning WiFi plan, PIN guard, network list (pure C++, host-tested)
 ESP32/lib/checksum     CRC-32 for the NVS blobs (pure C++, host-tested)
@@ -138,7 +139,7 @@ ESP32/lib/stats        windowed counters for the stats line (header-only, host-t
 ESP32/lib/tjpgd        vendored JPEG decoder
 ESP32/lib/frame_store  camera task and PSRAM slots
 ESP32/lib/detection    detect task and tracking pipeline glue
-ESP32/lib/controller   modes, joystick, ties detection to the turret
+ESP32/lib/controller   device glue for lib/control: joystick, NVS, ties detection to the turret
 ESP32/lib/motion       turret, stepper and servo motor task
 ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster
 ESP32/bench            tracking clip bench and fixtures
