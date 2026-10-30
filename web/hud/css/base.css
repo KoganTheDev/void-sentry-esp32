@@ -1,0 +1,44 @@
+/* The HUD is dark-only by design and loads nothing from the network: the board is often reached through
+   its own hotspot with no internet, so fonts are the system stack and every icon is inline SVG. */
+:root {
+    color-scheme: dark;
+    --bg: #0a0b0d;
+    --panel: #14161a;
+    --panel-2: #1b1e23;
+    --border: #2a2e35;
+    --border-hi: #3a3f48;
+    --text: #e6e7e9;
+    --muted: #8b919a;
+    --accent: #ff6b00;
+    --accent-soft: rgba(255, 107, 0, 0.14);
+    --ok: #3ddc84;
+    --warn: #ffb020;
+    --err: #ff4d4d;
+    --focus: #38d4ff;
+    --manual: #7aa7ff;
+    --radius: 8px;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 system-ui, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+.hud {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+

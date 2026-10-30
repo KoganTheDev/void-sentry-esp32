@@ -1,0 +1,106 @@
+/* ---------- Status bar ---------- */
+.statusbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: max(6px, env(safe-area-inset-top, 0px)) 12px 6px;
+    background: linear-gradient(180deg, #16181c, #101114);
+    border-bottom: 1px solid var(--border);
+    min-width: 0;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; margin-right: 6px; flex-shrink: 0; }
+.brand img { height: 36px; width: auto; }
+
+.brand span {
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 2px;
+    font-size: 15px;
+    background: linear-gradient(180deg, #fff 35%, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+}
+
+.chips { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; min-width: 0; }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 15px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--text);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.chip[hidden] { display: none; }
+.chip b { font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+/* Fixed pill widths: each value carries every text it can show in data-w, laid out as hidden zero-height lines,
+   so the value is always as wide as its widest state. A changing number (fps, round trip) then never resizes
+   its pill and the header never reflows. Digits are tabular, so 0 stands for any digit. */
+.chip > span { display: inline-flex; flex-direction: column; align-items: flex-start; }
+.chip > span::after { content: attr(data-w); height: 0; overflow: hidden; visibility: hidden; white-space: pre; }
+/* The SSID is free text up to 32 characters: a fixed width, cut with an ellipsis (the full name is the title). */
+.chip.wifi > span { display: block; width: 92px; overflow: hidden; text-overflow: ellipsis; }
+.chip.wifi > span::after { content: none; }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.chip.ok .dot { background: var(--ok); }
+.chip.warn { border-color: rgba(255, 176, 32, 0.5); }
+.chip.warn .dot { background: var(--warn); }
+.chip.err { border-color: rgba(255, 77, 77, 0.6); }
+.chip.err .dot { background: var(--err); }
+.chip.mode-ai { border-color: var(--accent); background: var(--accent-soft); }
+.chip.mode-ai .dot { background: var(--accent); }
+.chip.mode-user { border-color: var(--manual); background: rgba(122, 167, 255, 0.12); }
+.chip.mode-user .dot { background: var(--manual); }
+.chip.mode-calibrate { border-color: var(--warn); background: rgba(255, 176, 32, 0.12); }
+.chip.mode-calibrate .dot { background: var(--warn); }
+.chip.armed { border-color: var(--err); background: rgba(255, 77, 77, 0.14); color: #ffb3b3; }
+.chip.armed .dot { background: var(--err); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.2; } }
+a.chip:hover { border-color: var(--accent); }
+
+.bar-actions { margin-left: auto; display: flex; gap: 4px; flex-shrink: 0; }
+
+.icon-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(#262a30, #1a1d21);
+    border: 1px solid #2c3038;
+    box-shadow: 0 2px 0 #050506;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.icon-btn:hover { color: var(--text); }
+.icon-btn:active { transform: translateY(2px); box-shadow: none; }
+.icon-btn[aria-expanded="true"] { color: var(--focus); border-color: var(--focus); }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn[hidden] { display: none; }
+
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 10px;
+    padding: 10px;
+    min-height: 0;
+}
+
