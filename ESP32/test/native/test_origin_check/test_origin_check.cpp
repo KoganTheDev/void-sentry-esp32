@@ -11,6 +11,12 @@
 
 using namespace remote;
 
+static bool allowed_any(const char* origin, const char* host)
+{
+    return origin_allowed_any_port(origin ? std::string_view(origin) : std::string_view(),
+                                   host ? std::string_view(host) : std::string_view());
+}
+
 void setUp(void) {}
 void tearDown(void) {}
 
@@ -219,6 +225,49 @@ static void test_over_long_origin_and_host_rejected_without_overrun(void)
     TEST_ASSERT_FALSE(is_ipv4_host(build(host_buf, "1.2.3.4:", '1', 4096)));
 }
 
+static void test_any_port_accepts(void)
+{
+    TEST_ASSERT_TRUE(allowed_any("http://192.168.1.64", "192.168.1.64:81"));
+    TEST_ASSERT_TRUE(allowed_any("http://192.168.1.64:80", "192.168.1.64:81"));
+    TEST_ASSERT_TRUE(allowed_any("https://192.168.1.64", "192.168.1.64:81"));
+    TEST_ASSERT_TRUE(allowed_any("http://192.168.1.64:65535", "192.168.1.64"));
+    TEST_ASSERT_TRUE(allowed_any("", "192.168.1.64:81"));
+    TEST_ASSERT_TRUE(allowed_any(nullptr, nullptr));
+}
+
+static void test_any_port_refuses_other_hosts(void)
+{
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.65", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.6", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64", "192.168.1.6:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64.evil.com", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://evil.com", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("null", "192.168.1.64:81"));
+}
+
+static void test_any_port_refuses_bad_hosts(void)
+{
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64", "evil.com:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://evil.com", "evil.com:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64", ""));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64", "192.168.1.64:0"));
+}
+
+static void test_any_port_refuses_malformed_origins(void)
+{
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64/x", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:0", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:65536", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:abc", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:80x", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64:123456", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http://192.168.1.64x", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("ftp://192.168.1.64", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("http:/192.168.1.64", "192.168.1.64:81"));
+    TEST_ASSERT_FALSE(allowed_any("192.168.1.64", "192.168.1.64:81"));
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
@@ -242,5 +291,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_origin_must_have_no_extras);
     RUN_TEST(test_null_origin_with_valid_or_missing_host);
     RUN_TEST(test_over_long_origin_and_host_rejected_without_overrun);
+    RUN_TEST(test_any_port_accepts);
+    RUN_TEST(test_any_port_refuses_other_hosts);
+    RUN_TEST(test_any_port_refuses_bad_hosts);
+    RUN_TEST(test_any_port_refuses_malformed_origins);
     return UNITY_END();
 }
