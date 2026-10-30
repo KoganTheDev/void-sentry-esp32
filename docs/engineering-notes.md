@@ -17,6 +17,7 @@ This document records the main design decisions and one debugging story from bui
 11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
 12. [The HUD redesign: showing latency, not hiding it](#12-the-hud-redesign-showing-latency-not-hiding-it)
 13. [Stream freezes: a TCP retransmit timer on a shared task](#13-stream-freezes-a-tcp-retransmit-timer-on-a-shared-task)
+14. [Controller decisions as a pure, tested unit](#14-controller-decisions-as-a-pure-tested-unit)
 
 ---
 
@@ -163,7 +164,7 @@ So signal strength did not predict the failure. Weak WiFi was ruled out.
 
 The board has no ASan, so most of the effort goes into making logic testable on a PC and into measuring the rest.
 
-- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `hud`, `provisioning`, `checksum`, `jpeg_gray`, `stats`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 99% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
+- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `control`, `frames`, `remote`, `hud`, `provisioning`, `checksum`, `jpeg_gray`, `stats`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 99% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
 - **Sanitizers.** The same tests run under ASan and UBSan in CI. These do not work on the Windows toolchain used here and not on Xtensa, so CI is the sanitizer runner by design.
 - **Clip regression bench.** `track_bench` runs recorded and synthetic clips through detector and tracker and checks per-clip `.expect` files. The same bench is built under ASan and UBSan, and CI reports cachegrind instruction counts per frame (deterministic, unlike wall time on shared runners). CI also regenerates the synthetic clips and compares them byte for byte.
 - **Static analysis and formatting.** cppcheck blocks on warning, performance and portability findings; clang-format 19 is checked (not applied) in CI.
@@ -249,3 +250,13 @@ Measurements (board at RSSI -59 to -69 dBm, one viewer):
 | Heap | `heap_min` 86 KB while streaming (about 80 KB before); free heap back to 112 KB after the viewer left |
 
 Video still pauses while TCP repairs a loss (in-order delivery); fewer losses need a better link (placement, antenna).
+
+## 14. Controller decisions as a pure, tested unit
+
+**Problem.** `Controller` held the trickiest rules in the firmware: mode switching, button gestures, button and HUD calibration (who wins on the same pass, the HUD record waiting for the pan to stop), jog arbitration (stick over HUD jog, the 300 ms dead man, an aim that the idle (0,0) jog must not cancel). It included `Arduino.h` and `camera.h`, so none of it could be built by the `native` env, and a dead-man race the audit found sat in exactly this untested code.
+
+**Options.** (a) Explicit inputs per pass (clock, button, stick, pose, track, HUD requests) and an output list of actions. Simple to test, but it reads everything up front: the joystick ADC on every ~1 kHz pass instead of on a 25 Hz jog pass, the HUD jog's clock outside the inbox lock (undoing the race fix), and the turret's latest-wins mailbox would receive its writes in a different order than the decisions made them (the motor task can sample between two writes). (b) Ports: the pure class calls a small interface for each read and command at the point where the decision needs it.
+
+**What won.** (b). `control::ControlLogic` (`lib/control`, no Arduino or ESP-IDF headers) owns the button classifier, aim policy, calibration session, mode and counters and is a line-by-line move of the old code, so behaviour is unchanged. `Controller` implements `control::ControlPorts` over the turret, detection module, joystick, HUD inbox (still under its spinlock; `submit()` still runs on the httpd task), `cal_store` and `ESP_LOG` (log events arrive as an enum), and keeps the clock, the 25 Hz loop and the published status. The port methods are `noexcept`: none can throw, and it keeps exception edges out of the branch coverage.
+
+**Evidence.** `test_control_logic` (48 cases) runs the rules against a recording fake whose HUD side is the real parser and `RemoteInbox`, so wire strings, speeds and the dead man are the production ones. Every expected value was derived from the pre-split `controller.cpp`. A local gcov run gives 100% of lines, and every branch not taken is an unreachable one or an exception edge into another library. `control` is in the coverage gate's pure-library list.
