@@ -13,7 +13,8 @@ function toggleFullscreen() {
 fsBtn.onclick = toggleFullscreen;
 
 const KEYS = { KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right' };
-const dialogOpen = () => $('#help').open || $('#arm-dlg').open;
+// While a dialog is open, keys belong to it (typing a PIN must not jog or switch modes).
+const dialogOpen = () => $('#help').open || $('#arm-dlg').open || $('#login-dlg').open || $('#logout-dlg').open;
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Shift') { setShift(true); return; }
     if (e.ctrlKey || e.metaKey || e.altKey || dialogOpen()) return;

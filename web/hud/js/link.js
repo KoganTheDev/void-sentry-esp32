@@ -79,6 +79,21 @@ const App = {
         };
     },
 
+    // Replace the socket with a new one (the stall watchdog, and a login: the board reads the login cookie
+    // when a socket opens). The old socket's handlers go first, so none of its late replies or a late open
+    // can start a second poll loop next to the new socket's.
+    restart() {
+        const ws = this.ws;
+        if (ws) {
+            ws.onopen = null;
+            ws.onmessage = null;
+            ws.onclose = null;
+            ws.close();
+        }
+        this.drop();
+        this.connect();
+    },
+
     // Forget the socket and everything awaiting a reply on it.
     drop() {
         clearTimeout(this.pollTimer);
@@ -96,16 +111,12 @@ const App = {
 setInterval(() => {
     const ws = App.ws;
     const now = performance.now();
-    if (ws && ws.readyState === WebSocket.OPEN && now - App.lastReplyMs > 2000) {
-        ws.onmessage = null;
-        ws.onclose = null;
-        ws.close();
-        App.drop();
-        App.connect();
-    }
-    // Link state: up while replies keep coming. The first 3 s after load count as "connecting".
-    const open = ws && ws.readyState === WebSocket.OPEN;
-    if (open && App.lastRxMs && now - App.lastRxMs < 3000) setLink('ok');
+    if (ws && ws.readyState === WebSocket.OPEN && now - App.lastReplyMs > 2000) App.restart();
+    // Link state: up while replies keep coming. The first 3 s after load count as "connecting". A socket
+    // still opening after a restart counts as up while the last reply is recent, so a reconnect for a login
+    // does not flash "link lost".
+    const live = App.ws && (App.ws.readyState === WebSocket.OPEN || App.ws.readyState === WebSocket.CONNECTING);
+    if (live && App.lastRxMs && now - App.lastRxMs < 3000) setLink('ok');
     else if (S.link === 'ok' || now - S.linkSince > 3000) setLink('lost');
 }, 1000);
 
@@ -135,6 +146,7 @@ function setLink(state) {
 function onReply(m, now) {
     if (S.link !== 'ok') setLink('ok');
     S.hasReply = true;
+    updateAuth(m); // first: the rest of the reply renders with the current access
     updateTrack(m, now);
     updateAim(m, now);
     if (typeof m.lim === 'number') S.lim = m.lim;

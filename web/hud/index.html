@@ -23,6 +23,7 @@
                 <span class="chip" id="chip-mode"><i class="dot"></i><b>MODE</b><span data-w="AI&#10;MANUAL&#10;CALIBRATE&#10;--">--</span></span>
                 <span class="chip" id="chip-video"><i class="dot"></i><b>VIDEO</b><span data-w="00 fps&#10;FROZEN 00.0 s&#10;BUSY&#10;CONNECTING" data-wc="00 fps&#10;FROZEN&#10;BUSY&#10;...">--</span></span>
                 <span class="chip" id="chip-link"><i class="dot"></i><b>LINK</b><span data-w="0000 ms&#10;OFFLINE&#10;CONNECTING&#10;--" data-wc="0000 ms&#10;OFFLINE&#10;...&#10;--">CONNECTING</span></span>
+                <button type="button" class="chip auth" id="chip-auth" aria-haspopup="dialog" hidden><svg class="lock-shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><svg class="lock-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg><b>ACCESS</b><span data-w="VIEW ONLY&#10;CONTROL&#10;OPEN&#10;--">--</span></button>
                 <span class="chip viewers" id="chip-viewers" title="Video viewers (the board allows 2)" hidden><i class="dot"></i><b>VIEWERS</b><span data-w="0/2&#10;--">--</span></span>
                 <span class="chip cal" id="chip-cal" hidden><i class="dot"></i><b>CAL</b><span data-w="UNCALIBRATED&#10;OK&#10;--">--</span></span>
                 <span class="chip armed" id="chip-armed" hidden><i class="dot"></i><b>AUTO-FIRE</b><span>ARMED</span></span>
@@ -71,6 +72,17 @@
             </section>
 
             <aside class="panel">
+                <div class="callout lock" id="login-callout" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                    <p>View only. Log in with the PIN to control the turret.</p>
+                    <button class="btn-sm primary" id="login-go">Log in</button>
+                </div>
+
+                <div class="callout" id="pin-callout" hidden>
+                    <p>No PIN is set, so anyone on this network can move the turret. <a href="/wifi">Set a PIN</a> on the WiFi page to protect control.</p>
+                    <button class="icon-btn" id="pin-dismiss" aria-label="Dismiss the PIN hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                </div>
+
                 <div class="box p-mode">
                     <h3>Mode</h3>
                     <div class="seg" role="group" aria-label="Control mode">
@@ -162,6 +174,7 @@
                 <tr><td>Fullscreen / help</td><td><kbd>F</kbd> <kbd>?</kbd></td></tr>
             </tbody>
         </table>
+        <p>Anyone on the network can watch. Moving the turret needs the PIN chosen on the WiFi setup page: press Log in (or the VIEW ONLY chip). A login lasts until you log out (the CONTROL chip) or the turret restarts.</p>
         <p>The joystick on the turret always wins over the HUD. Short press: AI / Manual. Hold 1.5 s: start or cancel calibration. Short press while calibrating: record a point.</p>
         <p>The red reticle shows where the turret points; the corner brackets mark the tracked target. In Manual, tap or drag on the video to aim. Fire is a HUD effect only: it hits when the reticle is on the target.</p>
         <form method="dialog" class="actions">
@@ -176,6 +189,29 @@
         <form method="dialog" class="actions">
             <button class="btn-sm" value="cancel" autofocus>Keep it off</button>
             <button class="btn-sm danger" value="arm">Arm auto-fire</button>
+        </form>
+    </dialog>
+
+    <dialog id="login-dlg" aria-labelledby="login-title">
+        <form id="login-form" novalidate>
+            <h2 id="login-title">Log in to control</h2>
+            <p>Watching is open to everyone on the network. Moving the turret needs the PIN chosen on the WiFi setup page.</p>
+            <label for="login-pin">PIN</label>
+            <input id="login-pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" required autofocus aria-describedby="login-err">
+            <p class="form-err" id="login-err" role="alert"></p>
+            <div class="actions">
+                <button type="button" class="btn-sm" id="login-cancel">Cancel</button>
+                <button type="submit" class="btn-sm primary" id="login-submit">Log in</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="logout-dlg" aria-labelledby="logout-title">
+        <h2 id="logout-title">You have control</h2>
+        <p>This browser can move the turret until you log out or the turret restarts.</p>
+        <form method="dialog" class="actions">
+            <button class="btn-sm" value="close" autofocus>Close</button>
+            <button class="btn-sm danger" value="logout" id="logout-go">Log out</button>
         </form>
     </dialog>
 

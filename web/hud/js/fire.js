@@ -13,6 +13,7 @@ function onTarget() {
 function fire(fromTap) {
     const now = performance.now();
     if (S.link !== 'ok') return toast('No turret link', 'warn', 'link');
+    if (needControl()) return;
     if (now < S.cooldownUntil) return;
     S.cooldownUntil = now + 700;
     S.charge = 0;
@@ -46,6 +47,7 @@ fireBtn.addEventListener('contextmenu', (e) => e.preventDefault());
 // Arming auto-fire always asks first.
 const autoBox = $('#auto-fire');
 autoBox.addEventListener('click', (e) => {
+    if (autoBox.checked && needControl()) { e.preventDefault(); return; }
     if (autoBox.checked) { e.preventDefault(); $('#arm-dlg').showModal(); }
     else disarm('Auto-fire off');
 });

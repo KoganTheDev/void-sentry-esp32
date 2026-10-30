@@ -69,7 +69,14 @@
 .chip.armed { border-color: var(--err); background: rgba(255, 77, 77, 0.14); color: #ffb3b3; }
 .chip.armed .dot { background: var(--err); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.2; } }
-a.chip:hover { border-color: var(--accent); }
+a.chip:hover, button.chip:hover { border-color: var(--accent); }
+/* The ACCESS chip is a button (opens log in / log out): keep the chip look. A lock replaces the dot: shut while view
+   only, open with control (or when no PIN is set). */
+button.chip { font: inherit; font-size: 12px; cursor: pointer; }
+.chip.auth svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--muted); }
+.chip.auth.ok svg { color: var(--ok); }
+.chip.auth.warn svg { color: var(--warn); }
+.chip.auth.locked .lock-open, .chip.auth:not(.locked) .lock-shut { display: none; }
 
 .bar-actions { margin-left: auto; display: flex; gap: 4px; flex-shrink: 0; }
 
