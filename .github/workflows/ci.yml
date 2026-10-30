@@ -12,8 +12,8 @@ jobs:
     format:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
             - name: Install clang-format 19 (same major version as local LLVM 19)
@@ -29,8 +29,8 @@ jobs:
     web-ui-generator:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
             - name: Test index_html.h generator
@@ -39,13 +39,13 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
             # custom_sdkconfig rebuilds the Arduino libs into ~/.platformio (slow); pioarduino reuses them only while
             # ESP32/sdkconfig.defaults (its hash of the custom options) is present, so cache that file too.
-            - uses: actions/cache@v4
+            - uses: actions/cache@v6
               with:
                   path: |
                       ~/.platformio
@@ -71,11 +71,11 @@ jobs:
     native-tests:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
-            - uses: actions/cache@v4
+            - uses: actions/cache@v6
               with:
                   path: ~/.platformio
                   key: pio-native-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
@@ -88,11 +88,11 @@ jobs:
     native-sanitize:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
-            - uses: actions/cache@v4
+            - uses: actions/cache@v6
               with:
                   path: ~/.platformio
                   key: pio-native-sanitize-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
@@ -107,11 +107,11 @@ jobs:
     coverage:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
-            - uses: actions/cache@v4
+            - uses: actions/cache@v6
               with:
                   path: ~/.platformio
                   key: pio-native-coverage-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
@@ -152,8 +152,8 @@ jobs:
     tracking-bench:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
-            - uses: actions/setup-python@v5
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
               with:
                   python-version: "3.12"
             - name: Tool tests
