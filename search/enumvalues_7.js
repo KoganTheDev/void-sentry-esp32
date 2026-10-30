@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['right_0',['Right',['../move__types_8h.html#adfc321b16dd1f96f937277639e70e63ba92b09c7c48c520c3c55e497875da437c',1,'move_types.h']]]
+  ['point_0',['Point',['../remote__command_8h.html#ae2b3fe90061999d11286922d3aa16b94a2a3cd5946cfd317eb99c3d32e35e2d4c',1,'remote']]]
 ];

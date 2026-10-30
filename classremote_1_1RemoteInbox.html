@@ -105,7 +105,7 @@ $(function(){initNavTree('classremote_1_1RemoteInbox.html',''); initResizable(tr
 </div><!--header-->
 <div class="contents">
 
-<p>Stores the latest Move (with timeout) and the pending mode request.  
+<p>Stores the latest Move (with timeout), the jog speed and the pending mode, calibration and aim requests.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="remote__inbox_8h_source.html">remote_inbox.h</a>&gt;</code></p>
@@ -114,7 +114,7 @@ $(function(){initNavTree('classremote_1_1RemoteInbox.html',''); initResizable(tr
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abe8b6e4cb106d3b8a63bb5518d1314e5" id="r_abe8b6e4cb106d3b8a63bb5518d1314e5"><td class="memItemLeft" align="right" valign="top"><a id="abe8b6e4cb106d3b8a63bb5518d1314e5" name="abe8b6e4cb106d3b8a63bb5518d1314e5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>submit</b> (const <a class="el" href="structremote_1_1Command.html">Command</a> &amp;cmd, uint32_t now_ms)</td></tr>
-<tr class="memdesc:abe8b6e4cb106d3b8a63bb5518d1314e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies a command. Move stores direction and time, Stop ends the jog, Mode stores a request. <br /></td></tr>
+<tr class="memdesc:abe8b6e4cb106d3b8a63bb5518d1314e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies a command. Move stores direction and time, Stop ends the jog, Mode, Calibrate and Aim store a one-shot request (latest wins; Aim also ends an active jog), Speed sets the persistent jog speed. <br /></td></tr>
 <tr class="separator:abe8b6e4cb106d3b8a63bb5518d1314e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa91a0aac49dc18600947cf569607bfcc" id="r_aa91a0aac49dc18600947cf569607bfcc"><td class="memItemLeft" align="right" valign="top"><a id="aa91a0aac49dc18600947cf569607bfcc" name="aa91a0aac49dc18600947cf569607bfcc"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>jog_active</b> (uint32_t now_ms) const</td></tr>
@@ -122,15 +122,27 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>jog_active</b> (uint3
 <tr class="separator:aa91a0aac49dc18600947cf569607bfcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5d3f5b4ab99c0494cc0b2528e212052" id="r_ad5d3f5b4ab99c0494cc0b2528e212052"><td class="memItemLeft" align="right" valign="top"><a id="ad5d3f5b4ab99c0494cc0b2528e212052" name="ad5d3f5b4ab99c0494cc0b2528e212052"></a>
 <a class="el" href="structremote_1_1Jog.html">Jog</a>&#160;</td><td class="memItemRight" valign="bottom"><b>jog</b> (uint32_t now_ms) const</td></tr>
-<tr class="memdesc:ad5d3f5b4ab99c0494cc0b2528e212052"><td class="mdescLeft">&#160;</td><td class="mdescRight">kJogSpeed times the direction while active, else {0, 0}. <br /></td></tr>
+<tr class="memdesc:ad5d3f5b4ab99c0494cc0b2528e212052"><td class="mdescLeft">&#160;</td><td class="mdescRight">The magnitude of the current speed setting times the direction while active, else {0, 0}. <br /></td></tr>
 <tr class="separator:ad5d3f5b4ab99c0494cc0b2528e212052"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78b57ca021b5892c60e12ed3c0f0a9e8" id="r_a78b57ca021b5892c60e12ed3c0f0a9e8"><td class="memItemLeft" align="right" valign="top"><a id="a78b57ca021b5892c60e12ed3c0f0a9e8" name="a78b57ca021b5892c60e12ed3c0f0a9e8"></a>
 std::optional&lt; <a class="el" href="remote__command_8h.html#a5e287f17259bda9a212827f40b86902a">RemoteMode</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>take_mode_request</b> ()</td></tr>
 <tr class="memdesc:a78b57ca021b5892c60e12ed3c0f0a9e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">The latest Mode command, returned once. <br /></td></tr>
 <tr class="separator:a78b57ca021b5892c60e12ed3c0f0a9e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3878bbee8afc4311885bff691ee2e692" id="r_a3878bbee8afc4311885bff691ee2e692"><td class="memItemLeft" align="right" valign="top"><a id="a3878bbee8afc4311885bff691ee2e692" name="a3878bbee8afc4311885bff691ee2e692"></a>
+std::optional&lt; <a class="el" href="remote__command_8h.html#ae2b3fe90061999d11286922d3aa16b94">CalAction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>take_cal_request</b> ()</td></tr>
+<tr class="memdesc:a3878bbee8afc4311885bff691ee2e692"><td class="mdescLeft">&#160;</td><td class="mdescRight">The latest Calibrate action, returned once. <br /></td></tr>
+<tr class="separator:a3878bbee8afc4311885bff691ee2e692"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a388615412018d37bb57393c84b01705b" id="r_a388615412018d37bb57393c84b01705b"><td class="memItemLeft" align="right" valign="top"><a id="a388615412018d37bb57393c84b01705b" name="a388615412018d37bb57393c84b01705b"></a>
+std::optional&lt; <a class="el" href="structremote_1_1AimPixel.html">AimPixel</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>take_aim_request</b> ()</td></tr>
+<tr class="memdesc:a388615412018d37bb57393c84b01705b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The latest Aim pixel, returned once. <br /></td></tr>
+<tr class="separator:a388615412018d37bb57393c84b01705b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac596ee5ad2a0ff6a6c8c0e7e3058147c" id="r_ac596ee5ad2a0ff6a6c8c0e7e3058147c"><td class="memItemLeft" align="right" valign="top"><a id="ac596ee5ad2a0ff6a6c8c0e7e3058147c" name="ac596ee5ad2a0ff6a6c8c0e7e3058147c"></a>
+<a class="el" href="remote__command_8h.html#ac1126cf5b3ecb588089be327908609dc">JogSpeed</a>&#160;</td><td class="memItemRight" valign="bottom"><b>speed</b> () const</td></tr>
+<tr class="memdesc:ac596ee5ad2a0ff6a6c8c0e7e3058147c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The persistent jog speed setting (default Normal). <br /></td></tr>
+<tr class="separator:ac596ee5ad2a0ff6a6c8c0e7e3058147c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Stores the latest Move (with timeout) and the pending mode request. </p>
+<div class="textblock"><p>Stores the latest Move (with timeout), the jog speed and the pending mode, calibration and aim requests. </p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>lib/remote/include/<a class="el" href="remote__inbox_8h_source.html">remote_inbox.h</a></li>
 <li>lib/remote/src/<b>remote_inbox.cpp</b></li>

@@ -114,8 +114,8 @@ $(function(){initNavTree('classCommandsWebSocketHandler.html',''); initResizable
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab817de5417996b2dce4ed2af62c391a9" id="r_ab817de5417996b2dce4ed2af62c391a9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab817de5417996b2dce4ed2af62c391a9">CommandsWebSocketHandler</a> (httpd_handle_t server_handle, const char *uri, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr, const <a class="el" href="classBaseStatusProvider.html">BaseStatusProvider</a> *status=nullptr, <a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *remote=nullptr)</td></tr>
-<tr class="separator:ab817de5417996b2dce4ed2af62c391a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc83c3128840114d1b2eef20d957e2c3" id="r_afc83c3128840114d1b2eef20d957e2c3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc83c3128840114d1b2eef20d957e2c3">CommandsWebSocketHandler</a> (httpd_handle_t server_handle, const char *uri, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr, const <a class="el" href="classBaseStatusProvider.html">BaseStatusProvider</a> *status=nullptr, <a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *remote=nullptr, const <a class="el" href="classStreamBroadcaster.html">StreamBroadcaster</a> *stream=nullptr)</td></tr>
+<tr class="separator:afc83c3128840114d1b2eef20d957e2c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35ae7b22e4bd7464a7a90077a6036e36" id="r_a35ae7b22e4bd7464a7a90077a6036e36"><td class="memItemLeft" align="right" valign="top"><a id="a35ae7b22e4bd7464a7a90077a6036e36" name="a35ae7b22e4bd7464a7a90077a6036e36"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>register_endpoint</b> ()</td></tr>
 <tr class="memdesc:a35ae7b22e4bd7464a7a90077a6036e36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers the WebSocket endpoint on the server. <br /></td></tr>
@@ -146,17 +146,13 @@ Static Public Attributes</h2></td></tr>
 static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxMessage</b> = 64</td></tr>
 <tr class="memdesc:a43f7dc7dece6d49092446f914a8209ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Longest accepted message in bytes; the longest real command ("move:down-right") is 15. <br /></td></tr>
 <tr class="separator:a43f7dc7dece6d49092446f914a8209ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a860bc5c818f40e6f4848a452d3e52f30" id="r_a860bc5c818f40e6f4848a452d3e52f30"><td class="memItemLeft" align="right" valign="top"><a id="a860bc5c818f40e6f4848a452d3e52f30" name="a860bc5c818f40e6f4848a452d3e52f30"></a>
-static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kReplySize</b> = 384</td></tr>
-<tr class="memdesc:a860bc5c818f40e6f4848a452d3e52f30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of the JSON reply buffer on the stack. <br /></td></tr>
-<tr class="separator:a860bc5c818f40e6f4848a452d3e52f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The /commands WebSocket: parses each HUD message, hands it to the remote sink and replies with JSON metrics. </p>
-<p>Request/reply: every received text frame gets exactly one JSON reply (the HUD's poll loop depends on it). Receive and reply buffers live on the httpd task's stack (64 B and 384 B), so there is no heap use per message and nothing to leak when a send fails. </p>
+<p>Request/reply: every received text frame gets exactly one JSON reply (the HUD's poll loop depends on it). Receive and reply buffers live on the httpd task's stack (64 B and <a class="el" href="reply__json_8h.html#a603b856c719c4667d1d70aa5dcd1d0d0" title="Buffer size that always holds a full reply.">hud::kReplySize</a>), so there is no heap use per message and nothing to leak when a send fails. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ab817de5417996b2dce4ed2af62c391a9" name="ab817de5417996b2dce4ed2af62c391a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab817de5417996b2dce4ed2af62c391a9">&#9670;&#160;</a></span>CommandsWebSocketHandler()</h2>
+<a id="afc83c3128840114d1b2eef20d957e2c3" name="afc83c3128840114d1b2eef20d957e2c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc83c3128840114d1b2eef20d957e2c3">&#9670;&#160;</a></span>CommandsWebSocketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -187,7 +183,12 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kR
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *</td>          <td class="paramname"><span class="paramname"><em>remote</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *</td>          <td class="paramname"><span class="paramname"><em>remote</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classStreamBroadcaster.html">StreamBroadcaster</a> *</td>          <td class="paramname"><span class="paramname"><em>stream</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -202,7 +203,8 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kR
     <tr><td class="paramname">uri</td><td>Endpoint path (must outlive the handler; a string literal). </td></tr>
     <tr><td class="paramname">detection</td><td>Optional detection module for the tracker fields. </td></tr>
     <tr><td class="paramname">status</td><td>Optional controller status for the mode/calibration fields. </td></tr>
-    <tr><td class="paramname">remote</td><td>Optional sink that receives the parsed commands (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>). </td></tr>
+    <tr><td class="paramname">remote</td><td>Optional sink that receives the parsed commands (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>). </td></tr>
+    <tr><td class="paramname">stream</td><td>Optional /stream broadcaster whose viewer count is sent as "vw" (0 when null). Must outlive the handler; <a class="el" href="classStreamBroadcaster.html#a9ca7e59bdc92b9685f5a09cd54317fe7" title="Connected /stream viewers (0 to frames::kMaxViewers).">StreamBroadcaster::viewer_count()</a> is safe to call from the httpd task (but not concurrently with <a class="el" href="classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e" title="Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.">StreamBroadcaster::stop()</a>, so httpd must be stopped first). </td></tr>
   </table>
   </dd>
 </dl>

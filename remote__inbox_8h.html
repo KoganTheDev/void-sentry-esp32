@@ -117,8 +117,11 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structremote_1_1Jog.html">remote::Jog</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structremote_1_1Jog.html" title="Jog request in the same units as Joystick/Turret::jog.">Jog</a> request in the same units as Joystick/Turret::jog.  <a href="structremote_1_1Jog.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structremote_1_1AimPixel.html">remote::AimPixel</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Image pixel requested by an Aim command.  <a href="structremote_1_1AimPixel.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classremote_1_1RemoteInbox.html">remote::RemoteInbox</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the latest Move (with timeout) and the pending mode request.  <a href="classremote_1_1RemoteInbox.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the latest Move (with timeout), the jog speed and the pending mode, calibration and aim requests.  <a href="classremote_1_1RemoteInbox.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -129,12 +132,20 @@ constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>remote:
 <tr class="separator:ad852dc40068d8466be4c155081f1f1c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec8cbea47a4b17e76eaf5ca72043a15f" id="r_aec8cbea47a4b17e76eaf5ca72043a15f"><td class="memItemLeft" align="right" valign="top"><a id="aec8cbea47a4b17e76eaf5ca72043a15f" name="aec8cbea47a4b17e76eaf5ca72043a15f"></a>
 constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>remote::kJogSpeed</b> = 0.6f</td></tr>
-<tr class="memdesc:aec8cbea47a4b17e76eaf5ca72043a15f"><td class="mdescLeft">&#160;</td><td class="mdescRight">jog magnitude per axis while active <br /></td></tr>
+<tr class="memdesc:aec8cbea47a4b17e76eaf5ca72043a15f"><td class="mdescLeft">&#160;</td><td class="mdescRight">jog magnitude per axis while active at JogSpeed::Normal <br /></td></tr>
 <tr class="separator:aec8cbea47a4b17e76eaf5ca72043a15f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a422bf531fc2d0d741094433eb96aab" id="r_a0a422bf531fc2d0d741094433eb96aab"><td class="memItemLeft" align="right" valign="top"><a id="a0a422bf531fc2d0d741094433eb96aab" name="a0a422bf531fc2d0d741094433eb96aab"></a>
+constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>remote::kJogSpeedSlow</b> = 0.25f</td></tr>
+<tr class="memdesc:a0a422bf531fc2d0d741094433eb96aab"><td class="mdescLeft">&#160;</td><td class="mdescRight">jog magnitude at JogSpeed::Slow <br /></td></tr>
+<tr class="separator:a0a422bf531fc2d0d741094433eb96aab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe6cfa55ea50d74d0668c9c7dc60d9d6" id="r_afe6cfa55ea50d74d0668c9c7dc60d9d6"><td class="memItemLeft" align="right" valign="top"><a id="afe6cfa55ea50d74d0668c9c7dc60d9d6" name="afe6cfa55ea50d74d0668c9c7dc60d9d6"></a>
+constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>remote::kJogSpeedFast</b> = 1.0f</td></tr>
+<tr class="memdesc:afe6cfa55ea50d74d0668c9c7dc60d9d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">jog magnitude at JogSpeed::Fast <br /></td></tr>
+<tr class="separator:afe6cfa55ea50d74d0668c9c7dc60d9d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Holds the latest remote command state with a dead-man jog timeout (pure C++20, natively tested). </p>
-<p>Not thread-safe by itself; the owner (<a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>) guards it with a spinlock. Time is millis()-style uint32 and wraparound-safe. </p>
+<p>Not thread-safe by itself; the owner (<a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>) guards it with a spinlock. Time is millis()-style uint32 and wraparound-safe. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

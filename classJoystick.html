@@ -123,13 +123,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afd2a78cd13bf73d65bcf519f936cb3ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab201351a439c108946b341c856c714fb" id="r_ab201351a439c108946b341c856c714fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab201351a439c108946b341c856c714fb">get_y</a> () const</td></tr>
 <tr class="separator:ab201351a439c108946b341c856c714fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e404f73565562f8b2fb0e13d809d68d" id="r_a2e404f73565562f8b2fb0e13d809d68d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2e404f73565562f8b2fb0e13d809d68d">is_active</a> () const</td></tr>
-<tr class="memdesc:a2e404f73565562f8b2fb0e13d809d68d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the joystick is currently deflected beyond the deadzone.  <br /></td></tr>
-<tr class="separator:a2e404f73565562f8b2fb0e13d809d68d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Button Input</div></td></tr>
-<tr class="memitem:ac75bdb237df7b3b305af353468d7d185" id="r_ac75bdb237df7b3b305af353468d7d185"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac75bdb237df7b3b305af353468d7d185">is_z_pressed</a> ()</td></tr>
-<tr class="memdesc:ac75bdb237df7b3b305af353468d7d185"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detects a button press (Falling Edge).  <br /></td></tr>
-<tr class="separator:ac75bdb237df7b3b305af353468d7d185"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a9b93194e4622ba6a6f17a072ae53c1" id="r_a7a9b93194e4622ba6a6f17a072ae53c1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7a9b93194e4622ba6a6f17a072ae53c1">is_z_held</a> () const</td></tr>
 <tr class="memdesc:a7a9b93194e4622ba6a6f17a072ae53c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check the current physical state of the button.  <br /></td></tr>
 <tr class="separator:a7a9b93194e4622ba6a6f17a072ae53c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -344,26 +338,6 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a2e404f73565562f8b2fb0e13d809d68d" name="a2e404f73565562f8b2fb0e13d809d68d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e404f73565562f8b2fb0e13d809d68d">&#9670;&#160;</a></span>is_active()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool Joystick::is_active </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Checks if the joystick is currently deflected beyond the deadzone. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if either axis is active. </dd></dl>
-
-</div>
-</div>
 <a id="a7a9b93194e4622ba6a6f17a072ae53c1" name="a7a9b93194e4622ba6a6f17a072ae53c1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a9b93194e4622ba6a6f17a072ae53c1">&#9670;&#160;</a></span>is_z_held()</h2>
 
@@ -389,26 +363,6 @@ Public Member Functions</h2></td></tr>
 
 <p>Check the current physical state of the button. </p>
 <p>*</p><dl class="section return"><dt>Returns</dt><dd>true if the button is currently held down. </dd></dl>
-
-</div>
-</div>
-<a id="ac75bdb237df7b3b305af353468d7d185" name="ac75bdb237df7b3b305af353468d7d185"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac75bdb237df7b3b305af353468d7d185">&#9670;&#160;</a></span>is_z_pressed()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool Joystick::is_z_pressed </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Detects a button press (Falling Edge). </p>
-<p>*</p><dl class="section return"><dt>Returns</dt><dd>true only on the frame the button is first depressed. </dd></dl>
 
 </div>
 </div>

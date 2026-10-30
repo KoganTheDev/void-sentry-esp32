@@ -32,16 +32,18 @@ var NAVTREE =
       [ "Performance", "index.html#autotoc_md3", null ],
       [ "Hardware and wiring", "index.html#autotoc_md4", null ],
       [ "Getting started", "index.html#autotoc_md5", null ],
-      [ "Using it", "index.html#autotoc_md6", null ],
-      [ "Testing and CI", "index.html#autotoc_md7", null ],
-      [ "Project layout", "index.html#autotoc_md8", null ],
-      [ "Roadmap status", "index.html#autotoc_md9", null ],
-      [ "License", "index.html#autotoc_md10", null ],
+      [ "Using it", "index.html#autotoc_md6", [
+        [ "Developing the HUD without hardware", "index.html#autotoc_md7", null ]
+      ] ],
+      [ "Testing and CI", "index.html#autotoc_md8", null ],
+      [ "Project layout", "index.html#autotoc_md9", null ],
+      [ "Roadmap status", "index.html#autotoc_md10", null ],
+      [ "License", "index.html#autotoc_md11", null ],
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", null ],
+        [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ],
         [ "Enumerations", "functions_enum.html", null ]
@@ -61,7 +63,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "aim__map_8h.html",
-"dir_fa9daf3d2bdfbadfef9f7c36d658e0ea.html"
+"dir_99b9bfd03cf01ce45c7d0e9ff284312f.html",
+"structtracking_1_1DetectionResult.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

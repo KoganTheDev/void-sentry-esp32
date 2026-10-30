@@ -120,7 +120,7 @@ std::tuple&lt; <a class="el" href="classMoveX.html">MoveX</a>, <a class="el" hre
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Maps a tracked target to a pan/tilt direction relative to the grid centre (pure C++20, header-only). </p>
-<p>Only Locked and Coasting targets produce a direction. Stage 3 uses this to aim; Stage 2 only reports it. </p>
+<p>Only Locked and Coasting targets produce a direction. It is kept for the detect_object() return value; aiming uses AimPolicy/AimMap instead. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

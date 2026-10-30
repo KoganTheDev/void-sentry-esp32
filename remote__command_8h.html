@@ -131,6 +131,9 @@ Enumerations</h2></td></tr>
 , <b>Mode</b>
 , <br />
 &#160;&#160;<b>Fire</b>
+, <b>Calibrate</b>
+, <b>Aim</b>
+, <b>Speed</b>
 <br />
  }</td></tr>
 <tr class="memdesc:a201cde8620729094ce88188fb38fe47d"><td class="mdescLeft">&#160;</td><td class="mdescRight">What a /commands message asks for. Poll is the keepalive and anything unrecognised. <br /></td></tr>
@@ -140,6 +143,18 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a5e287f17259bda9a212827f40b86902a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operating mode requested by the HUD. <br /></td></tr>
 <tr class="separator:a5e287f17259bda9a212827f40b86902a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2b3fe90061999d11286922d3aa16b94" id="r_ae2b3fe90061999d11286922d3aa16b94"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2b3fe90061999d11286922d3aa16b94">remote::CalAction</a> : uint8_t { <a class="el" href="#ae2b3fe90061999d11286922d3aa16b94aa6122a65eaa676f700ae68d393054a37">Start</a>
+, <a class="el" href="#ae2b3fe90061999d11286922d3aa16b94a2a3cd5946cfd317eb99c3d32e35e2d4c">Point</a>
+, <a class="el" href="#ae2b3fe90061999d11286922d3aa16b94aea4788705e6873b424c65e91c2846b19">Cancel</a>
+ }</td></tr>
+<tr class="memdesc:ae2b3fe90061999d11286922d3aa16b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calibration action requested by the HUD; same semantics as the physical button.  <a href="#ae2b3fe90061999d11286922d3aa16b94">More...</a><br /></td></tr>
+<tr class="separator:ae2b3fe90061999d11286922d3aa16b94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1126cf5b3ecb588089be327908609dc" id="r_ac1126cf5b3ecb588089be327908609dc"><td class="memItemLeft" align="right" valign="top"><a id="ac1126cf5b3ecb588089be327908609dc" name="ac1126cf5b3ecb588089be327908609dc"></a>enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1126cf5b3ecb588089be327908609dc">remote::JogSpeed</a> : uint8_t { <b>Slow</b>
+, <b>Normal</b>
+, <b>Fast</b>
+ }</td></tr>
+<tr class="memdesc:ac1126cf5b3ecb588089be327908609dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">HUD jog magnitude setting. <br /></td></tr>
+<tr class="separator:ac1126cf5b3ecb588089be327908609dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -150,7 +165,40 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Parses the HUD's /commands text messages into typed commands (pure C++20, natively tested). </p>
 <p>No Arduino or ESP-IDF headers and no heap use, so the parser runs on the host and in the httpd handler. </p>
-</div><h2 class="groupheader">Function Documentation</h2>
+</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="ae2b3fe90061999d11286922d3aa16b94" name="ae2b3fe90061999d11286922d3aa16b94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2b3fe90061999d11286922d3aa16b94">&#9670;&#160;</a></span>CalAction</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#ae2b3fe90061999d11286922d3aa16b94">remote::CalAction</a> : uint8_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Calibration action requested by the HUD; same semantics as the physical button. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae2b3fe90061999d11286922d3aa16b94aa6122a65eaa676f700ae68d393054a37" name="ae2b3fe90061999d11286922d3aa16b94aa6122a65eaa676f700ae68d393054a37"></a>Start&#160;</td><td class="fielddoc"><p>like a long press when not calibrating </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae2b3fe90061999d11286922d3aa16b94a2a3cd5946cfd317eb99c3d32e35e2d4c" name="ae2b3fe90061999d11286922d3aa16b94a2a3cd5946cfd317eb99c3d32e35e2d4c"></a>Point&#160;</td><td class="fielddoc"><p>like a short press while calibrating </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae2b3fe90061999d11286922d3aa16b94aea4788705e6873b424c65e91c2846b19" name="ae2b3fe90061999d11286922d3aa16b94aea4788705e6873b424c65e91c2846b19"></a>Cancel&#160;</td><td class="fielddoc"><p>like a long press while calibrating </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
 <a id="ae55779093517f1d80741ed9628ec70ca" name="ae55779093517f1d80741ed9628ec70ca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae55779093517f1d80741ed9628ec70ca">&#9670;&#160;</a></span>parse()</h2>
 
@@ -167,7 +215,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Parses one message. </p>
-<p>Exact, case-sensitive match on the whole view (it need not be NUL-terminated, and the receive buffer is not). Anything unrecognised (empty, unknown text, trailing bytes) yields a Poll command. </p>
+<p>Exact, case-sensitive match on the whole view (it need not be NUL-terminated, and the receive buffer is not). Anything unrecognised (empty, unknown text, trailing bytes) yields a Poll command. <code>aim:&lt;x&gt;,&lt;y&gt;</code> takes 1 to 3 plain decimal digits per number (no sign, spaces or extra bytes), x in 0..319 and y in 0..239; anything else is a Poll. </p>
 
 </div>
 </div>

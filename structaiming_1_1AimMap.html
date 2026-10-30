@@ -117,6 +117,10 @@ Public Member Functions</h2></td></tr>
 <a class="el" href="structaiming_1_1Angles.html">Angles</a>&#160;</td><td class="memItemRight" valign="bottom"><b>aim</b> (float x, float y) const</td></tr>
 <tr class="memdesc:a72e368e744c014f5668c380cbb49bade"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structaiming_1_1Angles.html" title="Turret pose: pan degrees from home (positive = right), tilt servo degrees (larger = up).">Angles</a> for an image position, clamped to the soft limits. <br /></td></tr>
 <tr class="separator:a72e368e744c014f5668c380cbb49bade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae97c953ab9680035974d11b7b014bd33" id="r_ae97c953ab9680035974d11b7b014bd33"><td class="memItemLeft" align="right" valign="top"><a id="ae97c953ab9680035974d11b7b014bd33" name="ae97c953ab9680035974d11b7b014bd33"></a>
+<a class="el" href="structaiming_1_1Pixel.html">Pixel</a>&#160;</td><td class="memItemRight" valign="bottom"><b>to_pixel</b> (<a class="el" href="structaiming_1_1Angles.html">Angles</a> a) const</td></tr>
+<tr class="memdesc:ae97c953ab9680035974d11b7b014bd33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Image position that <a class="el" href="#a72e368e744c014f5668c380cbb49bade" title="Angles for an image position, clamped to the soft limits.">aim()</a> maps to these angles: the exact inverse before clamping, x = (pan - pan_b) / pan_a and y = (tilt - tilt_b) / tilt_a. Not clamped to the frame. An axis whose slope is 0 or not finite (or whose result is not finite) returns the frame centre on that axis. <br /></td></tr>
+<tr class="separator:ae97c953ab9680035974d11b7b014bd33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>

@@ -15,5 +15,6 @@ var searchData=
   ['window_5fpercent_12',['window_percent',['../windowed__counter_8h.html#a669ca2351d34e46df4eb34e6299632ed',1,'stats']]],
   ['windowed_5fcounter_2eh_13',['windowed_counter.h',['../windowed__counter_8h.html',1,'']]],
   ['windowedcounter_14',['WindowedCounter',['../classstats_1_1WindowedCounter.html',1,'stats']]],
-  ['wiring_15',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]]
+  ['wiring_15',['Hardware and wiring',['../index.html#autotoc_md4',1,'']]],
+  ['without_20hardware_16',['Developing the HUD without hardware',['../index.html#autotoc_md7',1,'']]]
 ];

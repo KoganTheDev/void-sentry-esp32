@@ -99,13 +99,21 @@ $(function(){initNavTree('classStreamBroadcaster.html',''); initResizable(true);
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="classStreamBroadcaster-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">StreamBroadcaster Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structStreamBroadcaster_1_1SendStats.html">SendStats</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">How long frame sends block the httpd task (every /stream send runs on it, and so does /commands).  <a href="structStreamBroadcaster_1_1SendStats.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1656a8b65e436b33412305ebe8aedbf2" id="r_a1656a8b65e436b33412305ebe8aedbf2"><td class="memItemLeft" align="right" valign="top"><a id="a1656a8b65e436b33412305ebe8aedbf2" name="a1656a8b65e436b33412305ebe8aedbf2"></a>
@@ -119,9 +127,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
 <tr class="memitem:ac0765e7f6a8d3eb3d4fba35b064824d5" id="r_ac0765e7f6a8d3eb3d4fba35b064824d5"><td class="memItemLeft" align="right" valign="top"><a id="ac0765e7f6a8d3eb3d4fba35b064824d5" name="ac0765e7f6a8d3eb3d4fba35b064824d5"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames_sent</b> () const</td></tr>
 <tr class="separator:ac0765e7f6a8d3eb3d4fba35b064824d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bf007c2e2e34a5c05c2b86be621d052" id="r_a5bf007c2e2e34a5c05c2b86be621d052"><td class="memItemLeft" align="right" valign="top"><a id="a5bf007c2e2e34a5c05c2b86be621d052" name="a5bf007c2e2e34a5c05c2b86be621d052"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>viewer_count</b> ()</td></tr>
-<tr class="separator:a5bf007c2e2e34a5c05c2b86be621d052"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3bfa60dbe749b4a79b010f0f474fb7b1" id="r_a3bfa60dbe749b4a79b010f0f474fb7b1"><td class="memItemLeft" align="right" valign="top"><a id="a3bfa60dbe749b4a79b010f0f474fb7b1" name="a3bfa60dbe749b4a79b010f0f474fb7b1"></a>
+<a class="el" href="structStreamBroadcaster_1_1SendStats.html">SendStats</a>&#160;</td><td class="memItemRight" valign="bottom"><b>take_send_stats</b> ()</td></tr>
+<tr class="memdesc:a3bfa60dbe749b4a79b010f0f474fb7b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The send counters; resets max_us. For the stats line (one reader). <br /></td></tr>
+<tr class="separator:a3bfa60dbe749b4a79b010f0f474fb7b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ca7e59bdc92b9685f5a09cd54317fe7" id="r_a9ca7e59bdc92b9685f5a09cd54317fe7"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9ca7e59bdc92b9685f5a09cd54317fe7">viewer_count</a> () const</td></tr>
+<tr class="memdesc:a9ca7e59bdc92b9685f5a09cd54317fe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Connected /stream viewers (0 to frames::kMaxViewers).  <br /></td></tr>
+<tr class="separator:a9ca7e59bdc92b9685f5a09cd54317fe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -129,7 +141,35 @@ Static Public Member Functions</h2></td></tr>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>on_session_closed</b> (httpd_handle_t server, int sockfd)</td></tr>
 <tr class="memdesc:a7f588b64b82dbe0a98f3a7b9cf71897f"><td class="mdescLeft">&#160;</td><td class="mdescRight">httpd close_fn: forget the viewer and close the socket (required when close_fn is set). <br /></td></tr>
 <tr class="separator:a7f588b64b82dbe0a98f3a7b9cf71897f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:afa91da795ae774829e2061a7e93f0cb6" id="r_afa91da795ae774829e2061a7e93f0cb6"><td class="memItemLeft" align="right" valign="top"><a id="afa91da795ae774829e2061a7e93f0cb6" name="afa91da795ae774829e2061a7e93f0cb6"></a>
+static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kSlowSendUs</b> = 200000</td></tr>
+<tr class="memdesc:afa91da795ae774829e2061a7e93f0cb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">200 ms: a visible hitch at 16 fps <br /></td></tr>
+<tr class="separator:afa91da795ae774829e2061a7e93f0cb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a9ca7e59bdc92b9685f5a09cd54317fe7" name="a9ca7e59bdc92b9685f5a09cd54317fe7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ca7e59bdc92b9685f5a09cd54317fe7">&#9670;&#160;</a></span>viewer_count()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t StreamBroadcaster::viewer_count </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Connected /stream viewers (0 to frames::kMaxViewers). </p>
+<p>Safe from any task, including the httpd task (the /commands reply): it takes the broadcaster mutex, which every holder keeps for a few microseconds only and never while calling back into this method, so the caller cannot deadlock and waits at most that long (the FreeRTOS mutex has priority inheritance). Returns 0 before <a class="el" href="#a1656a8b65e436b33412305ebe8aedbf2" title="Register the /stream WebSocket endpoint and start the stream task (core 1, priority 4).">start()</a> and once <a class="el" href="#a0b46036f9b9a939886a4677dc1e4a95e" title="Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.">stop()</a> has returned. Like the httpd callbacks it must not run concurrently with <a class="el" href="#a0b46036f9b9a939886a4677dc1e4a95e" title="Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.">stop()</a> (which frees the mutex); <a class="el" href="#a0b46036f9b9a939886a4677dc1e4a95e" title="Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.">stop()</a> has no caller today, and httpd must be stopped first. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>lib/network/include/<a class="el" href="stream__broadcaster_8h_source.html">stream_broadcaster.h</a></li>
 <li>lib/network/src/<b>stream_broadcaster.cpp</b></li>

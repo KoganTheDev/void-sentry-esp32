@@ -108,11 +108,15 @@ $(function(){initNavTree('classaiming_1_1AimPolicy.html',''); initResizable(true
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4895fbe99f1da3876d018cf400a5170b" id="r_a4895fbe99f1da3876d018cf400a5170b"><td class="memItemLeft" align="right" valign="top"><a id="a4895fbe99f1da3876d018cf400a5170b" name="a4895fbe99f1da3876d018cf400a5170b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>AimPolicy</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;map, const <a class="el" href="structaiming_1_1PolicyConfig.html">PolicyConfig</a> &amp;config=<a class="el" href="structaiming_1_1PolicyConfig.html">PolicyConfig</a>{})</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>AimPolicy</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;<a class="el" href="#a8d2a52102496ecc0c30e03dc75417a18">map</a>, const <a class="el" href="structaiming_1_1PolicyConfig.html">PolicyConfig</a> &amp;config=<a class="el" href="structaiming_1_1PolicyConfig.html">PolicyConfig</a>{})</td></tr>
 <tr class="separator:a4895fbe99f1da3876d018cf400a5170b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a658fd54f21479f99e426fa4af98f1eb4" id="r_a658fd54f21479f99e426fa4af98f1eb4"><td class="memItemLeft" align="right" valign="top"><a id="a658fd54f21479f99e426fa4af98f1eb4" name="a658fd54f21479f99e426fa4af98f1eb4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_map</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;map)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_map</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;<a class="el" href="#a8d2a52102496ecc0c30e03dc75417a18">map</a>)</td></tr>
 <tr class="separator:a658fd54f21479f99e426fa4af98f1eb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d2a52102496ecc0c30e03dc75417a18" id="r_a8d2a52102496ecc0c30e03dc75417a18"><td class="memItemLeft" align="right" valign="top"><a id="a8d2a52102496ecc0c30e03dc75417a18" name="a8d2a52102496ecc0c30e03dc75417a18"></a>
+const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>map</b> () const</td></tr>
+<tr class="memdesc:a8d2a52102496ecc0c30e03dc75417a18"><td class="mdescLeft">&#160;</td><td class="mdescRight">the active map <br /></td></tr>
+<tr class="separator:a8d2a52102496ecc0c30e03dc75417a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5f2ce1a418f765f5d35f638aadd516a" id="r_ad5f2ce1a418f765f5d35f638aadd516a"><td class="memItemLeft" align="right" valign="top"><a id="ad5f2ce1a418f765f5d35f638aadd516a" name="ad5f2ce1a418f765f5d35f638aadd516a"></a>
 <a class="el" href="structaiming_1_1AimCommand.html">AimCommand</a>&#160;</td><td class="memItemRight" valign="bottom"><b>update</b> (const <a class="el" href="structaiming_1_1TrackView.html">TrackView</a> &amp;track, uint32_t now_ms)</td></tr>
 <tr class="separator:ad5f2ce1a418f765f5d35f638aadd516a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -120,7 +124,35 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>set_map</b> (const <a
 void&#160;</td><td class="memItemRight" valign="bottom"><b>reset</b> ()</td></tr>
 <tr class="memdesc:a4f48bffba06e5bec57905f9eead6af5e"><td class="mdescLeft">&#160;</td><td class="mdescRight">forget the setpoint and the lost-target timer (mode changes) <br /></td></tr>
 <tr class="separator:a4f48bffba06e5bec57905f9eead6af5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcd6fcd23d42eef442811dd4f6382669" id="r_afcd6fcd23d42eef442811dd4f6382669"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afcd6fcd23d42eef442811dd4f6382669">home_remaining_ms</a> (uint32_t now_ms) const</td></tr>
+<tr class="memdesc:afcd6fcd23d42eef442811dd4f6382669"><td class="mdescLeft">&#160;</td><td class="mdescRight">Milliseconds until the pending return Home fires: home_delay_ms minus the time since the target was last seen, minimum 0 and wraparound-safe. 0 unless the last update() saw Idle or Tentative, a target was seen and Home has not fired yet.  <br /></td></tr>
+<tr class="separator:afcd6fcd23d42eef442811dd4f6382669"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e31a8ea425bae2c04beb199bc25ca9f" id="r_a3e31a8ea425bae2c04beb199bc25ca9f"><td class="memItemLeft" align="right" valign="top"><a id="a3e31a8ea425bae2c04beb199bc25ca9f" name="a3e31a8ea425bae2c04beb199bc25ca9f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>homed</b> () const</td></tr>
+<tr class="memdesc:a3e31a8ea425bae2c04beb199bc25ca9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">True once Home has fired, until the next lock or <a class="el" href="#a4f48bffba06e5bec57905f9eead6af5e" title="forget the setpoint and the lost-target timer (mode changes)">reset()</a>. <br /></td></tr>
+<tr class="separator:a3e31a8ea425bae2c04beb199bc25ca9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="afcd6fcd23d42eef442811dd4f6382669" name="afcd6fcd23d42eef442811dd4f6382669"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcd6fcd23d42eef442811dd4f6382669">&#9670;&#160;</a></span>home_remaining_ms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t aiming::AimPolicy::home_remaining_ms </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>now_ms</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Milliseconds until the pending return Home fires: home_delay_ms minus the time since the target was last seen, minimum 0 and wraparound-safe. 0 unless the last update() saw Idle or Tentative, a target was seen and Home has not fired yet. </p>
+<p>The timer runs through Tentative (update() leaves the last-seen time alone then), although Home itself can only fire on Idle. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>lib/aiming/include/<a class="el" href="aim__policy_8h_source.html">aim_policy.h</a></li>
 <li>lib/aiming/src/<b>aim_policy.cpp</b></li>

@@ -9,8 +9,10 @@ var annotated_dup =
       [ "ButtonConfig", "structaiming_1_1ButtonConfig.html", null ],
       [ "CalibrationSession", "classaiming_1_1CalibrationSession.html", "classaiming_1_1CalibrationSession" ],
       [ "CalPoint", "structaiming_1_1CalPoint.html", null ],
+      [ "Pixel", "structaiming_1_1Pixel.html", null ],
       [ "PlannerConfig", "structaiming_1_1PlannerConfig.html", "structaiming_1_1PlannerConfig" ],
       [ "PolicyConfig", "structaiming_1_1PolicyConfig.html", null ],
+      [ "ReachBox", "structaiming_1_1ReachBox.html", null ],
       [ "StepPlanner", "classaiming_1_1StepPlanner.html", "classaiming_1_1StepPlanner" ],
       [ "TrackView", "structaiming_1_1TrackView.html", "structaiming_1_1TrackView" ]
     ] ],
@@ -21,6 +23,10 @@ var annotated_dup =
       [ "ReadyList", "structframes_1_1ReadyList.html", null ],
       [ "SlotReleaser", "classframes_1_1SlotReleaser.html", null ],
       [ "ViewerSet", "classframes_1_1ViewerSet.html", "classframes_1_1ViewerSet" ]
+    ] ],
+    [ "hud", null, [
+      [ "HomeState", "structhud_1_1HomeState.html", "structhud_1_1HomeState" ],
+      [ "ReplyInput", "structhud_1_1ReplyInput.html", "structhud_1_1ReplyInput" ]
     ] ],
     [ "prov", null, [
       [ "Action", "structprov_1_1Action.html", null ],
@@ -34,6 +40,7 @@ var annotated_dup =
       [ "WifiPlan", "classprov_1_1WifiPlan.html", "classprov_1_1WifiPlan" ]
     ] ],
     [ "remote", null, [
+      [ "AimPixel", "structremote_1_1AimPixel.html", null ],
       [ "BaseRemoteSink", "classremote_1_1BaseRemoteSink.html", "classremote_1_1BaseRemoteSink" ],
       [ "Command", "structremote_1_1Command.html", "structremote_1_1Command" ],
       [ "Jog", "structremote_1_1Jog.html", null ],

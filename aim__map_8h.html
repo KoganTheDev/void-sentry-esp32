@@ -121,8 +121,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaiming_1_1CalPoint.html">aiming::CalPoint</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One calibration sample: the target's pixel and the turret angles that pointed at it.  <a href="structaiming_1_1CalPoint.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaiming_1_1Pixel.html">aiming::Pixel</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An image position in pixels; not clamped, so it can lie outside the frame.  <a href="structaiming_1_1Pixel.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaiming_1_1AimMap.html">aiming::AimMap</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">pan = pan_a * x + pan_b, tilt = tilt_a * y + tilt_b.  <a href="structaiming_1_1AimMap.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structaiming_1_1ReachBox.html">aiming::ReachBox</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rectangle of frame pixels (inclusive corners) with x0 &lt;= x1 and y0 &lt;= y1.  <a href="structaiming_1_1ReachBox.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -135,6 +141,14 @@ Functions</h2></td></tr>
 std::optional&lt; <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::fit</b> (const <a class="el" href="structaiming_1_1CalPoint.html">CalPoint</a> &amp;p1, const <a class="el" href="structaiming_1_1CalPoint.html">CalPoint</a> &amp;p2)</td></tr>
 <tr class="memdesc:a29510865ab2fb4b1db34025dac5aa1f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-axis line through two calibration points; empty if they are too close or not finite. <br /></td></tr>
 <tr class="separator:a29510865ab2fb4b1db34025dac5aa1f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65ae366b8a31a83c7d4428b2eff586ce" id="r_a65ae366b8a31a83c7d4428b2eff586ce"><td class="memItemLeft" align="right" valign="top"><a id="a65ae366b8a31a83c7d4428b2eff586ce" name="a65ae366b8a31a83c7d4428b2eff586ce"></a>
+<a class="el" href="structaiming_1_1ReachBox.html">ReachBox</a>&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::reach_box</b> (const <a class="el" href="structaiming_1_1AimMap.html">AimMap</a> &amp;m)</td></tr>
+<tr class="memdesc:a65ae366b8a31a83c7d4428b2eff586ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">The image region whose aim lies inside the soft limits: the pixels where kPanMinDeg &lt;= pan &lt;= kPanMaxDeg and kTiltMinDeg &lt;= tilt &lt;= kTiltMaxDeg (the inverse of the limits through the map), ordered, clamped to the frame and rounded. An axis with a zero or non-finite slope spans the whole frame. A region wholly outside the frame collapses onto the nearest edge column or row. <br /></td></tr>
+<tr class="separator:a65ae366b8a31a83c7d4428b2eff586ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a352dc39cfb488cd092a7fc3156f8997a" id="r_a352dc39cfb488cd092a7fc3156f8997a"><td class="memItemLeft" align="right" valign="top"><a id="a352dc39cfb488cd092a7fc3156f8997a" name="a352dc39cfb488cd092a7fc3156f8997a"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::limit_bits</b> (<a class="el" href="structaiming_1_1Angles.html">Angles</a> a)</td></tr>
+<tr class="memdesc:a352dc39cfb488cd092a7fc3156f8997a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Soft-limit proximity bits for the HUD: 1 pan within kLimitMarginDeg of kPanMinDeg, 2 pan at the max, 4 tilt at the min, 8 tilt at the max (inclusive; beyond a limit counts too, a non-finite angle sets no bit). <br /></td></tr>
+<tr class="separator:a352dc39cfb488cd092a7fc3156f8997a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1fa15378265bc2cc7a84e114dcdf27c" id="r_ad1fa15378265bc2cc7a84e114dcdf27c"><td class="memItemLeft" align="right" valign="top"><a id="ad1fa15378265bc2cc7a84e114dcdf27c" name="ad1fa15378265bc2cc7a84e114dcdf27c"></a>
 <a class="el" href="structaiming_1_1Angles.html">Angles</a>&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::clamp_angles</b> (<a class="el" href="structaiming_1_1Angles.html">Angles</a> a)</td></tr>
 <tr class="memdesc:ad1fa15378265bc2cc7a84e114dcdf27c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clamps angles to the soft limits; non-finite pan becomes 0 and non-finite tilt becomes kTiltHomeDeg first. <br /></td></tr>
@@ -176,6 +190,10 @@ constexpr int&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::kFra
 <tr class="memitem:a9a62ffdfa46ca8bcca18fd9fb3dff3e0" id="r_a9a62ffdfa46ca8bcca18fd9fb3dff3e0"><td class="memItemLeft" align="right" valign="top"><a id="a9a62ffdfa46ca8bcca18fd9fb3dff3e0" name="a9a62ffdfa46ca8bcca18fd9fb3dff3e0"></a>
 constexpr int&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::kFrameH</b> = 240</td></tr>
 <tr class="separator:a9a62ffdfa46ca8bcca18fd9fb3dff3e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adec77a79cd81162c6517d7235960bced" id="r_adec77a79cd81162c6517d7235960bced"><td class="memItemLeft" align="right" valign="top"><a id="adec77a79cd81162c6517d7235960bced" name="adec77a79cd81162c6517d7235960bced"></a>
+constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::kLimitMarginDeg</b> = 0.5f</td></tr>
+<tr class="memdesc:adec77a79cd81162c6517d7235960bced"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#a352dc39cfb488cd092a7fc3156f8997a" title="Soft-limit proximity bits for the HUD: 1 pan within kLimitMarginDeg of kPanMinDeg,...">limit_bits()</a> reports an axis this close to a soft limit <br /></td></tr>
+<tr class="separator:adec77a79cd81162c6517d7235960bced"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a824fdb55b93f0e0e7effb4406d9855ed" id="r_a824fdb55b93f0e0e7effb4406d9855ed"><td class="memItemLeft" align="right" valign="top"><a id="a824fdb55b93f0e0e7effb4406d9855ed" name="a824fdb55b93f0e0e7effb4406d9855ed"></a>
 constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>aiming::kMinCalDx</b> = 80.0f</td></tr>
 <tr class="memdesc:a824fdb55b93f0e0e7effb4406d9855ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">closer calibration points amplify aiming error <br /></td></tr>

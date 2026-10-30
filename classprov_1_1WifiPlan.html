@@ -126,8 +126,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a86ecf2cd4999b8474b4c72f36bdfabe7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joining, Lost or Setup -&gt; Connected; StopHotspot if the hotspot is up. <br /></td></tr>
 <tr class="separator:a86ecf2cd4999b8474b4c72f36bdfabe7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a273d2c281fbe2151888ff92e190d4357" id="r_a273d2c281fbe2151888ff92e190d4357"><td class="memItemLeft" align="right" valign="top"><a id="a273d2c281fbe2151888ff92e190d4357" name="a273d2c281fbe2151888ff92e190d4357"></a>
-<a class="el" href="structprov_1_1Action.html">Action</a>&#160;</td><td class="memItemRight" valign="bottom"><b>on_join_failed</b> (JoinFail why, uint32_t now_ms)</td></tr>
-<tr class="memdesc:a273d2c281fbe2151888ff92e190d4357"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joining only: next remembered candidate, else Setup (+ StartHotspot if not up). <br /></td></tr>
+<a class="el" href="structprov_1_1Action.html">Action</a>&#160;</td><td class="memItemRight" valign="bottom"><b>on_join_failed</b> (<a class="el" href="wifi__plan_8h.html#a4576e2c94ec511d665ceba62c0fff64c">JoinFail</a> why, uint32_t now_ms)</td></tr>
+<tr class="memdesc:a273d2c281fbe2151888ff92e190d4357"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joining only: next remembered candidate, else Setup (+ StartHotspot if not up). A Transient failure first retries the same candidate (same Join action, up to kTransientRetries, only before kJoinTimeoutMs since its first attempt). Entering Setup with the hotspot not yet up schedules the first rescan after kSetupFirstRescanMs; later ones keep kSetupRescanMs. <br /></td></tr>
 <tr class="separator:a273d2c281fbe2151888ff92e190d4357"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9385c38779caa50803ddfea3507cde68" id="r_a9385c38779caa50803ddfea3507cde68"><td class="memItemLeft" align="right" valign="top"><a id="a9385c38779caa50803ddfea3507cde68" name="a9385c38779caa50803ddfea3507cde68"></a>
 <a class="el" href="structprov_1_1Action.html">Action</a>&#160;</td><td class="memItemRight" valign="bottom"><b>on_disconnected</b> (uint32_t now_ms)</td></tr>
@@ -148,7 +148,7 @@ PlanState&#160;</td><td class="memItemRight" valign="bottom"><b>state</b> () con
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>hotspot_up</b> () const</td></tr>
 <tr class="separator:a7103fff5b55420450222f739a64f05d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a735a58c1a468bd4a8ba9f31bbd892f9f" id="r_a735a58c1a468bd4a8ba9f31bbd892f9f"><td class="memItemLeft" align="right" valign="top"><a id="a735a58c1a468bd4a8ba9f31bbd892f9f" name="a735a58c1a468bd4a8ba9f31bbd892f9f"></a>
-JoinFail&#160;</td><td class="memItemRight" valign="bottom"><b>last_failure</b> () const</td></tr>
+<a class="el" href="wifi__plan_8h.html#a4576e2c94ec511d665ceba62c0fff64c">JoinFail</a>&#160;</td><td class="memItemRight" valign="bottom"><b>last_failure</b> () const</td></tr>
 <tr class="separator:a735a58c1a468bd4a8ba9f31bbd892f9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
@@ -162,6 +162,14 @@ static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>
 <tr class="memitem:a234f92f13621593a6c39acfc0f1ec199" id="r_a234f92f13621593a6c39acfc0f1ec199"><td class="memItemLeft" align="right" valign="top"><a id="a234f92f13621593a6c39acfc0f1ec199" name="a234f92f13621593a6c39acfc0f1ec199"></a>
 static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kSetupRescanMs</b> = 30000</td></tr>
 <tr class="separator:a234f92f13621593a6c39acfc0f1ec199"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68cb182036aeb04467b2af609a7580b1" id="r_a68cb182036aeb04467b2af609a7580b1"><td class="memItemLeft" align="right" valign="top"><a id="a68cb182036aeb04467b2af609a7580b1" name="a68cb182036aeb04467b2af609a7580b1"></a>
+static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kSetupFirstRescanMs</b> = 5000</td></tr>
+<tr class="memdesc:a68cb182036aeb04467b2af609a7580b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">First Setup rescan after the join attempts of a boot or lost-network cycle all failed. <br /></td></tr>
+<tr class="separator:a68cb182036aeb04467b2af609a7580b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cfc651f9f30c223926de5aa72afc2a1" id="r_a1cfc651f9f30c223926de5aa72afc2a1"><td class="memItemLeft" align="right" valign="top"><a id="a1cfc651f9f30c223926de5aa72afc2a1" name="a1cfc651f9f30c223926de5aa72afc2a1"></a>
+static constexpr uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>kTransientRetries</b> = 2</td></tr>
+<tr class="memdesc:a1cfc651f9f30c223926de5aa72afc2a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same-candidate retries of a Transient failure within kJoinTimeoutMs. <br /></td></tr>
+<tr class="separator:a1cfc651f9f30c223926de5aa72afc2a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Decides what the WiFi glue should do next. Events that do not apply to the current state return <a class="el" href="structprov_1_1Action.html">Action</a>{None} and change nothing. All time arithmetic is wrap-safe. </p>

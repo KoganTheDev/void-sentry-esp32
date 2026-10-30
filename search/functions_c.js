@@ -7,7 +7,6 @@ var searchData=
   ['on_5fscan_5fdone_4',['on_scan_done',['../classprov_1_1WifiPlan.html#aa1022b92a3aa45f2fdd7bc8959bb9558',1,'prov::WifiPlan']]],
   ['on_5fsession_5fclosed_5',['on_session_closed',['../classStreamBroadcaster.html#a7f588b64b82dbe0a98f3a7b9cf71897f',1,'StreamBroadcaster']]],
   ['operator_20uint8_5ft_6',['operator uint8_t',['../classMoveDirection.html#af0463f6a6b1897b9d2aaa5cb94af206e',1,'MoveDirection']]],
-  ['operator_21_7',['operator!',['../classMoveDirection.html#a8306660625ef7a0a44f2c32709bb93ac',1,'MoveDirection']]],
-  ['operator_21_3d_8',['operator!=',['../classMoveDirection.html#a85ab7cbe17b0a493c7a47bfb1ab749b2',1,'MoveDirection']]],
-  ['operator_3d_3d_9',['operator==',['../classMoveDirection.html#a1d6fe45bf2a1b7e1c4f0d4d556564663',1,'MoveDirection']]]
+  ['operator_21_3d_7',['operator!=',['../classMoveDirection.html#a85ab7cbe17b0a493c7a47bfb1ab749b2',1,'MoveDirection']]],
+  ['operator_3d_3d_8',['operator==',['../classMoveDirection.html#a1d6fe45bf2a1b7e1c4f0d4d556564663',1,'MoveDirection']]]
 ];

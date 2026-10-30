@@ -140,11 +140,59 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>cal_failure</
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>aims</b> = 0</td></tr>
 <tr class="memdesc:ab9cd2a2f1c19a3bc7e9c03824183109d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aim commands sent to the turret since boot. <br /></td></tr>
 <tr class="separator:ab9cd2a2f1c19a3bc7e9c03824183109d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c0b3f16000b78d6fabff30749593ebd" id="r_a3c0b3f16000b78d6fabff30749593ebd"><td class="memItemLeft" align="right" valign="top"><a id="a3c0b3f16000b78d6fabff30749593ebd" name="a3c0b3f16000b78d6fabff30749593ebd"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>cal_saves</b> = 0</td></tr>
+<tr class="memdesc:a3c0b3f16000b78d6fabff30749593ebd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Successful calibrations since boot (a counter, so a polling HUD never misses one). <br /></td></tr>
+<tr class="separator:a3c0b3f16000b78d6fabff30749593ebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8c926f54787fddae6d81951bc5d81ab" id="r_ac8c926f54787fddae6d81951bc5d81ab"><td class="memItemLeft" align="right" valign="top"><a id="ac8c926f54787fddae6d81951bc5d81ab" name="ac8c926f54787fddae6d81951bc5d81ab"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>cal_miss</b> = 0</td></tr>
+<tr class="memdesc:ac8c926f54787fddae6d81951bc5d81ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calibration records ignored because no target was visible (button or HUD). <br /></td></tr>
+<tr class="separator:ac8c926f54787fddae6d81951bc5d81ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09923c33c73dedce952c6cec0e9d6e05" id="r_a09923c33c73dedce952c6cec0e9d6e05"><td class="memItemLeft" align="right" valign="top"><a id="a09923c33c73dedce952c6cec0e9d6e05" name="a09923c33c73dedce952c6cec0e9d6e05"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>stick</b> = false</td></tr>
+<tr class="memdesc:a09923c33c73dedce952c6cec0e9d6e05"><td class="mdescLeft">&#160;</td><td class="mdescRight">The physical joystick is deflected and overriding the HUD jog. <br /></td></tr>
+<tr class="separator:a09923c33c73dedce952c6cec0e9d6e05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd9be734fecdc571d0be2851e16393ca" id="r_afd9be734fecdc571d0be2851e16393ca"><td class="memItemLeft" align="right" valign="top"><a id="afd9be734fecdc571d0be2851e16393ca" name="afd9be734fecdc571d0be2851e16393ca"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>aim_x</b> = 0</td></tr>
+<tr class="memdesc:afd9be734fecdc571d0be2851e16393ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aim pixel: AimMap inverse of the current pose, rounded, not clamped (may be off-frame). <br /></td></tr>
+<tr class="separator:afd9be734fecdc571d0be2851e16393ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1df2f279347b96e76744b0f110fe955" id="r_ad1df2f279347b96e76744b0f110fe955"><td class="memItemLeft" align="right" valign="top"><a id="ad1df2f279347b96e76744b0f110fe955" name="ad1df2f279347b96e76744b0f110fe955"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>aim_y</b> = 0</td></tr>
+<tr class="separator:ad1df2f279347b96e76744b0f110fe955"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a869e8a53c5fd96fcdd2d9e2718f3b208" id="r_a869e8a53c5fd96fcdd2d9e2718f3b208"><td class="memItemLeft" align="right" valign="top"><a id="a869e8a53c5fd96fcdd2d9e2718f3b208" name="a869e8a53c5fd96fcdd2d9e2718f3b208"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>lim</b> = 0</td></tr>
+<tr class="memdesc:a869e8a53c5fd96fcdd2d9e2718f3b208"><td class="mdescLeft">&#160;</td><td class="mdescRight">Soft-limit bits from <a class="el" href="aim__map_8h.html#a352dc39cfb488cd092a7fc3156f8997a" title="Soft-limit proximity bits for the HUD: 1 pan within kLimitMarginDeg of kPanMinDeg,...">aiming::limit_bits()</a>: 1 pan min, 2 pan max, 4 tilt min, 8 tilt max. <br /></td></tr>
+<tr class="separator:a869e8a53c5fd96fcdd2d9e2718f3b208"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac842bc3e73fd672cb15b8e4e9d9981ad" id="r_ac842bc3e73fd672cb15b8e4e9d9981ad"><td class="memItemLeft" align="right" valign="top"><a id="ac842bc3e73fd672cb15b8e4e9d9981ad" name="ac842bc3e73fd672cb15b8e4e9d9981ad"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>rx0</b> = 0</td></tr>
+<tr class="memdesc:ac842bc3e73fd672cb15b8e4e9d9981ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reachable box in pixels (<a class="el" href="aim__map_8h.html#a65ae366b8a31a83c7d4428b2eff586ce" title="The image region whose aim lies inside the soft limits: the pixels where kPanMinDeg &lt;= pan &lt;= kPanMax...">aiming::reach_box()</a>): the region whose aim is inside the limits. <br /></td></tr>
+<tr class="separator:ac842bc3e73fd672cb15b8e4e9d9981ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f3dcca5ca769a7c48b2c62c72cbbb18" id="r_a6f3dcca5ca769a7c48b2c62c72cbbb18"><td class="memItemLeft" align="right" valign="top"><a id="a6f3dcca5ca769a7c48b2c62c72cbbb18" name="a6f3dcca5ca769a7c48b2c62c72cbbb18"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>ry0</b> = 0</td></tr>
+<tr class="separator:a6f3dcca5ca769a7c48b2c62c72cbbb18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f97fb2128c1ea1aaa94aea73ededa8a" id="r_a8f97fb2128c1ea1aaa94aea73ededa8a"><td class="memItemLeft" align="right" valign="top"><a id="a8f97fb2128c1ea1aaa94aea73ededa8a" name="a8f97fb2128c1ea1aaa94aea73ededa8a"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>rx1</b> = 0</td></tr>
+<tr class="separator:a8f97fb2128c1ea1aaa94aea73ededa8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af058d2aabf1b412e674ea8769e6d88c1" id="r_af058d2aabf1b412e674ea8769e6d88c1"><td class="memItemLeft" align="right" valign="top"><a id="af058d2aabf1b412e674ea8769e6d88c1" name="af058d2aabf1b412e674ea8769e6d88c1"></a>
+int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>ry1</b> = 0</td></tr>
+<tr class="separator:af058d2aabf1b412e674ea8769e6d88c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4501fcfcb26e69e742714b14104d2892" id="r_a4501fcfcb26e69e742714b14104d2892"><td class="memItemLeft" align="right" valign="top"><a id="a4501fcfcb26e69e742714b14104d2892" name="a4501fcfcb26e69e742714b14104d2892"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>home_ms</b> = 0</td></tr>
+<tr class="memdesc:a4501fcfcb26e69e742714b14104d2892"><td class="mdescLeft">&#160;</td><td class="mdescRight">Milliseconds until the AI return-home fires; 0 when none is pending or not in Ai mode. <br /></td></tr>
+<tr class="separator:a4501fcfcb26e69e742714b14104d2892"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0493cd48a47ef219760f047784d122a" id="r_aa0493cd48a47ef219760f047784d122a"><td class="memItemLeft" align="right" valign="top"><a id="aa0493cd48a47ef219760f047784d122a" name="aa0493cd48a47ef219760f047784d122a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>returning</b> = false</td></tr>
+<tr class="memdesc:aa0493cd48a47ef219760f047784d122a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The turret is travelling home after a Home command (more than 1 degree from home). <br /></td></tr>
+<tr class="separator:aa0493cd48a47ef219760f047784d122a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7179a8edfd88a7ef21c591cb3918b81d" id="r_a7179a8edfd88a7ef21c591cb3918b81d"><td class="memItemLeft" align="right" valign="top"><a id="a7179a8edfd88a7ef21c591cb3918b81d" name="a7179a8edfd88a7ef21c591cb3918b81d"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>speed</b> = 1</td></tr>
+<tr class="memdesc:a7179a8edfd88a7ef21c591cb3918b81d"><td class="mdescLeft">&#160;</td><td class="mdescRight">HUD jog speed setting: 0 slow, 1 normal, 2 fast. <br /></td></tr>
+<tr class="separator:a7179a8edfd88a7ef21c591cb3918b81d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Snapshot of the controller, published once per control pass. </p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li>lib/controller/include/<a class="el" href="control__status_8h_source.html">control_status.h</a></li>
+<li>include/<a class="el" href="control__status_8h_source.html">control_status.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

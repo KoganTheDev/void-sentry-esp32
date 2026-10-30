@@ -114,19 +114,23 @@ $(function(){initNavTree('classHttpServer.html',''); initResizable(true); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa9254d2bb17ef347048c0ee181d6ad95" id="r_aa9254d2bb17ef347048c0ee181d6ad95"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9254d2bb17ef347048c0ee181d6ad95">start</a> (<a class="el" href="classFrameStore.html">FrameStore</a> &amp;store, <a class="el" href="classBaseDetectionModule.html">BaseDetectionModule</a> *detection=nullptr, const <a class="el" href="classBaseStatusProvider.html">BaseStatusProvider</a> *status=nullptr, <a class="el" href="classremote_1_1BaseRemoteSink.html">remote::BaseRemoteSink</a> *remote=nullptr, <a class="el" href="classWifiManager.html">WifiManager</a> *wifi=nullptr)</td></tr>
-<tr class="memdesc:aa9254d2bb17ef347048c0ee181d6ad95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web server on port 80.  <br /></td></tr>
+<tr class="memdesc:aa9254d2bb17ef347048c0ee181d6ad95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures and launches the web servers: port 80 (page, /commands, WiFi API) and port 81 (/stream only, own task so a stalled video send cannot block /commands replies).  <br /></td></tr>
 <tr class="separator:aa9254d2bb17ef347048c0ee181d6ad95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d6b3350ea803a591b55faebef86a88f" id="r_a8d6b3350ea803a591b55faebef86a88f"><td class="memItemLeft" align="right" valign="top"><a id="a8d6b3350ea803a591b55faebef86a88f" name="a8d6b3350ea803a591b55faebef86a88f"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>frames_sent</b> () const</td></tr>
 <tr class="memdesc:a8d6b3350ea803a591b55faebef86a88f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Frames successfully sent to /stream viewers since boot. <br /></td></tr>
 <tr class="separator:a8d6b3350ea803a591b55faebef86a88f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6798a8dd370024af8759dc0ed385fefd" id="r_a6798a8dd370024af8759dc0ed385fefd"><td class="memItemLeft" align="right" valign="top"><a id="a6798a8dd370024af8759dc0ed385fefd" name="a6798a8dd370024af8759dc0ed385fefd"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>viewer_count</b> ()</td></tr>
-<tr class="memdesc:a6798a8dd370024af8759dc0ed385fefd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of currently connected /stream viewers. <br /></td></tr>
-<tr class="separator:a6798a8dd370024af8759dc0ed385fefd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c751c22186de09be29110ccb0adb6df" id="r_a7c751c22186de09be29110ccb0adb6df"><td class="memItemLeft" align="right" valign="top"><a id="a7c751c22186de09be29110ccb0adb6df" name="a7c751c22186de09be29110ccb0adb6df"></a>
+<a class="el" href="structStreamBroadcaster_1_1SendStats.html">StreamBroadcaster::SendStats</a>&#160;</td><td class="memItemRight" valign="bottom"><b>take_send_stats</b> ()</td></tr>
+<tr class="memdesc:a7c751c22186de09be29110ccb0adb6df"><td class="mdescLeft">&#160;</td><td class="mdescRight">/stream send timing (see <a class="el" href="structStreamBroadcaster_1_1SendStats.html" title="How long frame sends block the httpd task (every /stream send runs on it, and so does /commands).">StreamBroadcaster::SendStats</a>); resets the window max. <br /></td></tr>
+<tr class="separator:a7c751c22186de09be29110ccb0adb6df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68f218ed07c7caa01bda83d5e735ae21" id="r_a68f218ed07c7caa01bda83d5e735ae21"><td class="memItemLeft" align="right" valign="top"><a id="a68f218ed07c7caa01bda83d5e735ae21" name="a68f218ed07c7caa01bda83d5e735ae21"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>viewer_count</b> () const</td></tr>
+<tr class="memdesc:a68f218ed07c7caa01bda83d5e735ae21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of currently connected /stream viewers. <br /></td></tr>
+<tr class="separator:a68f218ed07c7caa01bda83d5e735ae21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad9c63d3f8cda248e3c87067ac3ac5a5" id="r_aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="memItemLeft" align="right" valign="top"><a id="aad9c63d3f8cda248e3c87067ac3ac5a5" name="aad9c63d3f8cda248e3c87067ac3ac5a5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>stop</b> ()</td></tr>
-<tr class="memdesc:aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shut down the server and unregister all URI handlers. <br /></td></tr>
+<tr class="memdesc:aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shut down both servers and unregister all URI handlers. <br /></td></tr>
 <tr class="separator:aad9c63d3f8cda248e3c87067ac3ac5a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
@@ -221,13 +225,13 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Configures and launches the web server on port 80. </p>
+<p>Configures and launches the web servers: port 80 (page, /commands, WiFi API) and port 81 (/stream only, own task so a stalled video send cannot block /commands replies). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">store</td><td><a class="el" href="classFrameStore.html">FrameStore</a> the /stream endpoint reads frames from. Must outlive the server. </td></tr>
     <tr><td class="paramname">detection</td><td>Optional pointer to detection module for motion visualization. </td></tr>
-    <tr><td class="paramname">status</td><td>Optional status provider (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>); when null the mode/calibration fields are omitted. </td></tr>
-    <tr><td class="paramname">remote</td><td>Optional sink for the HUD's /commands messages (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a>); when null they are ignored. </td></tr>
+    <tr><td class="paramname">status</td><td>Optional status provider (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>); when null the mode/calibration fields are omitted. </td></tr>
+    <tr><td class="paramname">remote</td><td>Optional sink for the HUD's /commands messages (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>); when null they are ignored. </td></tr>
     <tr><td class="paramname">wifi</td><td>Optional WiFi manager; when set, the setup page, its JSON API and the captive-portal catch-all are registered (after all other routes). </td></tr>
   </table>
   </dd>

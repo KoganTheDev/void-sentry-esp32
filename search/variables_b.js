@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pan_0',['pan',['../structremote_1_1Command.html#afde5be43e459159775646042d01a0207',1,'remote::Command']]]
+  ['none_0',['None',['../classMoveX.html#a2a66fc9758d5b896e7de143f7d2b2659',1,'MoveX::None'],['../classMoveY.html#a9f510e17ce7a62e4d3b95e3cd18d0d03',1,'MoveY::None']]]
 ];

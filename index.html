@@ -103,7 +103,7 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md__2github_2workspace_2README"></a> </p><div align="center"> <div style="display: flex; align-items: center; justify-content: center; gap: 20px;"> <img src="assets/void_sentry_logo_for_md_file_400x400_pixels.png" alt="" width="150" class="inline"/> <img src="assets/void_sentry_title.png" alt="" width="600" class="inline"/> </div></div><div align="center"> <b>An ESP32-CAM pan/tilt turret that tracks motion on-device and serves a live web HUD</b></div><div align="center"> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/ci.yml/badge.svg" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/static_analysis.yml/badge.svg" alt="Cppcheck Static Analysis" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml"><img src="https://github.com/KoganTheDev/void-sentry-esp32/actions/workflows/doxygen_docs_generator.yml/badge.svg" alt="Doxygen" style="pointer-events: none;" class="inline"/></a> <img src="https://img.shields.io/badge/License-MIT-blue" alt="License: MIT" class="inline"/> <img src="https://img.shields.io/badge/C%2B%2B-20-00599C" alt="C++20" class="inline"/> <img src="https://img.shields.io/badge/Platform-ESP32-e7352c" alt="Platform: ESP32" class="inline"/> </div><h2><a class="anchor" id="autotoc_md0"></a>
 What it does</h2>
-<p>Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.</p>
+<p>Void Sentry watches a room through an OV3660 camera on an ESP32, finds the moving object by frame differencing, and points a stepper-plus-servo turret at it. Everything runs on the board: no PC or cloud is involved. A browser HUD streams the live video over a WebSocket and shows tracking telemetry. The camera is fixed on the base and the turret aims absolutely: image position is mapped to pan/tilt angles through a two-point calibration you do with the joystick or from the HUD. The firmware is written in C++20 on the Arduino core, with the pure logic split into libraries that are unit-tested on the host.</p>
 <h2><a class="anchor" id="autotoc_md1"></a>
 Highlights</h2>
 <ul>
@@ -131,7 +131,7 @@ Architecture</h2>
 <div class="line">    FS --&gt; ST[&quot;stream task (core 1)&quot;]</div>
 <div class="line">    ST --&gt;|&quot;/stream WebSocket&quot;| HUD[&quot;Browser HUD&quot;]</div>
 <div class="line">    HUD &lt;--&gt;|&quot;/commands WebSocket&quot;| CTRL</div>
-</div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, the three modes and the published status.">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
+</div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
 <p>httpd is pinned to core 0 so network bursts cannot preempt detection. The full task table (cores, priorities, stack sizes) is in CLAUDE.md, and the reasoning in the <a href="docs/engineering-notes.md#7-dual-core-task-layout">engineering notes</a>.</p>
 <h2><a class="anchor" id="autotoc_md3"></a>
 Performance</h2>
@@ -177,7 +177,7 @@ Getting started</h2>
 <div class="line">pio run -e freenove_esp32_wrover -t upload</div>
 <div class="line">pio device monitor        # 115200 baud</div>
 </div><!-- fragment --></li>
-<li>Set up WiFi on the device (no credentials are compiled in). With no saved network in range, the board opens a WPA2 hotspot <code>VoidSentry-XXXX</code> and prints its password on the serial log. Join it from a phone, and the setup page opens (or browse to <code><a href="http://192.168.4.1/wifi">http://192.168.4.1/wifi</a></code>). Save your network and choose a PIN. Up to 3 networks are kept in flash, and the strongest one in range is joined. Later changes go through the same page (linked from the HUD) and need the PIN. Typing <code>wifi-reset</code> in the serial monitor erases the saved networks and the PIN.</li>
+<li>Set up WiFi on the device (no credentials are compiled in). With no saved network in range, the board opens a WPA2 hotspot <code>VoidSentry-XXXX</code> and prints its password on the serial log. Join it from a phone, and the setup page opens (or browse to <code><a href="http://192.168.4.1/wifi">http://192.168.4.1/wifi</a></code>). Save your network and choose a PIN. Up to 3 networks are kept in flash, and the strongest one in range is joined. Later changes go through the same page (linked from the HUD) and need the PIN. Typing <code>wifi-reset</code> in the serial monitor erases the saved networks, the PIN and the hotspot password (a new one is generated).</li>
 <li>Read the board's IP address from the boot log. DHCP can hand out a new address after reflashing, so do not assume it.</li>
 </ol>
 <p><code>pio run -e pin_check -t upload</code> flashes a wiring bring-up test (no camera, no WiFi) and prints the result on serial.</p>
@@ -185,19 +185,26 @@ Getting started</h2>
 Using it</h2>
 <p>Open <code><a href="http://">http://</a>&lt;board-ip&gt;/</code> in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.</p>
 <ul>
-<li><b>Modes:</b> AI (the turret follows the tracked target), User (manual), Calibrate. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.</li>
-<li><b>HUD controls:</b> the mode button toggles AI and manual. In manual mode, WASD, the arrow keys or the on-screen buttons jog the turret (resent every 100 ms, with a 300 ms dead man on the board). A deflected joystick always wins over the HUD.</li>
-<li><b>Calibration:</b> hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner of the view and short-press, then aim at the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.</li>
+<li><b>Modes:</b> AI (the turret follows the tracked target), User (manual), Calibrate. The segmented AI / MANUAL / CALIBRATE control shows "switching..." until the board confirms. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.</li>
+<li><b>Jogging:</b> WASD, the arrow keys or the on-screen cross jog the turret in manual mode (resent every 100 ms, with a 300 ms dead man on the board). Slow / Normal / Fast sets the jog speed (holding Shift means slow). An arrow dims when the turret is at that end stop, and pressing it toasts. A deflected joystick always wins over the HUD.</li>
+<li><b>Aiming at a point:</b> tap or drag on the video in manual mode and the turret goes there. Because the camera is fixed, the board knows which image point the turret points at and sends it, so the solid red reticle is the real aim. A dashed ghost reticle follows your finger instantly, with a dotted line and a time-left estimate, so the motor lag is visible instead of hidden. If the point is outside what the turret can reach, the ghost turns amber and shows where it will stop. The recenter button (or <code>H</code>) aims at the middle of the image.</li>
+<li><b>Calibration:</b> from the HUD, press C (or the CALIBRATE segment) and follow the wizard: it checks that a target is locked and the turret is still, then records point 1 and point 2 near opposite corners of the view. Success is shown when the board saves. The joystick works too: hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner and short-press, then the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.</li>
+<li><b>FIRE:</b> a HUD effect only, there is no firing hardware (all free GPIOs are used). The tracer shows a HIT when the real reticle is inside the box of a locked target, otherwise a miss. Sentry auto-fire is opt-in: off by default, a confirm dialog arms it, a blinking chip shows while armed, and it disarms on link loss or reload. The board is never sent <code>fire:*</code>.</li>
+<li><b>Status and tools:</b> chips for mode, video (fps, or <code>FROZEN n s</code> when frames stop, <code>BUSY</code> if you are a refused third viewer), link round trip, viewers (n/2, the board streams to 2) and calibration; a LOW LIGHT indicator; an event log drawer (filter, folded repeats); and a snapshot button (<code>P</code>) that saves the frame with the overlay as a PNG.</li>
+<li><b>Phones:</b> the layout adapts to desktop, phone portrait (video, mode, controls with no scrolling) and phone landscape. Android gets vibration feedback on hits and end stops. iPhone has no Vibration API, so the HUD uses the iOS 17.4+ switch-checkbox click trick, which is best effort and may not work on newer iOS versions.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h3><a class="anchor" id="autotoc_md7"></a>
+Developing the HUD without hardware</h3>
+<p><code>python tools/hud_mock/mock_board.py</code> runs a fake board that serves <code>web/*.html</code>, <code>/commands</code> and <code>/stream</code> (also on port 81, where the HUD opens it); open <code><a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a></code>. Flags are in its docstring. <code>web/test_web_ui.py</code> checks the page statically, and the visual reference is <code>docs/design/hud-mockup.html</code>.</p>
+<h2><a class="anchor" id="autotoc_md8"></a>
 Testing and CI</h2>
 <div class="fragment"><div class="line">pio test -e native                         # host unit tests, no board needed</div>
 <div class="line">pio test -e native_sanitize                # ASan + UBSan (Linux / CI)</div>
 <div class="line">pio check --severity=high --severity=medium   # cppcheck</div>
 <div class="line">python -m unittest discover -s tools/tracking -p &quot;test_*.py&quot;   # fixture tool tests</div>
-<div class="line">python -m unittest discover -s web -p &quot;test_*.py&quot;              # HUD generator tests</div>
+<div class="line">python -m unittest discover -s web -p &quot;test_*.py&quot;              # HUD generator and page tests</div>
 </div><!-- fragment --><p>CI runs formatting, both firmware builds, the native tests under ASan + UBSan, per-library coverage (99% floor on the pure libraries), cppcheck, and a tracking bench that replays recorded and synthetic clips against <code>.expect</code> files and records cachegrind instruction counts per frame. Doxygen output is published to <a href="https://koganthedev.github.io/void-sentry-esp32/">GitHub Pages</a> from <code>main</code>. On the board, the 5 s serial stats line reports heap, per-stage timings and per-core idle share.</p>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Project layout</h2>
 <div class="fragment"><div class="line">ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)</div>
@@ -217,11 +224,11 @@ Project layout</h2>
 <div class="line">web/                   HUD source (web_ui.html) and header generator</div>
 <div class="line">tools/tracking/        clip recorder and fixture generator</div>
 <div class="line">docs/                  specs, plans and engineering notes</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
 Roadmap status</h2>
-<p>Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. Implemented but not yet verified on hardware: calibration save and reload across a reboot, and HUD jogging in a browser (the protocol and dead man were checked from a PC client).</p>
+<p>Stages 0 to 4b (tooling, camera stream, motion tracking, motion control, dual-core rework, HUD remote control), Stage 6 (on-device WiFi provisioning) and Stage 7 (Arduino core 3.x with C++20) are done. Stage 8 (refactor, test hardening and documentation clean-up) is in progress. The HUD UI/UX overhaul (design in <code>docs/superpowers/specs/2026-10-26-hud-ux-overhaul-design.md</code>) is implemented, natively tested and exercised against the mock board. Implemented but not yet verified on hardware: calibration save and reload across a reboot, HUD jogging in a browser (the protocol and dead man were checked from a PC client), HUD calibration, tap-to-aim, and the new status fields (reticle position, reach box, viewer count).</p>
 <p>More detail: engineering notes (design decisions and debugging stories) and the <a href="https://koganthedev.github.io/void-sentry-esp32/">API documentation</a>.</p>
-<h2><a class="anchor" id="autotoc_md10"></a>
+<h2><a class="anchor" id="autotoc_md11"></a>
 License</h2>
 <p>MIT, see [LICENSE](LICENSE). </p>
 </div></div><!-- PageDoc -->

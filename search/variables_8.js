@@ -1,5 +1,20 @@
 var searchData=
 [
-  ['label_5foverflow_0',['label_overflow',['../structtracking_1_1DetectionResult.html#aa156942a4fb60c246aae1e6ce661b44e',1,'tracking::DetectionResult']]],
-  ['left_1',['Left',['../classMoveX.html#ade0a4fa37396171213158e852cbaf964',1,'MoveX']]]
+  ['kframeoverhead_0',['kFrameOverhead',['../blob__frame_8h.html#a05332537eee1af2a048f916319dd4987',1,'checksum']]],
+  ['kframew_1',['kFrameW',['../aim__map_8h.html#a41d0eedc471c3c14d58c972e953b1c76',1,'aiming']]],
+  ['kjogspeed_2',['kJogSpeed',['../remote__inbox_8h.html#aec8cbea47a4b17e76eaf5ca72043a15f',1,'remote']]],
+  ['kjogspeedfast_3',['kJogSpeedFast',['../remote__inbox_8h.html#afe6cfa55ea50d74d0668c9c7dc60d9d6',1,'remote']]],
+  ['kjogspeedslow_4',['kJogSpeedSlow',['../remote__inbox_8h.html#a0a422bf531fc2d0d741094433eb96aab',1,'remote']]],
+  ['kjogtimeoutms_5',['kJogTimeoutMs',['../remote__inbox_8h.html#ad852dc40068d8466be4c155081f1f1c0',1,'remote']]],
+  ['klimitmargindeg_6',['kLimitMarginDeg',['../aim__map_8h.html#adec77a79cd81162c6517d7235960bced',1,'aiming']]],
+  ['kmaxmessage_7',['kMaxMessage',['../classCommandsWebSocketHandler.html#a43f7dc7dece6d49092446f914a8209ef',1,'CommandsWebSocketHandler']]],
+  ['kmaxsubscribers_8',['kMaxSubscribers',['../classFrameStore.html#a216a1b6f187b3e970aedffccf473d484',1,'FrameStore']]],
+  ['kmincaldx_9',['kMinCalDx',['../aim__map_8h.html#a824fdb55b93f0e0e7effb4406d9855ed',1,'aiming']]],
+  ['kreplysize_10',['kReplySize',['../reply__json_8h.html#a603b856c719c4667d1d70aa5dcd1d0d0',1,'hud']]],
+  ['kreturningmargindeg_11',['kReturningMarginDeg',['../status__fields_8h.html#a6b927f41c62cd09028081e2cc3d6c6f2',1,'hud']]],
+  ['kscancap_12',['kScanCap',['../classWifiManager.html#a1e3255666b046813397e5cd37011744e',1,'WifiManager']]],
+  ['ksetupfirstrescanms_13',['kSetupFirstRescanMs',['../classprov_1_1WifiPlan.html#a68cb182036aeb04467b2af609a7580b1',1,'prov::WifiPlan']]],
+  ['kslowsendus_14',['kSlowSendUs',['../classStreamBroadcaster.html#afa91da795ae774829e2061a7e93f0cb6',1,'StreamBroadcaster']]],
+  ['kstepsperrev_15',['kStepsPerRev',['../aim__map_8h.html#aeec6a335589d2145998d7026c2cd5586',1,'aiming']]],
+  ['ktransientretries_16',['kTransientRetries',['../classprov_1_1WifiPlan.html#a1cfc651f9f30c223926de5aa72afc2a1',1,'prov::WifiPlan']]]
 ];
