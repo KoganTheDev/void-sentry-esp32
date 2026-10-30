@@ -12,7 +12,7 @@ port 80. Served from any other port (as here) it opens /stream on that same port
 several mocks can run side by side.
 
 What it serves:
-    GET  /                    web/web_ui.html, read from disk on every request (edit, then reload)
+    GET  /                    the HUD, built from web/hud/ on every request (edit, then reload)
     GET  /wifi                web/wifi_setup.html
     GET  /api/wifi/status|scan|saved   plausible JSON in the shapes documented in wifi_setup.html
     POST /api/wifi/add|forget          accept PIN 1234, 403 {"error":"wrong pin"} otherwise
@@ -56,6 +56,9 @@ from typing import NamedTuple, Optional
 from urllib.parse import parse_qsl
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "web"))
+
+from hud_build import build_hud_page  # noqa: E402
 
 # ---- constants mirrored from the firmware (lib/aiming/include/aim_map.h and friends) ----
 FRAME_W, FRAME_H = 320, 240
@@ -718,7 +721,7 @@ class Server:
                 return status, "application/json", json.dumps(obj).encode()
             return 404, "text/plain", b"not found\n"
         if path in ("/", "/index.html"):
-            return self.page("web_ui.html")
+            return self.hud_page()
         if path == "/wifi":
             return self.page("wifi_setup.html")
         if path == "/api/wifi/status":
@@ -728,6 +731,14 @@ class Server:
         if path == "/api/wifi/saved":
             return 200, "application/json", json.dumps({"saved": self.wifi.saved}).encode()
         return 404, "text/plain", b"not found\n"
+
+    @staticmethod
+    def hud_page() -> tuple[int, str, bytes]:
+        """The HUD, joined from web/hud/ on each request, so editing a fragment and reloading works."""
+        try:
+            return 200, "text/html; charset=utf-8", build_hud_page(REPO_ROOT / "web").encode("utf-8")
+        except (OSError, ValueError) as e:
+            return 500, "text/plain", f"cannot build the HUD from web/hud/: {e}\n".encode()
 
     @staticmethod
     def page(name: str) -> tuple[int, str, bytes]:

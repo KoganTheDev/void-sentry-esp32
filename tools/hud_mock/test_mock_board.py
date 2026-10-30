@@ -10,6 +10,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import mock_board as mb  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "web"))
+from hud_build import build_hud_page  # noqa: E402
+
 # The shared reply contract: the ordered keys of a full /commands reply as the firmware emits them. See
 # ReplyContractTests for how both sides are tied to it.
 REPO = Path(__file__).resolve().parents[2]
@@ -596,7 +599,7 @@ class ReplyContractTests(unittest.TestCase):
 
     Mock side: its full reply must have exactly these keys in this order. Firmware side: test_reply_json.cpp holds the
     golden reply that format_reply must reproduce byte for byte (the native test enforces that), and the keys parsed
-    out of that golden string must equal the fixture. The HUD side: every key web_ui.html reads off a reply (`m.<key>`)
+    out of that golden string must equal the fixture. The HUD side: every key the built HUD page reads off a reply (`m.<key>`)
     must be in the fixture, so the page cannot depend on a field the board never sends.
     """
 
@@ -611,9 +614,9 @@ class ReplyContractTests(unittest.TestCase):
         self.assertEqual(SPEC_KEYS, re.findall(r'\\"(\w+)\\":', golden))
 
     def test_hud_reads_only_contract_keys(self):
-        html = (REPO / "web" / "web_ui.html").read_text(encoding="utf-8")
+        html = build_hud_page(REPO / "web")
         read = set(re.findall(r"\bm\.([a-z_][a-z_0-9]*)\b", html))
-        self.assertTrue(read, "no reply reads found: the pattern no longer matches web_ui.html")
+        self.assertTrue(read, "no reply reads found: the pattern no longer matches the built HUD page")
         self.assertEqual(set(), read - set(SPEC_KEYS))
 
 

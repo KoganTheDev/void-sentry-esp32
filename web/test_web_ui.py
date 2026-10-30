@@ -1,16 +1,20 @@
-"""Tests for web_ui.html and wifi_setup.html: run with `python -m unittest discover -s web -p "test_*.py"` from the repo root.
+"""Tests for the built HUD page (web/hud/, joined by hud_build.py) and wifi_setup.html: run with `python -m unittest discover -s web -p "test_*.py"` from the repo root.
 
-The pages are plain files with no build step, so these checks read the source and look for the
+The HUD is joined from fragments in memory and the WiFi page is a plain file, so these checks read the page and look for the
 mistakes that have bitten this HUD before: an external asset that breaks the offline hotspot mode,
 unbalanced markup, a /commands message the firmware does not parse, a zoom lock that hurts accessibility.
 """
 
 import os
 import re
+import sys
 import unittest
 from html.parser import HTMLParser
 
 WEB_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, WEB_DIR)
+
+import hud_build  # noqa: E402
 
 VOID_ELEMENTS = frozenset(
     ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]
@@ -37,10 +41,13 @@ FETCH_OR_SOCKET_LITERAL = re.compile(
 ABSOLUTE_LITERAL = re.compile(r"""(['"`])(?:(?:https?|wss?):)?//""", re.IGNORECASE)
 CSS_URL = re.compile(r"""url\(\s*(['"]?)(.*?)\1\s*\)""", re.IGNORECASE | re.DOTALL)
 CSS_IMPORT = re.compile(r"""@import\s+(?:url\(\s*)?(['"]?)([^'"\s;)]*)""", re.IGNORECASE)
+HUD_PAGE = "hud"  # the logical name of the built HUD page
 EM_DASH = chr(0x2014)  # written as chr() so this file itself contains no dash character
 
 
 def read_page(name):
+    if name == HUD_PAGE:
+        return hud_build.build_hud_page(WEB_DIR)
     with open(os.path.join(WEB_DIR, name), encoding="utf-8") as f:
         return f.read()
 
@@ -201,7 +208,7 @@ class CommonPageChecks:
 
 
 class WebUiTests(CommonPageChecks, unittest.TestCase):
-    page = "web_ui.html"
+    page = HUD_PAGE
 
     def test_send_command_literals_have_accepted_prefixes(self):
         bad = [call for static, dynamic, call in command_calls(self.script)
@@ -253,6 +260,57 @@ class WebUiTests(CommonPageChecks, unittest.TestCase):
 
 class WifiSetupTests(CommonPageChecks, unittest.TestCase):
     page = "wifi_setup.html"
+
+
+class HudBuildTests(unittest.TestCase):
+    """The HUD source is split into fragments; the build must use every one of them and leave nothing behind."""
+
+    hud_dir = os.path.join(WEB_DIR, hud_build.HUD_DIR_NAME)
+
+    def files_in(self, sub, ext):
+        return sorted(f for f in os.listdir(os.path.join(self.hud_dir, sub)) if f.endswith(ext))
+
+    def test_every_listed_fragment_exists(self):
+        for sub, names in (("css", hud_build.CSS_FILES), ("js", hud_build.JS_FRAGMENTS)):
+            for name in names:
+                self.assertTrue(os.path.isfile(os.path.join(self.hud_dir, sub, name)), f"{sub}/{name} is listed but missing")
+
+    def test_every_fragment_on_disk_is_listed(self):
+        self.assertEqual(self.files_in("css", ".css"), sorted(hud_build.CSS_FILES), "css file not in CSS_FILES (or reverse)")
+        self.assertEqual(self.files_in("js", ".js"), sorted(hud_build.JS_FRAGMENTS), "js file not in JS_FRAGMENTS (or reverse)")
+
+    def test_lists_have_no_duplicates(self):
+        self.assertEqual(len(set(hud_build.CSS_FILES)), len(hud_build.CSS_FILES))
+        self.assertEqual(len(set(hud_build.JS_FRAGMENTS)), len(hud_build.JS_FRAGMENTS))
+
+    def test_each_js_fragment_has_its_header(self):
+        for name in hud_build.JS_FRAGMENTS:
+            with open(os.path.join(self.hud_dir, "js", name), encoding="utf-8") as f:
+                self.assertTrue(f.readline().startswith(hud_build.FRAGMENT_HEADER_PREFIX), f"{name} lacks its header")
+
+    def test_built_page_has_no_leftover_placeholders(self):
+        page = hud_build.build_hud_page(WEB_DIR)
+        for placeholder in (hud_build.STYLES_PLACEHOLDER, hud_build.SCRIPT_PLACEHOLDER):
+            self.assertNotIn(placeholder, page)
+        self.assertNotIn("@inline", page)
+        self.assertNotIn(hud_build.FRAGMENT_HEADER_PREFIX, page)
+
+    def test_built_page_has_one_iife_and_no_cr(self):
+        page = hud_build.build_hud_page(WEB_DIR)
+        self.assertEqual(page.count("(function () {"), 1)
+        self.assertIn("'use strict';", page)
+        self.assertTrue(page.rstrip().endswith("</html>"))
+        self.assertNotIn("\r", page)
+
+    def test_build_is_deterministic(self):
+        self.assertEqual(hud_build.build_hud_page(WEB_DIR), hud_build.build_hud_page(WEB_DIR))
+
+    def test_placeholder_must_appear_exactly_once(self):
+        with self.assertRaises(ValueError):
+            hud_build._replace_placeholder("no placeholder here", hud_build.STYLES_PLACEHOLDER, "x")
+        twice = f"{hud_build.STYLES_PLACEHOLDER}\n{hud_build.STYLES_PLACEHOLDER}"
+        with self.assertRaises(ValueError):
+            hud_build._replace_placeholder(twice, hud_build.STYLES_PLACEHOLDER, "x")
 
 
 class CheckerSelfTests(unittest.TestCase):
