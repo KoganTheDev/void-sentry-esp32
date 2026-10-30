@@ -69,6 +69,7 @@ The existing keys keep their order and meaning, then the new keys. All new keys 
 | `ret` | 0/1 | the turret is travelling home after a Home command (more than 1 degree from home) |
 | `spd` | string | `slow`, `normal` or `fast` (the HUD resyncs its speed control from it after a reconnect) |
 | `vw` | uint | `/stream` viewers connected (0 to 2) |
+| `auth` | 0/1/2 | added later (control login, engineering notes s9): 0 view only (a viewer's control commands are dropped), 1 logged in, 2 no PIN set so control is open |
 
 The reply is built by a pure formatter (`lib/hud`, natively tested) into a stack buffer whose size is asserted by a test to fit the worst case. On overflow it still falls back to `{"detected":0}`.
 
