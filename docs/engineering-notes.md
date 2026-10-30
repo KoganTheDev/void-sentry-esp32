@@ -112,6 +112,15 @@ Streaming became push-based. `/stream` is a WebSocket where a stream task wakes 
 
 **Evidence.** `StepPlanner` is tested on the host for reaching the target exactly, never exceeding the speed or acceleration limits (checked every tick), no overshoot, and the reversal case. `motor_late` and `motor_stack_free` are reported in the stats line.
 
+**`motor_late` baseline** (2026-10-30, 50 s per phase, RSSI about -60 dBm). Late wake-ups come from network traffic preempting the motor task on core 0, not from motion, and stay under 1% of the 1 kHz ticks. Each one is resynced as described above, so a move only takes slightly longer; no steps are lost. No action needed.
+
+| Load | `motor_late` | `idle0` |
+|---|---|---|
+| idle, no clients | 0.0/s | 95% |
+| one `/stream` viewer + 25 Hz `/commands` poll | 7.5/s | 74-89% |
+| HUD jog (User, 240 steps/s), no stream | 4.2/s | 88% |
+| jog + stream | 5.6/s | 75% |
+
 ## 7. Dual-core task layout
 
 **Problem (measured in Stage 3).** With a person sitting close to the board and the turret following them, per-frame detection slowed from about 10 ms to 25-30 ms, a fixed compute test on core 1 went from 10 ms to 28-55 ms, and the motor task's late ticks tripled. Four causes were ruled out on hardware: motor motion, PSRAM bandwidth, viewer reconnects and follow-style motion.
