@@ -240,4 +240,12 @@ So the WiFi link was up and the CPU was not saturated. What stalled was the sing
 
 The `esp_http_server` has one task per instance, so `/stream` sends and `/commands` replies queued behind each other: a video frame waiting for a TCP retransmit (0.6 s or more, doubling) held up every HUD reply, and a double loss passed the 2 s `send_wait_timeout` and cut the frame mid-send. The fix is a second `esp_http_server` instance on port 81 (`ctrl_port` 32769, core 0, 4 KB stack, 3 sockets) that serves only `/stream`. A stall now freezes only the video. That instance also gets `send_wait_timeout = 4`, so a double retransmit finishes the frame instead of disconnecting the viewer. The HUD page still comes from port 80, so the `/stream` handshake uses an any-port Origin check (`remote::origin_allowed_any_port`), and the HUD reopens a frozen stream after 5 s, just past the 4 s timeout.
 
-Measurements: pending hardware soak.
+Measurements (board at RSSI -59 to -69 dBm, one viewer):
+
+| Test | Result |
+|---|---|
+| 3 min soak, `/stream` on :81 plus a `/commands` poller | 16.7 fps, no gap over 400 ms, poll round trip median 63 ms, max 250 ms, `snd_fail` 0. The link lost nothing this run (longest send 103 ms), so this shows no regression, not isolation |
+| Isolation: a `/stream` viewer that never reads (its TCP window fills, so sends block as in a retransmit wait) while polling `/commands` for 40 s | Stream sends blocked 4.4 s and 4.0 s (the new timeout), then the viewer was dropped. `/commands`: 345 polls, median 71 ms, max 249 ms, none over 500 ms. On the shared server, the same block froze every reply |
+| Heap | `heap_min` 86 KB while streaming (about 80 KB before); free heap back to 112 KB after the viewer left |
+
+Video still pauses while TCP repairs a loss (in-order delivery); fewer losses need a better link (placement, antenna).
