@@ -48,9 +48,11 @@ inline HeaderStatus read_header(httpd_req_t* req, const char* name, char* buf, s
  * Host too long counts as empty (so any present Origin is rejected). A rejection is logged with the origin only.
  * @param req The handshake request (req->method == HTTP_GET).
  * @param tag Log tag of the calling endpoint.
+ * @param any_port If true, use remote::origin_allowed_any_port (the endpoint lives on a different port than the page,
+ * e.g. /stream on port 81); /commands and the WiFi API keep the exact check.
  * @return true if the handshake may proceed; false means the handler should return ESP_FAIL.
  */
-inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
+inline bool handshake_origin_ok(httpd_req_t* req, const char* tag, bool any_port = false)
 {
     constexpr size_t kHdrBuf = 128;
     char origin[kHdrBuf];
@@ -69,7 +71,9 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag)
         ESP_LOGW(tag, "request refused: Origin header too long");
         return false;
     }
-    if (!remote::origin_allowed({origin, origin_len}, {host, host_len}))
+    const std::string_view o(origin, origin_len);
+    const std::string_view h(host, host_len);
+    if (!(any_port ? remote::origin_allowed_any_port(o, h) : remote::origin_allowed(o, h)))
     {
         char safe[kHdrBuf]; // the Origin is attacker-controlled: no control bytes into the serial log
         remote::sanitize_for_log(origin, origin_len, safe, sizeof(safe));

@@ -21,6 +21,21 @@ bool all_digits(std::string_view s)
     }
     return true;
 }
+
+// 1-5 digits, value 1..65535.
+bool valid_port(std::string_view digits)
+{
+    if (digits.empty() || digits.size() > 5 || !all_digits(digits))
+    {
+        return false;
+    }
+    int port = 0;
+    for (const char c : digits)
+    {
+        port = port * 10 + (c - '0');
+    }
+    return port >= 1 && port <= 65535;
+}
 } // namespace
 
 bool is_ipv4_host(std::string_view host)
@@ -62,17 +77,7 @@ bool is_ipv4_host(std::string_view host)
         return false;
     }
     ++pos;
-    const std::string_view port_digits = host.substr(pos);
-    if (port_digits.empty() || port_digits.size() > 5 || !all_digits(port_digits))
-    {
-        return false;
-    }
-    int port = 0;
-    for (const char c : port_digits)
-    {
-        port = port * 10 + (c - '0');
-    }
-    return port >= 1 && port <= 65535;
+    return valid_port(host.substr(pos));
 }
 
 bool origin_allowed(std::string_view origin, std::string_view host)
@@ -90,5 +95,30 @@ bool origin_allowed(std::string_view origin, std::string_view host)
         return false;
     }
     return matches(origin, "http://", host) || matches(origin, "https://", host);
+}
+
+bool origin_allowed_any_port(std::string_view origin, std::string_view host)
+{
+    if (origin.empty())
+    {
+        return true;
+    }
+    if (!is_ipv4_host(host))
+    {
+        return false;
+    }
+    const std::string_view ip = host.substr(0, host.find(':'));
+    for (const std::string_view scheme : {std::string_view("http://"), std::string_view("https://")})
+    {
+        if (origin.starts_with(scheme) && origin.substr(scheme.size()).starts_with(ip))
+        {
+            const std::string_view rest = origin.substr(scheme.size() + ip.size());
+            if (rest.empty() || (rest.front() == ':' && valid_port(rest.substr(1))))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 } // namespace remote
