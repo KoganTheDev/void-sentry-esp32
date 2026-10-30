@@ -24,7 +24,8 @@ class WifiManager;
 class HttpServer
 {
 private:
-    static httpd_handle_t _server_handle; ///< Internal handle for the ESP-IDF server instance.
+    static httpd_handle_t _server_handle; ///< Main ESP-IDF server instance (port 80: page, /commands, WiFi API).
+    static httpd_handle_t _stream_handle; ///< Second instance (port 81) that serves only /stream.
 
     /**
      * @brief Static reference to motion detection module for drawing targets.
@@ -42,7 +43,8 @@ public:
     ~HttpServer();
 
     /**
-     * @brief Configures and launches the web server on port 80.
+     * @brief Configures and launches the web servers: port 80 (page, /commands, WiFi API) and port 81 (/stream
+     * only, own task so a stalled video send cannot block /commands replies).
      * @param store FrameStore the /stream endpoint reads frames from. Must outlive the server.
      * @param detection Optional pointer to detection module for motion visualization.
      * @param status Optional status provider (the Controller); when null the mode/calibration fields are omitted.
@@ -57,11 +59,14 @@ public:
     /** @brief Frames successfully sent to /stream viewers since boot. */
     uint32_t frames_sent() const { return _broadcaster.frames_sent(); }
 
+    /** @brief /stream send timing (see StreamBroadcaster::SendStats); resets the window max. */
+    StreamBroadcaster::SendStats take_send_stats() { return _broadcaster.take_send_stats(); }
+
     /** @brief Number of currently connected /stream viewers. */
-    size_t viewer_count() { return _broadcaster.viewer_count(); }
+    size_t viewer_count() const { return _broadcaster.viewer_count(); }
 
     /**
-     * @brief Shut down the server and unregister all URI handlers.
+     * @brief Shut down both servers and unregister all URI handlers.
      */
     void stop();
 

@@ -190,6 +190,29 @@ void test_jog_started_two_steps_from_limit_brakes_before_stepping(void)
     TEST_ASSERT_EQUAL_FLOAT(0.0f, p.speed());
 }
 
+/**
+ * The soft-limit hard stop in tick(). Only reachable when braking cannot have been planned for: reset_position() is
+ * unclamped, so a position outside the limits makes the first step toward a target still land outside them.
+ */
+static void check_hard_stop_outside_limit(int32_t start, int32_t target)
+{
+    StepPlanner p;
+    p.reset_position(start);
+    p.set_target(target);
+    int stops = 0;
+    for (int i = 0; i < 2000; ++i)
+    {
+        TEST_ASSERT_EQUAL_INT(0, p.tick()); // every step would stay outside [min_pos, max_pos]: refused
+        TEST_ASSERT_EQUAL_INT32(start, p.position());
+        if (p.speed() == 0.0f && i > 0)
+            ++stops; // the hard stop zeroes the speed; the ramp then restarts and is cut again
+    }
+    TEST_ASSERT_TRUE(stops > 0);
+}
+
+void test_hard_stop_beyond_max_limit(void) { check_hard_stop_outside_limit(600, 0); }
+void test_hard_stop_beyond_min_limit(void) { check_hard_stop_outside_limit(-600, 0); }
+
 void test_reset_position(void)
 {
     StepPlanner p;
@@ -215,6 +238,8 @@ int main(int argc, char** argv)
     RUN_TEST(test_jog_ramps_up_and_down);
     RUN_TEST(test_jog_stops_at_limit);
     RUN_TEST(test_jog_started_two_steps_from_limit_brakes_before_stepping);
+    RUN_TEST(test_hard_stop_beyond_max_limit);
+    RUN_TEST(test_hard_stop_beyond_min_limit);
     RUN_TEST(test_reset_position);
     return UNITY_END();
 }

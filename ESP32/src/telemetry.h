@@ -28,6 +28,7 @@ struct Sources {
     WifiManager& wifi;
 };
 
-/** @brief Log the two stats lines if 5 s passed since the last call; cheap otherwise. Call from loop(). */
+/** @brief Log the three stats lines ([stream], [detect], [net]) if 5 s passed since the last call; cheap otherwise.
+ * Call from loop(). */
 void log_stats(const Sources& src);
 } // namespace telemetry

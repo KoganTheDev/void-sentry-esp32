@@ -14,6 +14,8 @@ static const char* TAG_HTTP = "HTTP_SERVER";
 
 httpd_handle_t HttpServer::_server_handle = nullptr;
 
+httpd_handle_t HttpServer::_stream_handle = nullptr;
+
 BaseDetectionModule* HttpServer::_detection_instance = nullptr;
 
 const BaseStatusProvider* HttpServer::_status_instance = nullptr;
@@ -38,29 +40,50 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     // Keep network work on core 0 so it cannot preempt detection on core 1.
     config.core_id = 0;
     // 8 KB, double the default: handlers keep their buffers on this stack (scan list and escaped SSIDs in
-    // wifi_http.cpp, the 384 B JSON reply in websockets.h, form bodies).
+    // wifi_http.cpp, the hud::kReplySize JSON reply in websockets.h, form bodies).
     config.stack_size = 8192;
     config.max_uri_handlers = 16;                   // 3 core routes + 6 WiFi routes + catch-all, with headroom
     config.uri_match_fn = httpd_uri_match_wildcard; // the WiFi catch-all "/*"; exact routes still match exactly
     config.send_wait_timeout = 2;                   // seconds; stalled viewers would block httpd 5 s
     config.lru_purge_enable = true;
-    config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket itself
+    config.max_open_sockets = 6; // /stream lives on its own server; lwIP has 16 sockets for both servers
 
     if (httpd_start(&this->_server_handle, &config) == ESP_OK)
     {
         httpd_uri_t index_uri = {.uri = "/", .method = HTTP_GET, .handler = index_handler, .user_ctx = wifi};
         httpd_register_uri_handler(this->_server_handle, &index_uri);
 
-        if (!this->_broadcaster.start(this->_server_handle, store))
+        // /stream gets its own server and task: a video send that waits for a TCP retransmit (notes s13) then only
+        // freezes the video, not the /commands replies. The 4 s send timeout lets a double retransmit finish the
+        // frame instead of cutting it mid-send and dropping the viewer.
+        httpd_config_t stream_config = HTTPD_DEFAULT_CONFIG();
+        stream_config.server_port = 81;
+        stream_config.ctrl_port = 32769; // the main instance uses the default 32768
+        stream_config.core_id = 0;
+        stream_config.stack_size = 4096;
+        stream_config.max_open_sockets = 3; // 2 viewers + 1 so a third can be accepted and refused
+        stream_config.max_uri_handlers = 2;
+        stream_config.lru_purge_enable = true;
+        stream_config.send_wait_timeout = 4;
+        stream_config.close_fn = StreamBroadcaster::on_session_closed; // Forget /stream viewers; must close the socket
+
+        if (httpd_start(&this->_stream_handle, &stream_config) != ESP_OK)
         {
-            ESP_LOGE(TAG_HTTP, "Failed to start the /stream broadcaster");
+            ESP_LOGE(TAG_HTTP, "Failed to start the /stream server");
+            this->_stream_handle = NULL;
             httpd_stop(this->_server_handle); // no half-started server
             this->_server_handle = NULL;
             return false;
         }
+        if (!this->_broadcaster.start(this->_stream_handle, store))
+        {
+            ESP_LOGE(TAG_HTTP, "Failed to start the /stream broadcaster");
+            this->stop();
+            return false;
+        }
 
-        this->_commands_handler =
-            new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status, remote);
+        this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status,
+                                                               remote, &this->_broadcaster);
         this->_commands_handler->register_endpoint();
 
         if (wifi != nullptr)
@@ -80,6 +103,11 @@ void HttpServer::stop()
 {
     ESP_LOGI(TAG_HTTP, "Stopping HTTP Server...");
     this->_broadcaster.stop(); // before httpd_stop: the stream task must not touch a dead server
+    if (this->_stream_handle)
+    {
+        httpd_stop(this->_stream_handle);
+        this->_stream_handle = NULL;
+    }
     if (this->_server_handle)
     {
         ESP_LOGD(TAG_HTTP, "Calling httpd_stop()...");
@@ -115,6 +143,10 @@ esp_err_t HttpServer::index_handler(httpd_req_t* req)
     }
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    // Forbid framing by any site (clickjacking: a hidden HUD under a decoy page could be clicked to move the turret).
+    // No script-src: the page uses inline scripts.
+    httpd_resp_set_hdr(req, "Content-Security-Policy", "frame-ancestors 'none'");
+    httpd_resp_set_hdr(req, "X-Frame-Options", "DENY");
 
     return httpd_resp_send(req, (const char*)HTML_PAGE_GZ, HTML_PAGE_GZ_LEN);
 }

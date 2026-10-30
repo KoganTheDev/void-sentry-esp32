@@ -1,5 +1,6 @@
 #include "wifi_manager.h"
 
+#include "log_sanitize.h"
 #include "sync.h"
 
 #include <cstring>
@@ -31,8 +32,11 @@ bool classify_reason(uint8_t reason, prov::JoinFail& out)
 {
     switch (reason)
     {
-    case WIFI_REASON_AUTH_FAIL:
     case WIFI_REASON_AUTH_EXPIRE:
+        // Seen ~6 s after the first WiFi.begin() of a boot with a correct password; an immediate retry works.
+        out = prov::JoinFail::Transient;
+        return true;
+    case WIFI_REASON_AUTH_FAIL:
     case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
     case WIFI_REASON_HANDSHAKE_TIMEOUT:
         out = prov::JoinFail::WrongPassword;
@@ -104,6 +108,7 @@ void WifiManager::begin()
     vsync::MutexLock lock(this->_mutex);
     const uint32_t now = millis();
     this->apply(this->_plan.start(this->_list.size() > 0, now), now);
+    this->publish_status_locked();
 }
 
 void WifiManager::maintain()
@@ -153,6 +158,9 @@ void WifiManager::maintain()
                 this->stop_hotspot();
             }
         }
+        // Every status() field (plan state, failure, SSIDs, IP, hotspot flag) changes only inside this block,
+        // begin() or add(), so publishing here keeps status() at most one pass behind without it taking the mutex.
+        this->publish_status_locked();
     }
 
     if (this->_hotspot_running)
@@ -181,7 +189,10 @@ void WifiManager::process_events(uint32_t now)
             prov::JoinFail why = prov::JoinFail::Other;
             if (classify_reason(reason, why))
             {
-                ESP_LOGW(TAG, "Join of '%s' failed (reason %u)", this->_joining_ssid, (unsigned)reason);
+                char safe_ssid[prov::kSsidMax + 1];
+                remote::sanitize_for_log(this->_joining_ssid, strnlen(this->_joining_ssid, sizeof(this->_joining_ssid)),
+                                         safe_ssid, sizeof(safe_ssid));
+                ESP_LOGW(TAG, "Join of '%s' failed (reason %u)", safe_ssid, (unsigned)reason);
                 this->apply(this->_plan.on_join_failed(why, now), now);
             }
         }
@@ -427,7 +438,7 @@ void WifiManager::factory_reset()
         this->_store.erase_all();
     }
     esp_wifi_restore(); // also drop the WiFi driver's own stored STA config (older firmware used persistent(true))
-    Serial.println("[WIFI] wifi-reset: saved networks and PIN erased, restarting");
+    Serial.println("[WIFI] wifi-reset: saved networks, PIN and hotspot password erased, restarting");
     Serial.flush();
     ESP.restart();
 }
@@ -459,10 +470,13 @@ prov::PlanState WifiManager::plan_state()
     return this->_plan.state();
 }
 
-WifiManager::Status WifiManager::status()
+WifiManager::Status WifiManager::status() { return this->_status_snap.load(); }
+
+void WifiManager::publish_status_locked() { this->_status_snap.store(this->build_status_locked()); }
+
+WifiManager::Status WifiManager::build_status_locked() const
 {
     Status s;
-    vsync::MutexLock lock(this->_mutex);
     const prov::PlanState st = this->_plan.state();
     s.mode = this->mode_name_locked();
     s.pin_set = this->_pin.record().set;
@@ -492,6 +506,7 @@ WifiManager::Status WifiManager::status()
             s.failure = "not found";
             break;
         case prov::JoinFail::Other:
+        case prov::JoinFail::Transient:
             s.failure = "failed";
             break;
         case prov::JoinFail::None:
@@ -576,6 +591,7 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
             this->_pin = prov::PinGuard(prov::PinRecord{});
             return out;
         }
+        this->publish_status_locked(); // pin_set just became true; the setup page reads it right after this reply
     } else
     {
         const prov::PinResult r = this->_pin.check(pin, pin_len, now_ms);
@@ -598,7 +614,9 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
     }
     this->_store.save_nets(this->_list);
     this->_added_pending = true;
-    ESP_LOGI(TAG, "Saved network '%.*s'", (int)ssid_len, ssid);
+    char safe_ssid[prov::kSsidMax + 1];
+    remote::sanitize_for_log(ssid, ssid_len, safe_ssid, sizeof(safe_ssid));
+    ESP_LOGI(TAG, "Saved network '%s'", safe_ssid);
     out.result = Result::Ok;
     return out;
 }
@@ -629,7 +647,9 @@ WifiManager::ForgetOutcome WifiManager::forget(const char* ssid, size_t ssid_len
         return out; // BadInput: unknown network
     }
     this->_store.save_nets(this->_list);
-    ESP_LOGI(TAG, "Forgot network '%.*s'", (int)ssid_len, ssid);
+    char safe_ssid[prov::kSsidMax + 1];
+    remote::sanitize_for_log(ssid, ssid_len, safe_ssid, sizeof(safe_ssid));
+    ESP_LOGI(TAG, "Forgot network '%s'", safe_ssid);
     out.result = Result::Ok;
     return out;
 }

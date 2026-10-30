@@ -20,6 +20,20 @@ namespace remote
 bool origin_allowed(std::string_view origin, std::string_view host);
 
 /**
+ * @brief Like origin_allowed, but ignores the port: for endpoints served on a different port than the page.
+ * @details The HUD page is loaded from port 80 (Origin "http://<ip>") while /stream is served by a second server on
+ * port 81 (Host "<ip>:81"), so the exact Origin == scheme + Host rule would refuse it. Here the Origin must be
+ * "http://" or "https://" + the IPv4 address of Host, optionally followed by ":" and a valid port (1-65535), and
+ * nothing else; Host's own port is ignored. Same rules otherwise: an empty Origin is allowed, Host must pass
+ * is_ipv4_host. It is still DNS-rebinding safe: Host must be an IPv4 literal, and a page from another site has an
+ * Origin that never equals the board's IP. No heap.
+ * @param origin Origin header value; empty if the header is absent.
+ * @param host Host header value; empty if the header is absent.
+ * @return true if the handshake is allowed.
+ */
+bool origin_allowed_any_port(std::string_view origin, std::string_view host);
+
+/**
  * @brief Checks that a Host header value is an IPv4 literal with an optional port.
  * @details Accepts four decimal octets (1-3 digits each, 0-255) separated by dots, optionally followed by ":" and a
  * port of 1-5 digits (1-65535). Hostnames, IPv6, empty octets, signs and trailing dots are rejected. NUL termination is

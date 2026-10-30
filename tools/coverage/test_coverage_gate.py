@@ -51,12 +51,15 @@ class ReportTest(unittest.TestCase):
 
 
 class GateTest(unittest.TestCase):
-    def run_gate(self, text, floor):
+    def run_gate(self, text, floor, branch_floor=None):
         with tempfile.NamedTemporaryFile("w", suffix=".info", delete=False) as f:
             f.write(text)
         try:
             os.environ.pop("GITHUB_STEP_SUMMARY", None)
-            return coverage_gate.main([f.name, "--floor", str(floor)])
+            args = [f.name, "--floor", str(floor)]
+            if branch_floor is not None:
+                args += ["--branch-floor", str(branch_floor)]
+            return coverage_gate.main(args)
         finally:
             os.unlink(f.name)
 
@@ -68,6 +71,30 @@ class GateTest(unittest.TestCase):
 
     def test_fails_below_floor(self):
         self.assertEqual(self.run_gate(self.full_trace(), 91), 1)
+
+    def branch_trace(self, hit, found):
+        return "".join(
+            f"SF:{LIB}/{name}/src/x.cpp\nLF:10\nLH:10\nBRF:{found}\nBRH:{hit}\nend_of_record\n"
+            for name in coverage_gate.PURE_LIBS
+        )
+
+    def test_branch_floor_passes_at_or_above(self):
+        self.assertEqual(self.run_gate(self.branch_trace(9, 10), 0, branch_floor=90), 0)
+
+    def test_branch_floor_fails_below(self):
+        self.assertEqual(self.run_gate(self.branch_trace(9, 10), 0, branch_floor=91), 1)
+
+    def test_default_branch_floor_is_applied(self):
+        low = int(coverage_gate.BRANCH_FLOOR_PERCENT) - 1
+        self.assertEqual(self.run_gate(self.branch_trace(low, 100), 0), 1)
+        self.assertEqual(self.run_gate(self.branch_trace(int(coverage_gate.BRANCH_FLOOR_PERCENT), 100), 0), 0)
+
+    def test_no_branch_data_counts_as_full(self):
+        self.assertEqual(self.run_gate(self.full_trace(), 90), 0)
+
+    def test_non_pure_libs_do_not_count_toward_branch_floor(self):
+        text = self.branch_trace(100, 100) + f"SF:{LIB}/network/src/y.cpp\nLF:1\nLH:1\nBRF:100\nBRH:0\nend_of_record\n"
+        self.assertEqual(self.run_gate(text, 0, branch_floor=99), 0)
 
     def test_fails_when_a_pure_lib_is_missing(self):
         self.assertEqual(self.run_gate(TRACE, 0), 1)

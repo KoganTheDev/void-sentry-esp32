@@ -11,11 +11,13 @@ void AimPolicy::reset()
     have_setpoint_ = false;
     seen_ = false;
     homed_ = false;
+    searching_ = false;
 }
 
 AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
 {
     using tracking::TrackPhase;
+    searching_ = (track.state == TrackPhase::Idle || track.state == TrackPhase::Tentative);
     if (track.state == TrackPhase::Locked || track.state == TrackPhase::Coasting)
     {
         seen_ = true;
@@ -40,5 +42,15 @@ AimCommand AimPolicy::update(const TrackView& track, uint32_t now_ms)
         return AimCommand{.kind = AimKind::Home, .angles = setpoint_};
     }
     return AimCommand{.kind = AimKind::Hold, .angles = setpoint_};
+}
+
+uint32_t AimPolicy::home_remaining_ms(uint32_t now_ms) const
+{
+    if (!searching_ || !seen_ || homed_)
+    {
+        return 0;
+    }
+    const uint32_t elapsed = static_cast<uint32_t>(now_ms - last_seen_ms_);
+    return elapsed >= config_.home_delay_ms ? 0 : config_.home_delay_ms - elapsed;
 }
 } // namespace aiming

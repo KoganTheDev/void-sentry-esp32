@@ -11,6 +11,33 @@ constexpr float kHFovDeg = 66.0f;
 constexpr float kVFovDeg = 50.0f;
 
 bool finite(float v) { return std::isfinite(v); }
+
+/** @brief Inverse of one axis: (angle - offset) / slope, or fallback if that is undefined. */
+float invert_axis(float angle, float slope, float offset, float fallback)
+{
+    if (slope == 0.0f || !finite(slope))
+    {
+        return fallback;
+    }
+    const float v = (angle - offset) / slope;
+    return finite(v) ? v : fallback;
+}
+
+/** @brief Pixel range of one axis whose angle lies in [lo, hi], clamped to [0, last] and rounded. */
+void reach_axis(float slope, float offset, float lo, float hi, int last, int16_t& out0, int16_t& out1)
+{
+    if (slope == 0.0f || !finite(slope))
+    {
+        out0 = 0;
+        out1 = static_cast<int16_t>(last);
+        return;
+    }
+    const float a = invert_axis(lo, slope, offset, 0.0f);
+    const float b = invert_axis(hi, slope, offset, 0.0f);
+    const float fl = static_cast<float>(last);
+    out0 = static_cast<int16_t>(std::lround(std::clamp(std::min(a, b), 0.0f, fl)));
+    out1 = static_cast<int16_t>(std::lround(std::clamp(std::max(a, b), 0.0f, fl)));
+}
 } // namespace
 
 Angles clamp_angles(Angles a)
@@ -29,6 +56,41 @@ Angles clamp_angles(Angles a)
 }
 
 Angles AimMap::aim(float x, float y) const { return clamp_angles(Angles{pan_a * x + pan_b, tilt_a * y + tilt_b}); }
+
+Pixel AimMap::to_pixel(Angles a) const
+{
+    return Pixel{invert_axis(a.pan, pan_a, pan_b, kFrameW / 2.0f), invert_axis(a.tilt, tilt_a, tilt_b, kFrameH / 2.0f)};
+}
+
+ReachBox reach_box(const AimMap& m)
+{
+    ReachBox b;
+    reach_axis(m.pan_a, m.pan_b, kPanMinDeg, kPanMaxDeg, kFrameW - 1, b.x0, b.x1);
+    reach_axis(m.tilt_a, m.tilt_b, kTiltMinDeg, kTiltMaxDeg, kFrameH - 1, b.y0, b.y1);
+    return b;
+}
+
+uint8_t limit_bits(Angles a)
+{
+    uint8_t bits = 0;
+    if (a.pan <= kPanMinDeg + kLimitMarginDeg)
+    {
+        bits |= 1;
+    }
+    if (a.pan >= kPanMaxDeg - kLimitMarginDeg)
+    {
+        bits |= 2;
+    }
+    if (a.tilt <= kTiltMinDeg + kLimitMarginDeg)
+    {
+        bits |= 4;
+    }
+    if (a.tilt >= kTiltMaxDeg - kLimitMarginDeg)
+    {
+        bits |= 8;
+    }
+    return bits;
+}
 
 AimMap default_map()
 {

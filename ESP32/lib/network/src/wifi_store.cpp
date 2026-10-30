@@ -136,6 +136,9 @@ void WifiStore::erase_all()
     {
         prefs.remove(kKeyNets);
         prefs.remove(kKeyPin);
+        // Rotate the hotspot password too: a missing key makes hotspot_password() generate a fresh one, so a password
+        // that leaked from an old serial log stops working after a reset.
+        prefs.remove(kKeyAppw);
         prefs.end();
     }
 }

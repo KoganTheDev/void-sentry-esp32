@@ -6,6 +6,7 @@
 #include <unity.h>
 
 #include "aim_map.h"
+#include "blob_frame.h"
 #include "calibration_blob.h"
 
 #include <algorithm>
@@ -219,6 +220,295 @@ void test_fit_overflow_gives_finite_or_nothing(void)
     }
 }
 
+void test_blob_rejects_other_version_with_valid_crc(void)
+{
+    // A future (or corrupt-but-reframed) version must be refused even though magic and CRC check out.
+    const Blob good = serialize(default_map());
+    for (const uint8_t version : {uint8_t{0}, uint8_t{2}, uint8_t{255}})
+    {
+        Blob b = good;
+        b[4] = version; // little-endian u16 at offset 4
+        b[5] = 0;
+        checksum::frame_blob(b, 0x314D4941u); // re-stamp the CRC so only the version is wrong
+        TEST_ASSERT_FALSE(deserialize(b).has_value());
+    }
+    Blob high = good;
+    high[4] = 1;
+    high[5] = 1; // 0x0101
+    checksum::frame_blob(high, 0x314D4941u);
+    TEST_ASSERT_FALSE(deserialize(high).has_value());
+    // Control: the unmodified version with a re-stamped CRC still loads.
+    Blob same = good;
+    checksum::frame_blob(same, 0x314D4941u);
+    TEST_ASSERT_TRUE(deserialize(same).has_value());
+}
+
+void test_blob_ignores_reserved_field_but_checks_every_float_byte(void)
+{
+    const Blob good = serialize(default_map());
+    Blob b = good;
+    b[6] = 0xAA; // reserved bytes are not interpreted; the CRC still covers them
+    TEST_ASSERT_FALSE(deserialize(b).has_value());
+    checksum::frame_blob(b, 0x314D4941u);
+    TEST_ASSERT_TRUE(deserialize(b).has_value());
+    for (size_t off = 8; off < 24; ++off)
+    {
+        Blob c = good;
+        c[off] ^= 0x80;
+        TEST_ASSERT_FALSE(deserialize(c).has_value()); // CRC catches a single flipped bit in any float byte
+    }
+}
+
+void test_fit_rejects_overflowing_deltas_on_each_axis(void)
+{
+    // dy overflows to inf while dx is fine.
+    TEST_ASSERT_FALSE(fit({40, 3e38f, 0, 100}, {280, -3e38f, 10, 70}).has_value());
+    // Tilt delta overflows: tilt_a would be inf.
+    TEST_ASSERT_FALSE(fit({40, 50, 0, 3e38f}, {280, 200, 10, -3e38f}).has_value());
+    // Offsets overflow although the slopes are finite: pan_a * x1 = inf.
+    TEST_ASSERT_FALSE(fit({3e38f, 50, -3e38f, 100}, {3.1e38f, 200, 3e38f, 70}).has_value());
+    TEST_ASSERT_FALSE(fit({40, 3e38f, 0, -3e38f}, {280, 3.1e38f, 10, 3e38f}).has_value());
+}
+
+void test_reach_box_negative_slope_is_ordered(void)
+{
+    // Image down -> smaller angle (the default tilt sign) and a mirrored pan: the corners must still be ordered.
+    const AimMap m{.pan_a = -0.5f, .pan_b = 80.0f, .tilt_a = -1.0f, .tilt_b = 200.0f};
+    const ReachBox b = reach_box(m); // pan -90..90 -> x 340..-20 (clamped 0..319 -> 0..319); tilt 20..160 -> y 180..40
+    TEST_ASSERT_TRUE(b.x0 <= b.x1);
+    TEST_ASSERT_TRUE(b.y0 <= b.y1);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(40, b.y0);
+    TEST_ASSERT_EQUAL_INT(180, b.y1);
+}
+
+void test_reach_box_non_finite_offset_or_infinite_slope(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    // Infinite slope: whole frame on that axis (documented), the other axis is computed normally.
+    const AimMap inf_pan{.pan_a = inf, .pan_b = 0.0f, .tilt_a = 1.0f, .tilt_b = -40.4f};
+    ReachBox b = reach_box(inf_pan);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(60, b.y0);
+    TEST_ASSERT_EQUAL_INT(200, b.y1);
+    const AimMap neg_inf_tilt{.pan_a = 1.0f, .pan_b = -100.6f, .tilt_a = -inf, .tilt_b = 90.0f};
+    b = reach_box(neg_inf_tilt);
+    TEST_ASSERT_EQUAL_INT(11, b.x0);
+    TEST_ASSERT_EQUAL_INT(191, b.x1);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+    // A NaN offset with a finite slope: the inverse is undefined, so it falls back to pixel 0 for both ends.
+    const AimMap nan_offset{.pan_a = 1.0f, .pan_b = nan, .tilt_a = 1.0f, .tilt_b = nan};
+    b = reach_box(nan_offset);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(0, b.x1);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(0, b.y1);
+    // A NaN slope on both axes: whole frame.
+    const AimMap nan_both{.pan_a = nan, .pan_b = 0.0f, .tilt_a = nan, .tilt_b = 0.0f};
+    b = reach_box(nan_both);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+}
+
+void test_to_pixel_overflowing_quotient_gives_frame_centre(void)
+{
+    // (angle - offset) / slope overflows float: the result is not finite, so the centre is returned.
+    const AimMap tiny{.pan_a = 1e-30f, .pan_b = 0.0f, .tilt_a = 1e-30f, .tilt_b = 0.0f};
+    const Pixel p = tiny.to_pixel(Angles{3e30f, 3e30f});
+    TEST_ASSERT_EQUAL_FLOAT(kFrameW / 2.0f, p.x);
+    TEST_ASSERT_EQUAL_FLOAT(kFrameH / 2.0f, p.y);
+}
+
+void test_aim_with_degenerate_map_stays_finite_and_in_range(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const AimMap zero_slope{.pan_a = 0.0f, .pan_b = 200.0f, .tilt_a = 0.0f, .tilt_b = -50.0f};
+    Angles a = zero_slope.aim(100.0f, 100.0f);
+    TEST_ASSERT_EQUAL_FLOAT(kPanMaxDeg, a.pan);
+    TEST_ASSERT_EQUAL_FLOAT(kTiltMinDeg, a.tilt);
+    const AimMap bad{.pan_a = nan, .pan_b = nan, .tilt_a = nan, .tilt_b = nan};
+    a = bad.aim(10.0f, 10.0f);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, a.pan);
+    TEST_ASSERT_EQUAL_FLOAT(kTiltHomeDeg, a.tilt);
+}
+
+static void expect_round_trip(const AimMap& m, Angles a)
+{
+    const Pixel px = m.to_pixel(a);
+    const Angles back = m.aim(px.x, px.y);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, a.pan, back.pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, a.tilt, back.tilt);
+}
+
+void test_to_pixel_known_values(void)
+{
+    const AimMap m = default_map();
+    const Pixel c = m.to_pixel(Angles{0.0f, kTiltHomeDeg});
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 160.0f, c.x);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 120.0f, c.y);
+    const Pixel r = m.to_pixel(Angles{33.0f, 115.0f}); // right edge, top
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 320.0f, r.x);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 0.0f, r.y);
+    // Not clamped: an angle far outside the frame gives a pixel outside the frame.
+    TEST_ASSERT_TRUE(m.to_pixel(Angles{90.0f, 90.0f}).x > 320.0f);
+    TEST_ASSERT_TRUE(m.to_pixel(Angles{-90.0f, 90.0f}).x < 0.0f);
+}
+
+void test_to_pixel_round_trip_default_map(void)
+{
+    const AimMap m = default_map();
+    expect_round_trip(m, Angles{0.0f, 90.0f});
+    expect_round_trip(m, Angles{12.5f, 100.0f});
+    expect_round_trip(m, Angles{-33.0f, 65.0f});
+    expect_round_trip(m, Angles{kPanMaxDeg, kTiltMaxDeg});
+    expect_round_trip(m, Angles{kPanMinDeg, kTiltMinDeg});
+}
+
+void test_to_pixel_round_trip_fitted_map_with_negative_slopes(void)
+{
+    // pan falls and tilt falls as x and y grow: both slopes negative.
+    const auto m = fit(CalPoint{.x = 40.0f, .y = 50.0f, .pan = 30.0f, .tilt = 120.0f},
+                       CalPoint{.x = 280.0f, .y = 200.0f, .pan = -25.0f, .tilt = 60.0f});
+    TEST_ASSERT_TRUE(m.has_value());
+    TEST_ASSERT_TRUE(m->pan_a < 0.0f);
+    TEST_ASSERT_TRUE(m->tilt_a < 0.0f);
+    expect_round_trip(*m, Angles{0.0f, 90.0f});
+    expect_round_trip(*m, Angles{-20.0f, 70.0f});
+    expect_round_trip(*m, Angles{30.0f, 120.0f});
+    // And a map with a negative pan slope but a positive tilt slope.
+    const AimMap mixed{.pan_a = -0.3f, .pan_b = 40.0f, .tilt_a = 0.4f, .tilt_b = 30.0f};
+    expect_round_trip(mixed, Angles{10.0f, 100.0f});
+    const Pixel px = mixed.to_pixel(Angles{10.0f, 100.0f});
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 100.0f, px.x);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 175.0f, px.y);
+}
+
+void test_to_pixel_degenerate_slope_gives_frame_centre(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    const AimMap flat{.pan_a = 0.0f, .pan_b = 5.0f, .tilt_a = 0.0f, .tilt_b = 100.0f};
+    Pixel p = flat.to_pixel(Angles{20.0f, 120.0f});
+    TEST_ASSERT_EQUAL_FLOAT(kFrameW / 2.0f, p.x);
+    TEST_ASSERT_EQUAL_FLOAT(kFrameH / 2.0f, p.y);
+    const AimMap bad{.pan_a = nan, .pan_b = 0.0f, .tilt_a = inf, .tilt_b = 90.0f};
+    p = bad.to_pixel(Angles{20.0f, 120.0f});
+    TEST_ASSERT_EQUAL_FLOAT(kFrameW / 2.0f, p.x);
+    TEST_ASSERT_EQUAL_FLOAT(kFrameH / 2.0f, p.y);
+    // One axis fine, the other degenerate: only the bad axis falls back.
+    const AimMap half{.pan_a = 0.5f, .pan_b = -80.0f, .tilt_a = 0.0f, .tilt_b = 90.0f};
+    p = half.to_pixel(Angles{0.0f, 90.0f});
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 160.0f, p.x);
+    TEST_ASSERT_EQUAL_FLOAT(kFrameH / 2.0f, p.y);
+    // Finite slope but a non-finite offset or angle also gives the centre instead of a NaN.
+    const AimMap bad_b{.pan_a = 1.0f, .pan_b = nan, .tilt_a = 1.0f, .tilt_b = 0.0f};
+    p = bad_b.to_pixel(Angles{nan, 100.0f});
+    TEST_ASSERT_EQUAL_FLOAT(kFrameW / 2.0f, p.x);
+    TEST_ASSERT_FLOAT_WITHIN(0.01f, 100.0f, p.y);
+}
+
+void test_reach_box_default_map_is_whole_frame(void)
+{
+    const ReachBox b = reach_box(default_map());
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+}
+
+void test_reach_box_coarse_map_is_inside_frame(void)
+{
+    // pan -90..90 -> x 10..190; tilt 160..20 -> y 40..180 (falling slope, so the ends swap).
+    const AimMap m{.pan_a = 1.0f, .pan_b = -100.0f, .tilt_a = -1.0f, .tilt_b = 200.0f};
+    ReachBox b = reach_box(m);
+    TEST_ASSERT_EQUAL_INT(10, b.x0);
+    TEST_ASSERT_EQUAL_INT(40, b.y0);
+    TEST_ASSERT_EQUAL_INT(190, b.x1);
+    TEST_ASSERT_EQUAL_INT(180, b.y1);
+    // The corners of the box aim exactly at the soft limits.
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kPanMinDeg, m.aim(10.0f, 40.0f).pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kPanMaxDeg, m.aim(190.0f, 40.0f).pan);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltMaxDeg, m.aim(10.0f, 40.0f).tilt);
+    TEST_ASSERT_FLOAT_WITHIN(0.001f, kTiltMinDeg, m.aim(10.0f, 180.0f).tilt);
+    // A negative pan slope gives the same ordered box.
+    const AimMap neg{.pan_a = -1.0f, .pan_b = 100.0f, .tilt_a = -1.0f, .tilt_b = 200.0f};
+    b = reach_box(neg);
+    TEST_ASSERT_EQUAL_INT(10, b.x0);
+    TEST_ASSERT_EQUAL_INT(190, b.x1);
+    TEST_ASSERT_TRUE(b.x0 <= b.x1);
+    TEST_ASSERT_TRUE(b.y0 <= b.y1);
+}
+
+void test_reach_box_rounds_and_clamps(void)
+{
+    const AimMap m{.pan_a = 1.0f, .pan_b = -100.6f, .tilt_a = 1.0f, .tilt_b = -40.4f};
+    const ReachBox b = reach_box(m); // x 10.6..190.6 -> 11..191, y: tilt 20..160 -> 60.4..200.4 -> 60..200
+    TEST_ASSERT_EQUAL_INT(11, b.x0);
+    TEST_ASSERT_EQUAL_INT(191, b.x1);
+    TEST_ASSERT_EQUAL_INT(60, b.y0);
+    TEST_ASSERT_EQUAL_INT(200, b.y1);
+    // A region entirely right of / below the frame collapses onto the last column / row.
+    const AimMap away{.pan_a = 1.0f, .pan_b = -500.0f, .tilt_a = 1.0f, .tilt_b = -500.0f};
+    const ReachBox c = reach_box(away);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, c.x0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, c.x1);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, c.y0);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, c.y1);
+    // ... and one entirely left of / above it collapses onto column / row 0.
+    const AimMap before{.pan_a = 1.0f, .pan_b = 500.0f, .tilt_a = 1.0f, .tilt_b = 500.0f};
+    const ReachBox d = reach_box(before);
+    TEST_ASSERT_EQUAL_INT(0, d.x0);
+    TEST_ASSERT_EQUAL_INT(0, d.x1);
+    TEST_ASSERT_EQUAL_INT(0, d.y0);
+    TEST_ASSERT_EQUAL_INT(0, d.y1);
+}
+
+void test_reach_box_degenerate_slope_is_whole_frame(void)
+{
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const AimMap flat{.pan_a = 0.0f, .pan_b = 0.0f, .tilt_a = nan, .tilt_b = 90.0f};
+    const ReachBox b = reach_box(flat);
+    TEST_ASSERT_EQUAL_INT(0, b.x0);
+    TEST_ASSERT_EQUAL_INT(0, b.y0);
+    TEST_ASSERT_EQUAL_INT(kFrameW - 1, b.x1);
+    TEST_ASSERT_EQUAL_INT(kFrameH - 1, b.y1);
+}
+
+void test_limit_bits(void)
+{
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{0.0f, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(1, limit_bits(Angles{kPanMinDeg, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(2, limit_bits(Angles{kPanMaxDeg, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(4, limit_bits(Angles{0.0f, kTiltMinDeg}));
+    TEST_ASSERT_EQUAL_UINT8(8, limit_bits(Angles{0.0f, kTiltMaxDeg}));
+    TEST_ASSERT_EQUAL_UINT8(1 | 4, limit_bits(Angles{kPanMinDeg, kTiltMinDeg}));
+    TEST_ASSERT_EQUAL_UINT8(2 | 8, limit_bits(Angles{kPanMaxDeg, kTiltMaxDeg}));
+    TEST_ASSERT_EQUAL_UINT8(1 | 8, limit_bits(Angles{kPanMinDeg, kTiltMaxDeg}));
+    TEST_ASSERT_EQUAL_UINT8(2 | 4, limit_bits(Angles{kPanMaxDeg, kTiltMinDeg}));
+}
+
+void test_limit_bits_threshold_is_half_a_degree(void)
+{
+    TEST_ASSERT_EQUAL_UINT8(1, limit_bits(Angles{kPanMinDeg + 0.5f, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{kPanMinDeg + 0.6f, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(2, limit_bits(Angles{kPanMaxDeg - 0.5f, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{kPanMaxDeg - 0.6f, 90.0f}));
+    TEST_ASSERT_EQUAL_UINT8(4, limit_bits(Angles{0.0f, kTiltMinDeg + 0.5f}));
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{0.0f, kTiltMinDeg + 0.6f}));
+    TEST_ASSERT_EQUAL_UINT8(8, limit_bits(Angles{0.0f, kTiltMaxDeg - 0.5f}));
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{0.0f, kTiltMaxDeg - 0.6f}));
+    // Beyond the limit (never produced by aim(), but harmless) still counts as at the limit.
+    TEST_ASSERT_EQUAL_UINT8(1 | 4, limit_bits(Angles{-120.0f, 0.0f}));
+    TEST_ASSERT_EQUAL_UINT8(2 | 8, limit_bits(Angles{120.0f, 200.0f}));
+    // A non-finite angle sets no bit.
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    TEST_ASSERT_EQUAL_UINT8(0, limit_bits(Angles{nan, nan}));
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
@@ -241,5 +531,22 @@ int main(int argc, char** argv)
     RUN_TEST(test_aim_infinite_pixel_gives_finite_in_range_angles);
     RUN_TEST(test_pan_deg_to_steps_guards_non_finite_and_huge);
     RUN_TEST(test_fit_overflow_gives_finite_or_nothing);
+    RUN_TEST(test_to_pixel_known_values);
+    RUN_TEST(test_to_pixel_round_trip_default_map);
+    RUN_TEST(test_to_pixel_round_trip_fitted_map_with_negative_slopes);
+    RUN_TEST(test_to_pixel_degenerate_slope_gives_frame_centre);
+    RUN_TEST(test_reach_box_default_map_is_whole_frame);
+    RUN_TEST(test_reach_box_coarse_map_is_inside_frame);
+    RUN_TEST(test_reach_box_rounds_and_clamps);
+    RUN_TEST(test_reach_box_degenerate_slope_is_whole_frame);
+    RUN_TEST(test_limit_bits);
+    RUN_TEST(test_limit_bits_threshold_is_half_a_degree);
+    RUN_TEST(test_blob_rejects_other_version_with_valid_crc);
+    RUN_TEST(test_blob_ignores_reserved_field_but_checks_every_float_byte);
+    RUN_TEST(test_fit_rejects_overflowing_deltas_on_each_axis);
+    RUN_TEST(test_reach_box_negative_slope_is_ordered);
+    RUN_TEST(test_reach_box_non_finite_offset_or_infinite_slope);
+    RUN_TEST(test_to_pixel_overflowing_quotient_gives_frame_centre);
+    RUN_TEST(test_aim_with_degenerate_map_stays_finite_and_in_range);
     return UNITY_END();
 }

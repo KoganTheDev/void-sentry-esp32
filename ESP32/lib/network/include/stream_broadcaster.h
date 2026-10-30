@@ -38,7 +38,33 @@ public:
     static void on_session_closed(httpd_handle_t server, int sockfd);
 
     uint32_t frames_sent() const { return sent_.load(); }
-    size_t viewer_count();
+
+    /**
+     * @brief How long frame sends block the httpd task (every /stream send runs on it, and so does /commands).
+     * @details A send returns once the frame is in the socket's TCP send buffer; when the buffer is full it waits for
+     * ACKs, up to send_wait_timeout. Counters are since boot, except max_us, which is the longest send since the last
+     * take_send_stats() call (the stats line takes it every 5 s).
+     */
+    struct SendStats {
+        uint64_t total_us = 0; ///< time spent inside sends, since boot
+        uint32_t slow = 0;     ///< sends that took at least kSlowSendUs
+        uint32_t failed = 0;   ///< sends that returned an error (the viewer is dropped)
+        uint32_t max_us = 0;   ///< longest send since the previous call
+    };
+    static constexpr uint32_t kSlowSendUs = 200000; ///< 200 ms: a visible hitch at 16 fps
+
+    /** @brief The send counters; resets max_us. For the stats line (one reader). */
+    SendStats take_send_stats();
+
+    /**
+     * @brief Connected /stream viewers (0 to frames::kMaxViewers).
+     * @details Safe from any task, including the httpd task (the /commands reply): it takes the broadcaster mutex,
+     * which every holder keeps for a few microseconds only and never while calling back into this method, so the
+     * caller cannot deadlock and waits at most that long (the FreeRTOS mutex has priority inheritance). Returns 0
+     * before start() and once stop() has returned. Like the httpd callbacks it must not run concurrently with
+     * stop() (which frees the mutex); stop() has no caller today, and httpd must be stopped first.
+     */
+    size_t viewer_count() const;
 
 private:
     struct SendJob {
@@ -67,6 +93,11 @@ private:
     TaskHandle_t task_ = nullptr;
     SemaphoreHandle_t mutex_ = nullptr; // guards viewers_, generation_ and jobs_[i].in_flight
     std::atomic<uint32_t> sent_{0};
+    // Written only by send_job on the httpd task; read by take_send_stats() on loop().
+    std::atomic<uint64_t> send_us_total_{0};
+    std::atomic<uint32_t> send_slow_{0};
+    std::atomic<uint32_t> send_failed_{0};
+    std::atomic<uint32_t> send_us_max_{0};
 
     static StreamBroadcaster* instance_; // close_fn has no user context
 };

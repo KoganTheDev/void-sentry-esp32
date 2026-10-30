@@ -43,8 +43,21 @@ public:
     explicit AimPolicy(const AimMap& map, const PolicyConfig& config = PolicyConfig{});
 
     void set_map(const AimMap& map) { map_ = map; }
+    const AimMap& map() const { return map_; } ///< the active map
     AimCommand update(const TrackView& track, uint32_t now_ms);
     void reset(); ///< forget the setpoint and the lost-target timer (mode changes)
+
+    /**
+     * @brief Milliseconds until the pending return Home fires: home_delay_ms minus the time since the target was last
+     * seen, minimum 0 and wraparound-safe. 0 unless the last update() saw Idle or Tentative, a target was seen and
+     * Home has not fired yet.
+     * @details The timer runs through Tentative (update() leaves the last-seen time alone then), although Home itself
+     * can only fire on Idle.
+     */
+    uint32_t home_remaining_ms(uint32_t now_ms) const;
+
+    /** @brief True once Home has fired, until the next lock or reset(). */
+    bool homed() const { return homed_; }
 
 private:
     AimMap map_;
@@ -53,6 +66,7 @@ private:
     Angles setpoint_{0.0f, kTiltHomeDeg}; ///< current commanded pose; starts at Home, follows Aim and Home
     bool seen_ = false;
     bool homed_ = false;
+    bool searching_ = false; ///< the last update() saw Idle or Tentative (no target held)
     uint32_t last_seen_ms_ = 0;
 };
 } // namespace aiming

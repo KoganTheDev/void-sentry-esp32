@@ -15,6 +15,8 @@ This document records the main design decisions and one debugging story from bui
 9. [WebSocket origin check and DNS rebinding](#9-websocket-origin-check-and-dns-rebinding)
 10. [How correctness is checked](#10-how-correctness-is-checked)
 11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
+12. [The HUD redesign: showing latency, not hiding it](#12-the-hud-redesign-showing-latency-not-hiding-it)
+13. [Stream freezes: a TCP retransmit timer on a shared task](#13-stream-freezes-a-tcp-retransmit-timer-on-a-shared-task)
 
 ---
 
@@ -161,7 +163,7 @@ So signal strength did not predict the failure. Weak WiFi was ruled out.
 
 The board has no ASan, so most of the effort goes into making logic testable on a PC and into measuring the rest.
 
-- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `provisioning`, `checksum`, `jpeg_gray`, `stats`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 99% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
+- **Host unit tests.** Unity suites under `ESP32/test/native/` (`pio test -e native`) for the pure libraries (`tracking`, `aiming`, `frames`, `remote`, `hud`, `provisioning`, `checksum`, `jpeg_gray`, `stats`) and the shared value types. The CI `coverage` job reports line coverage per library and fails below 99% on the pure ones. Rule: code under native test includes no Arduino or ESP-IDF headers, which is why the logic is split from the device glue throughout.
 - **Sanitizers.** The same tests run under ASan and UBSan in CI. These do not work on the Windows toolchain used here and not on Xtensa, so CI is the sanitizer runner by design.
 - **Clip regression bench.** `track_bench` runs recorded and synthetic clips through detector and tracker and checks per-clip `.expect` files. The same bench is built under ASan and UBSan, and CI reports cachegrind instruction counts per frame (deterministic, unlike wall time on shared runners). CI also regenerates the synthetic clips and compares them byte for byte.
 - **Static analysis and formatting.** cppcheck blocks on warning, performance and portability findings; clang-format 19 is checked (not applied) in CI.
@@ -178,4 +180,72 @@ The board has no ASan, so most of the effort goes into making logic testable on 
 
 **Same host checks as the HUD.** `/api/wifi/*` requires an IPv4-literal Host header (DNS rebinding, section 9) and POSTs are origin-checked.
 
-**Not yet verified on hardware:** calibration save and reload across a reboot, and HUD jog hands-on in a browser.
+**Transient join failures.** The first join after boot failed with disconnect reason 2 (AUTH_EXPIRE) about 5.7 s after `WiFi.begin`, although the same password worked 35 s later. It was classified as a wrong password, so the plan failed over to Setup, waited the 30 s rescan period, then spent about 4 s scanning before rejoining: roughly 10 + 30 + 4.5 = 45 s to get online. Reason 2 is transient, so it is now `JoinFail::Transient` (AUTH_FAIL and the handshake timeouts stay `WrongPassword`). The plan retries the same candidate up to 2 times inside the 15 s join budget (measured from the first attempt), and a join failure that opens the hotspot for the first time schedules the first rescan after 5 s (`kSetupFirstRescanMs`) instead of 30 s; later rescans keep 30 s, so a wrong password does not make the hotspot rescan every few seconds. Expected cost of one hiccup is now about 6 s, not 45 s. If retries run out the HUD shows a generic "failed", not "wrong password".
+
+**Not yet verified on hardware:** calibration save and reload across a reboot, HUD jog hands-on in a browser, and the HUD redesign features (section 12).
+
+## 12. The HUD redesign: showing latency, not hiding it
+
+**Problem.** The HUD had grown stage by stage. An audit found controls that did nothing (`Engage Fire`: the firmware ignores `fire:*`; `CONF` and `RAM`, never written), fake values before the first reply, no way to calibrate or aim from the screen, and video health that was invisible (a frozen frame looked live, a third viewer was silently dropped). The design contract is `docs/superpowers/specs/2026-10-26-hud-ux-overhaul-design.md`; the firmware, a mock board and the page were built against it in parallel.
+
+**Events over a polled channel: counters, not flags.** The HUD polls `/commands` at about 25 Hz and the reply is built from a snapshot. A one-shot flag ("calibration just saved") is set and cleared by the controller between two polls, so a reply can be built after the flag fell and the HUD never sees the edge. Considered: holding the flag for N ms (a timing guess that breaks when the link is slow) or a queue of events (state to bound and clean up). Won: monotonically increasing counters, `cal_saves` and `cal_miss` (a calibration record ignored because no target was visible). The HUD compares with the last value it saw, so a change is never missed no matter how many polls were lost. The first reply after a reconnect just sets the baseline.
+
+**Latency: show it with a ghost reticle.** A motor takes time to arrive (a stepper at 400 steps/s needs seconds across the view). Moving the reticle optimistically to the finger would make the HUD lie, and fire and the on-target cue need to know where the turret really points. Won: the solid reticle only moves with the board-reported aim; a dashed ghost follows the finger instantly, joined by a dotted line and a time-left label (distance over the slew speed seen from the reported aim, plus half the round trip). The operator sees the lag instead of wondering whether the click registered. Sending: `aim:x,y` goes out at most every 100 ms while dragging, latest wins, and the release point is always sent. Queueing every point would make the turret replay a stale path after the finger stopped; dropping all but the newest costs nothing because only the destination matters.
+
+**The inverse aim map gives the exact aim pixel.** `AimMap` maps image pixel to pan/tilt. Because the camera is fixed on the base (section 1), the image never moves when the turret does, so inverting the map on the current pose gives the exact image point the turret aims at (`ax`, `ay`, via `AimMap::to_pixel`). With a camera on the turret this would not be possible. The same map yields the reachable box (`rx0..ry1`, the pixels whose aim lies inside the soft limits) and `lim` (end-stop bits), which drive the amber out-of-reach ghost and the dimmed arrows.
+
+**Client-side video health.** The board cannot tell that a viewer stopped receiving frames (the socket looks fine), so the HUD measures: after 1 s without a frame it shows `FROZEN n s` and greys the frame, after 4 s it closes and reopens the stream socket. The root cause of the `/stream` stalls is not fixed; this only makes them visible and self-healing. A refused third viewer looks like a socket that opens, closes and delivers no frames; three such cycles show "Video busy". The board also reports `vw` so the chip can show n/2.
+
+**The aim-hold rule.** The controller arbitrates each pass: the stick wins, then a HUD jog, otherwise idle. An idle pass used to send a jog of (0,0), which stops the motors. The HUD aim is an absolute `set_target_deg` move, so at 25 Hz that idle (0,0) would cancel it on the next pass. Considered: skipping the idle jog always (then a lost dead man would never stop a jog) or tracking "motors are moving" (racy against the motor task). Won: an `_aim_hold` flag set by `aim:` and cleared only when the stick or a real HUD jog takes over (and on mode changes), so the idle pass does nothing while a HUD aim is in flight.
+
+**Evidence.** The parser, inbox, inverse map, reach box, status fields and reply formatter are pure and native-tested: 307 cases in 17 suites, also under ASan and UBSan. The reply buffer `hud::kReplySize` is 832 B; `test_reply_json` builds the worst case at 739 B and the typical reply is about 330 B, so the cap has headroom and the formatter falls back to `{"detected":0}` on overflow rather than overrunning. The page was exercised against `tools/hud_mock/mock_board.py` in a browser at 1440x900, 390x844 and 844x390, and `web/test_web_ui.py` checks no external resources, balanced markup and only known commands. **Not yet verified on hardware:** HUD calibration, tap-to-aim, the reticle matching the real aim, the reach box and the new status fields; the success criteria in the spec (including `idle0` of at least 60% with one HUD) are still to be measured on the board.
+
+## 13. Stream freezes: a TCP retransmit timer on a shared task
+
+**Symptom.** With the HUD open, the video froze for about 1-2 s every few seconds, and sometimes for longer.
+
+**Instrument first.** A capture client ran on the PC for 2-3 minutes. It was a second `/stream` viewer plus a 25 Hz `/commands` poll. It logged on one clock every frame arrival, every poll round trip, a ping to the board 4 times a second and the board's serial stats. Then a `[net]` stats line was added to the firmware. It times every `httpd_ws_send_frame_async` call and reports the longest send in the window (`snd_max_ms`), the slow and failed sends, and the share of time spent sending.
+
+**What the timeline showed** (first run: 63 gaps over 400 ms in 180 s):
+- Every video gap matched a `/commands` round trip of the same length, with a median of 78 ms but a p95 of 1.34 s.
+- Ping to the board stayed at 5-10 ms through the gaps.
+- `idle0` stayed between 54 and 91%.
+
+So the WiFi link was up and the CPU was not saturated. What stalled was the single httpd task, which runs every `/stream` send and every `/commands` reply. On the board, `snd_max_ms` hit 1,000-1,600 ms exactly when the video froze.
+
+**Wrong first hypotheses.**
+- **Nagle.** httpd never sets `TCP_NODELAY`, and each frame goes out as a 4-byte header send and then the payload. Setting it on the stream sockets cut the average send from about 10 ms to 6-8 ms, but the long blocks remained. It was kept as a free gain.
+- **The send buffer.** A roughly 5.4 KB frame nearly filled the 5,744 B TCP send buffer (4 segments), so the theory was that a lost tail segment had nothing behind it to trigger a fast retransmit. Doubling the buffer to 11,488 B (with 3.5 KB frames, three frames fit) left the 1-2.7 s blocks as frequent as before. It also cost a lot: `heap_min` fell from about 80 KB to 38 KB, because lwIP also allocates pbufs for every queued segment. It was reverted.
+
+**The real cause: lwIP's minimum retransmit timeout.** lwIP measures RTT in slow-timer ticks of `2 x TCP_TMR_INTERVAL` (500 ms by default).
+- A LAN round trip of 5-10 ms always measures as 0 ticks.
+- The variance term `sv` starts at 3000/500 = 6 ticks and decays by `sv >> 2` per sample (6, 5, 4, 3). It sticks at 3, because `3 >> 2` is 0.
+- So the RTO never drops below 3 ticks, or 1.5 s. Depending on the timer phase, the real wait is 1.0-1.5 s, which is exactly the measured blocks.
+- A second loss doubles it (`tcp_backoff`) to 3 s. That passes the 2 s `send_wait_timeout`, so the send fails mid-frame, the browser sees a corrupt frame (`1002 incorrect masking`) and the viewer is dropped.
+
+**The fix: `CONFIG_LWIP_TCP_TMR_INTERVAL=100`.** The tick becomes 200 ms, so the floor is 0.6 s and one backoff is 1.2 s, under the send timeout. It was not set lower because ping spikes reach 450-540 ms, and a shorter RTO would retransmit segments that are only late.
+
+| Metric | 250 ms timer (3 runs) | 100 ms timer |
+|---|---|---|
+| `snd_max_ms` per window | 1,000-2,800 | 636-1,188 |
+| failed sends (viewer dropped) | 1-2 per run | 0 |
+| longest video gap | 2.7-7.9 s | 1.6 s |
+| `/commands` round trip, max | 1.8-4.7 s | 1.6 s |
+
+**What it does not fix.** The number of stalls depends on how many segments the link loses, and that varied a lot between runs. The board's RSSI moved from -61 to -80 dBm as it was moved, while the PC sat on 5 GHz at 95%. The fix bounds each stall; it does not prevent them.
+
+**Open.** Where the segments are lost (the ESP32 TX queue in bursts, 2.4 GHz contention or the AP) needs a packet capture on the PC. The structural fix is to stop blocking: send `/stream` from its own server task, or use non-blocking writes that drop a frame for a busy viewer, so that a stalled video socket can never delay HUD control.
+
+### Fix 2: /stream on its own server
+
+The `esp_http_server` has one task per instance, so `/stream` sends and `/commands` replies queued behind each other: a video frame waiting for a TCP retransmit (0.6 s or more, doubling) held up every HUD reply, and a double loss passed the 2 s `send_wait_timeout` and cut the frame mid-send. The fix is a second `esp_http_server` instance on port 81 (`ctrl_port` 32769, core 0, 4 KB stack, 3 sockets) that serves only `/stream`. A stall now freezes only the video. That instance also gets `send_wait_timeout = 4`, so a double retransmit finishes the frame instead of disconnecting the viewer. The HUD page still comes from port 80, so the `/stream` handshake uses an any-port Origin check (`remote::origin_allowed_any_port`), and the HUD reopens a frozen stream after 5 s, just past the 4 s timeout.
+
+Measurements (board at RSSI -59 to -69 dBm, one viewer):
+
+| Test | Result |
+|---|---|
+| 3 min soak, `/stream` on :81 plus a `/commands` poller | 16.7 fps, no gap over 400 ms, poll round trip median 63 ms, max 250 ms, `snd_fail` 0. The link lost nothing this run (longest send 103 ms), so this shows no regression, not isolation |
+| Isolation: a `/stream` viewer that never reads (its TCP window fills, so sends block as in a retransmit wait) while polling `/commands` for 40 s | Stream sends blocked 4.4 s and 4.0 s (the new timeout), then the viewer was dropped. `/commands`: 345 polls, median 71 ms, max 249 ms, none over 500 ms. On the shared server, the same block froze every reply |
+| Heap | `heap_min` 86 KB while streaming (about 80 KB before); free heap back to 112 KB after the viewer left |
+
+Video still pauses while TCP repairs a loss (in-order delivery); fewer losses need a better link (placement, antenna).

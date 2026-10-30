@@ -5,6 +5,8 @@
 
 #include <esp32-hal-log.h> // route ESP_LOGx through Arduino's logger (otherwise silenced)
 #include <esp_log.h>
+#include <esp_timer.h>
+#include <lwip/sockets.h>
 #include <unistd.h>
 
 static const char* TAG_STREAM = "STREAM";
@@ -83,7 +85,15 @@ void StreamBroadcaster::stop()
     viewers_ = frames::ViewerSet{};
 }
 
-size_t StreamBroadcaster::viewer_count()
+StreamBroadcaster::SendStats StreamBroadcaster::take_send_stats()
+{
+    return SendStats{.total_us = send_us_total_.load(),
+                     .slow = send_slow_.load(),
+                     .failed = send_failed_.load(),
+                     .max_us = send_us_max_.exchange(0)};
+}
+
+size_t StreamBroadcaster::viewer_count() const
 {
     if (mutex_ == nullptr)
     {
@@ -95,7 +105,8 @@ size_t StreamBroadcaster::viewer_count()
 
 esp_err_t StreamBroadcaster::pre_handshake(httpd_req_t* req)
 {
-    return handshake_origin_ok(req, TAG_STREAM) ? ESP_OK : ESP_FAIL; // a refused viewer is never added
+    // Any port: the page is on 80, /stream on 81. A refused viewer is never added.
+    return handshake_origin_ok(req, TAG_STREAM, true) ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
@@ -121,6 +132,10 @@ esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
         httpd_sess_trigger_close(req->handle, fd);
     } else
     {
+        // httpd leaves Nagle on. A frame goes out as a 4-byte header send then the payload, and Nagle holds each
+        // frame's last partial segment until the previous data is ACKed, which the viewer may delay (delayed ACK).
+        const int one = 1;
+        setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
         ESP_LOGI(TAG_STREAM, "Viewer connected (fd %d)", fd);
     }
     return ESP_OK;
@@ -163,10 +178,17 @@ void StreamBroadcaster::remove_viewer(int fd)
     {
         return;
     }
-    vsync::MutexLock lock(mutex_);
-    if (viewers_.index_of(fd))
+    bool removed = false;
     {
-        viewers_.remove(fd);
+        vsync::MutexLock lock(mutex_);
+        if (viewers_.index_of(fd))
+        {
+            viewers_.remove(fd);
+            removed = true;
+        }
+    } // log outside the lock: serial output is slow and would stall every task waiting on the broadcaster mutex
+    if (removed)
+    {
         ESP_LOGI(TAG_STREAM, "Viewer disconnected (fd %d)", fd);
     }
 }
@@ -277,8 +299,26 @@ void StreamBroadcaster::send_job(void* arg)
     frame.payload = const_cast<uint8_t*>(self->store_->data(*job->lease));
     frame.len = job->lease->meta().length;
 
+    const int64_t send_start_us = esp_timer_get_time();
     const esp_err_t err = httpd_ws_send_frame_async(self->server_, fd, &frame);
+    const auto send_us = static_cast<uint32_t>(esp_timer_get_time() - send_start_us);
     job->lease.reset(); // release the slot before touching the broadcaster mutex
+
+    // This task raises the max while take_send_stats() (stats line, loop task) resets it with exchange(0): a CAS loop
+    // keeps a concurrent reset from being overwritten by a stale larger value.
+    self->send_us_total_.fetch_add(send_us);
+    uint32_t cur = self->send_us_max_.load();
+    while (send_us > cur && !self->send_us_max_.compare_exchange_weak(cur, send_us))
+    {
+    }
+    if (send_us >= kSlowSendUs)
+    {
+        self->send_slow_.fetch_add(1);
+    }
+    if (err != ESP_OK)
+    {
+        self->send_failed_.fetch_add(1);
+    }
 
     bool matched = false;
     {

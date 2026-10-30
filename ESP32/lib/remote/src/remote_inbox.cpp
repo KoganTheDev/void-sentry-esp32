@@ -1,5 +1,7 @@
 #include "remote_inbox.h"
 
+#include <utility>
+
 namespace remote
 {
 void RemoteInbox::submit(const Command& cmd, uint32_t now_ms)
@@ -19,6 +21,16 @@ void RemoteInbox::submit(const Command& cmd, uint32_t now_ms)
     case Mode:
         mode_request_ = cmd.mode;
         break;
+    case Calibrate:
+        cal_request_ = cmd.cal;
+        break;
+    case Aim:
+        has_move_ = false; // a new aim point replaces any running HUD jog
+        aim_request_ = AimPixel{cmd.aim_x, cmd.aim_y};
+        break;
+    case Speed:
+        speed_ = cmd.speed;
+        break;
     case Poll:
     case Fire:
         break;
@@ -36,13 +48,24 @@ Jog RemoteInbox::jog(uint32_t now_ms) const
     {
         return Jog{};
     }
-    return Jog{kJogSpeed * static_cast<float>(pan_), kJogSpeed * static_cast<float>(tilt_)};
+    float mag = kJogSpeed;
+    switch (speed_)
+    {
+    case JogSpeed::Slow:
+        mag = kJogSpeedSlow;
+        break;
+    case JogSpeed::Fast:
+        mag = kJogSpeedFast;
+        break;
+    case JogSpeed::Normal:
+        break;
+    }
+    return Jog{mag * static_cast<float>(pan_), mag * static_cast<float>(tilt_)};
 }
 
-std::optional<RemoteMode> RemoteInbox::take_mode_request()
-{
-    const std::optional<RemoteMode> out = mode_request_;
-    mode_request_.reset();
-    return out;
-}
+std::optional<RemoteMode> RemoteInbox::take_mode_request() { return std::exchange(mode_request_, std::nullopt); }
+
+std::optional<CalAction> RemoteInbox::take_cal_request() { return std::exchange(cal_request_, std::nullopt); }
+
+std::optional<AimPixel> RemoteInbox::take_aim_request() { return std::exchange(aim_request_, std::nullopt); }
 } // namespace remote

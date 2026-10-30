@@ -3,6 +3,7 @@
 #include "windowed_counter.h"
 #include <Arduino.h>
 #include <WiFi.h>
+#include <esp_heap_caps.h>
 #include <esp_log.h>
 #include <esp_timer.h>
 
@@ -26,6 +27,10 @@ stats::WindowedCounter<uint64_t> w_decode_us;
 stats::WindowedCounter<uint64_t> w_track_us;
 stats::WindowedCounter<uint32_t> w_wall_us;
 stats::WindowedCounter<uint32_t> w_idle_us[portNUM_PROCESSORS];
+stats::WindowedCounter<uint32_t> w_sent;
+stats::WindowedCounter<uint64_t> w_send_us;
+stats::WindowedCounter<uint32_t> w_send_slow;
+stats::WindowedCounter<uint32_t> w_send_failed;
 } // namespace
 
 void log_stats(const Sources& src)
@@ -82,8 +87,20 @@ void log_stats(const Sources& src)
         (unsigned)src.turret.stack_free(), (unsigned)ctl.aims, (unsigned)jpeg_b_avg);
     // Second line: the ROM printf behind Arduino logging truncates the first one after jpeg_b_avg.
     ESP_LOGI(TAG,
-             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s",
+             "[detect] det_frames=%u dec_win_us=%u trk_win_us=%u det_stack_free=%u idle0=%u idle1=%u rssi=%d wifi=%s "
+             "heap_largest=%u",
              (unsigned)det_frames, (unsigned)dec_win_us, (unsigned)trk_win_us, (unsigned)det.stack_free, idle_pct[0],
-             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name());
+             idle_pct[1], (int)WiFi.RSSI(), src.wifi.mode_name(),
+             // Largest contiguous internal block: heap_min can look fine while fragmentation blocks a big allocation.
+             (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+    // Third line: how long /stream sends block the httpd task, which also serves /commands (a long send freezes the
+    // video for every viewer and delays HUD replies). snd_busy is the share of the window spent inside sends.
+    const StreamBroadcaster::SendStats snd = src.http_server.take_send_stats();
+    const uint32_t d_sent = w_sent.sample(src.http_server.frames_sent());
+    const uint64_t d_send_us = w_send_us.sample(snd.total_us);
+    ESP_LOGI(TAG, "[net] sent_win=%u snd_avg_us=%u snd_max_ms=%u snd_slow=%u snd_fail=%u snd_busy=%u", (unsigned)d_sent,
+             (unsigned)stats::window_avg<uint64_t>(d_send_us, d_sent), (unsigned)(snd.max_us / 1000),
+             (unsigned)w_send_slow.sample(snd.slow), (unsigned)w_send_failed.sample(snd.failed),
+             stats::window_percent(static_cast<uint32_t>(d_send_us), d_wall_us));
 }
 } // namespace telemetry

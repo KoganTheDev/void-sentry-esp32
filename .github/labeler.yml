@@ -1,46 +1,48 @@
 "Detection":
   - changed-files:
-    - any-glob-to-any-file: 
-      - 'detection/**/*'
+    - any-glob-to-any-file:
+      - 'ESP32/lib/detection/**'
+      - 'ESP32/lib/jpeg_gray/**'
+      - 'ESP32/lib/tracking/**'
 
 "Network":
   - changed-files:
-    - any-glob-to-any-file: 
-      - 'network/**/*'
+    - any-glob-to-any-file:
+      - 'ESP32/lib/network/**'
 
 "Motion":
   - changed-files:
-    - any-glob-to-any-file: 
-      - 'motion/**/*'
+    - any-glob-to-any-file:
+      - 'ESP32/lib/motion/**'
 
 "Logic":
   - changed-files:
-    - any-glob-to-any-file: 
-      - 'controller/**/*'
-
-"Storage":
-  - changed-files:
     - any-glob-to-any-file:
-      - 'storage/**/*'
+      - 'ESP32/lib/controller/**'
 
 "Documentation":
   - changed-files:
-    - any-glob-to-any-file: 
+    - any-glob-to-any-file:
       - 'README.md'
-      - 'docs/**/*'
+      - 'docs/**'
 
 "Tests":
   - changed-files:
-    - any-glob-to-any-file: 
-      - 'test/**/*'
+    - any-glob-to-any-file:
+      - 'ESP32/test/**'
 
 "CI/CD":
   - changed-files:
     - any-glob-to-any-file:
-      - '.github/**/*'
-      - 'platformio.ini' # הוספתי את קובץ ההגדרות הראשי של הפרויקט
+      - '.github/**'
+      - 'ESP32/platformio.ini'
 
-"Music/SFX":
+"Web":
   - changed-files:
     - any-glob-to-any-file:
-      - 'music/**/*'
+      - 'web/**'
+
+"Tools":
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'tools/**'

@@ -11,7 +11,8 @@ namespace prov
 {
 enum class PlanState { Boot, Scanning, Joining, Connected, Lost, Setup };
 enum class ActionKind { None, StartScan, Join, StartHotspot, StopHotspot };
-enum class JoinFail { None, Timeout, WrongPassword, NotFound, Other };
+/** @brief Transient: a failure that usually clears on an immediate retry (e.g. AUTH_EXPIRE right after boot). */
+enum class JoinFail { None, Timeout, WrongPassword, NotFound, Other, Transient };
 
 struct Action {
     ActionKind kind = ActionKind::None;
@@ -28,6 +29,10 @@ public:
     static constexpr uint32_t kJoinTimeoutMs = 15000;
     static constexpr uint32_t kLostToSetupMs = 120000;
     static constexpr uint32_t kSetupRescanMs = 30000;
+    /** @brief First Setup rescan after the join attempts of a boot or lost-network cycle all failed. */
+    static constexpr uint32_t kSetupFirstRescanMs = 5000;
+    /** @brief Same-candidate retries of a Transient failure within kJoinTimeoutMs. */
+    static constexpr uint8_t kTransientRetries = 2;
 
     /** @brief Boot only: saved networks -> Scanning + StartScan; none -> Setup + StartHotspot. */
     Action start(bool have_saved, uint32_t now_ms);
@@ -35,7 +40,12 @@ public:
     Action on_scan_done(const Candidates& c, uint32_t now_ms);
     /** @brief Joining, Lost or Setup -> Connected; StopHotspot if the hotspot is up. */
     Action on_joined(uint32_t now_ms);
-    /** @brief Joining only: next remembered candidate, else Setup (+ StartHotspot if not up). */
+    /**
+     * @brief Joining only: next remembered candidate, else Setup (+ StartHotspot if not up). A Transient failure
+     * first retries the same candidate (same Join action, up to kTransientRetries, only before kJoinTimeoutMs since
+     * its first attempt). Entering Setup with the hotspot not yet up schedules the first rescan after
+     * kSetupFirstRescanMs; later ones keep kSetupRescanMs.
+     */
     Action on_join_failed(JoinFail why, uint32_t now_ms);
     /** @brief Connected -> Lost (auto-reconnect retries; nothing issued). */
     Action on_disconnected(uint32_t now_ms);
@@ -62,6 +72,7 @@ private:
     Candidates _cand;
     size_t _next = 0;
     uint32_t _join_ms = 0;
+    uint8_t _retries = 0; // Transient retries used on the current candidate
     uint32_t _lost_ms = 0;
     uint32_t _scan_ms = 0;
 };

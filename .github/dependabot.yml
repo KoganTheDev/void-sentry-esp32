@@ -4,17 +4,9 @@
 
 version: 2
 updates:
-    # 1. Monitor GitHub Actions
+    # Monitor GitHub Actions
     # This keeps your workflows (checkout, setup-python, etc.) updated to the latest versions.
     - package-ecosystem: "github-actions"
       directory: "/"
       schedule:
           interval: "weekly" # Check every week to avoid too much "noise"
-
-    # 2. Monitor PlatformIO / Python Dependencies
-    # PlatformIO Core is built on Python. Monitoring "pip" ensures your
-    # environment stays compatible with the latest PlatformIO features and security fixes.
-    - package-ecosystem: "pip"
-      directory: "/"
-      schedule:
-          interval: "weekly"
