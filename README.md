@@ -110,7 +110,7 @@ Open `http://<board-ip>/` in a browser. The page is served gzipped from flash an
 
 ### Developing the HUD without hardware
 
-`python tools/hud_mock/mock_board.py` runs a fake board that serves `web/*.html`, `/commands` and `/stream` (also on port 81, where the HUD opens it); open `http://127.0.0.1:8080`. Flags are in its docstring. `web/test_web_ui.py` checks the page statically, and the visual reference is `docs/design/hud-mockup.html`.
+`python tools/hud_mock/mock_board.py` runs a fake board that serves `web/*.html`, `/commands` and `/stream` (all on its one port; the HUD streams from port 81 only when served from port 80); open `http://127.0.0.1:8080`. Flags are in its docstring. `web/test_web_ui.py` checks the page statically, and the visual reference is `docs/design/hud-mockup.html`.
 
 ## Testing and CI
 

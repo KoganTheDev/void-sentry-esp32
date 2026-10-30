@@ -1,6 +1,7 @@
 """Tests for the mock board simulation (run: python -m unittest discover -s tools/hud_mock -p "test_*.py")."""
 import io
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -9,11 +10,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import mock_board as mb  # noqa: E402
 
-SPEC_KEYS = [
-    "detected", "x", "y", "width", "height", "pixels", "state", "id", "bx", "by", "bw", "bh", "vx", "vy",
-    "mode", "cal", "cal_state", "calibrated", "pan", "tilt", "cal_error",
-    "cal_saves", "cal_miss", "stick", "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "ret", "spd", "vw",
-]  # fmt: skip
+# The shared reply contract: the ordered keys of a full /commands reply as the firmware emits them. See
+# ReplyContractTests for how both sides are tied to it.
+REPO = Path(__file__).resolve().parents[2]
+SPEC_KEYS = json.loads((Path(__file__).parent / "reply_keys.json").read_text(encoding="utf-8"))
 
 
 class FixedTarget(mb.Target):
@@ -573,16 +573,6 @@ class RenderTests(unittest.TestCase):
         self.assertNotEqual(rend.render(away), rend.render(there))
 
 
-class ArgsTests(unittest.TestCase):
-    def test_stream_port_defaults_to_the_boards_81(self):
-        args = mb.build_parser().parse_args([])
-        self.assertEqual(8080, args.port)
-        self.assertEqual(81, args.stream_port)
-
-    def test_stream_port_override(self):
-        self.assertEqual(8081, mb.build_parser().parse_args(["--stream-port", "8081"]).stream_port)
-
-
 class WifiTests(unittest.TestCase):
     def test_pin_and_lists(self):
         w = mb.WifiState()
@@ -594,6 +584,31 @@ class WifiTests(unittest.TestCase):
         self.assertEqual((200, {"ok": True}), w.post("/api/wifi/forget", {"ssid": "New", "pin": "1234"}))
         self.assertEqual({"networks"}, set(w.scan()))
         self.assertEqual({"mode", "ssid", "ip", "pin_set", "failure"}, set(w.status()))
+
+class ReplyContractTests(unittest.TestCase):
+    """reply_keys.json ties the mock and the firmware together, so drift on either side fails CI.
+
+    Mock side: its full reply must have exactly these keys in this order. Firmware side: test_reply_json.cpp holds the
+    golden reply that format_reply must reproduce byte for byte (the native test enforces that), and the keys parsed
+    out of that golden string must equal the fixture. The HUD side: every key web_ui.html reads off a reply (`m.<key>`)
+    must be in the fixture, so the page cannot depend on a field the board never sends.
+    """
+
+    def test_mock_reply_has_the_contract_keys_in_order(self):
+        b, _ = board()
+        self.assertEqual(SPEC_KEYS, list(r(b, " ", 1.0).keys()))
+
+    def test_firmware_golden_reply_has_the_contract_keys_in_order(self):
+        src = (REPO / "ESP32" / "test" / "native" / "test_reply_json" / "test_reply_json.cpp").read_text(encoding="utf-8")
+        start = src.index("const char* expected =", src.index("void test_golden_typical_reply"))
+        golden = src[start : src.index(";", start)]
+        self.assertEqual(SPEC_KEYS, re.findall(r'\\"(\w+)\\":', golden))
+
+    def test_hud_reads_only_contract_keys(self):
+        html = (REPO / "web" / "web_ui.html").read_text(encoding="utf-8")
+        read = set(re.findall(r"\bm\.([a-z_][a-z_0-9]*)\b", html))
+        self.assertTrue(read, "no reply reads found: the pattern no longer matches web_ui.html")
+        self.assertEqual(set(), read - set(SPEC_KEYS))
 
 
 if __name__ == "__main__":

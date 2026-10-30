@@ -36,6 +36,21 @@ jobs:
             - name: Test index_html.h generator
               run: python -m unittest discover -s web -p "test_*.py" -v
 
+    hud-e2e:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
+              with:
+                  python-version: "3.12"
+            - name: Install mock board and driver dependencies
+              run: pip install "websockets>=13" pillow
+            - name: Test the mock board and the reply contract
+              run: python -m unittest discover -s tools/hud_mock -p "test_*.py" -v
+            # Chrome is preinstalled on ubuntu-latest. The script adds --headless=new --no-sandbox on Linux.
+            - name: HUD end-to-end checks in headless Chrome
+              run: python tools/hud_e2e/hud_e2e.py --browser "$(which google-chrome)"
+
     build:
         runs-on: ubuntu-latest
         steps:
