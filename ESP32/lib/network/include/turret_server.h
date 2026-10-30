@@ -6,11 +6,11 @@
 #pragma once
 
 #include "base_detection_module.h"
+#include "commands_handler.h"
 #include "control_status.h"
 #include "frame_store.h"
 #include "remote_command.h"
 #include "stream_broadcaster.h"
-#include "websockets.h"
 #include <esp_http_server.h>
 
 class WifiManager;

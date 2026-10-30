@@ -249,3 +249,5 @@ Measurements (board at RSSI -59 to -69 dBm, one viewer):
 | Heap | `heap_min` 86 KB while streaming (about 80 KB before); free heap back to 112 KB after the viewer left |
 
 Video still pauses while TCP repairs a loss (in-order delivery); fewer losses need a better link (placement, antenna).
+
+The capture, soak and isolation scripts behind these numbers are in `tools/net_bench/` (see its README for commands and pass criteria).
