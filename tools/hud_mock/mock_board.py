@@ -3,7 +3,7 @@
 Usage (repo root; needs the `websockets` package, version 13 or newer, and Pillow):
 
     python tools/hud_mock/mock_board.py [--port 8080] [--host 127.0.0.1] [--dark] [--stall-after SECONDS]
-                                        [--busy] [--uncalibrated] [--stick] [--narrow-limits]
+                                        [--busy] [--uncalibrated] [--stick] [--stay] [--narrow-limits]
 
 then open http://127.0.0.1:8080 (the HUD) or http://127.0.0.1:8080/wifi (WiFi setup).
 
@@ -34,6 +34,7 @@ Options:
     --narrow-limits    shrink the soft limits to pan -20..20 deg and tilt 75..105 deg: the reach box is clearly
                        smaller than the frame and the lim bits trigger after a short jog (out-of-reach and end-stop UI)
     --stick            the physical joystick "wins": while a HUD jog is held, stick is 1 and the jog is ignored
+    --stay             the target never leaves the frame (always locked, id 1); the e2e checks use it
 
 The simulation (classes Target, Turret, Board) is pure: it takes the time as an argument, so it is deterministic and
 unit-tested (test_mock_board.py). Only the Server class touches sockets and the clock.
@@ -240,7 +241,14 @@ class TrackSample:
 
 
 class Target:
-    """A person walking a smooth loop, out of the frame 4 s of every 20 s. A pure function of the time."""
+    """A person walking a smooth loop, out of the frame 4 s of every 20 s. A pure function of the time.
+
+    With stay=True the person never leaves: always locked, id 1 (for scripted HUD checks, which must not have the target
+    vanish between seeing it locked and the board recording it).
+    """
+
+    def __init__(self, stay: bool = False):
+        self.stay = stay
 
     CYCLE_S = 20.0
     ABSENT_S = 4.0
@@ -266,6 +274,8 @@ class Target:
         )  # fmt: skip
 
     def sample(self, t: float) -> TrackSample:
+        if self.stay:
+            return self._sample_at("locked", 1, t, True)
         cycle = t % self.CYCLE_S
         start = t - cycle
         tid = int(t // self.CYCLE_S) + 1
@@ -647,7 +657,7 @@ class Server:
         self.t0 = time.monotonic()
         self.viewers: set = set()
         self.wifi = WifiState()
-        self.board = Board(uncalibrated=args.uncalibrated, stick_mode=args.stick, viewers=lambda: len(self.viewers),
+        self.board = Board(target=Target(stay=args.stay), uncalibrated=args.uncalibrated, stick_mode=args.stick, viewers=lambda: len(self.viewers),
                            narrow_limits=args.narrow_limits)
         self.renderer = FrameRenderer(dark=args.dark)
         self.inner_port = 0
@@ -797,6 +807,7 @@ def build_parser():
     ap.add_argument("--uncalibrated", action="store_true", help="start with calibrated 0 and the default map")
     ap.add_argument("--narrow-limits", action="store_true",
                     help="soft limits pan -20..20, tilt 75..105 (small reach box, easy to hit the end stops)")  # fmt: skip
+    ap.add_argument("--stay", action="store_true", help="the target never leaves the frame (always locked, id 1)")
     ap.add_argument("--stick", action="store_true", help="the joystick overrides HUD jogs (stick = 1 while held)")
     return ap
 
