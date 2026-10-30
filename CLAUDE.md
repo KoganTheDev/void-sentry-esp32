@@ -26,7 +26,7 @@ g++ -std=c++20 -O2 -g -Wall -Wextra -I ESP32/include -I ESP32/lib/tracking/inclu
 python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool tests
 python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
 python -m unittest discover -s tools/hud_mock -p "test_*.py"   # mock board tests
-python tools/hud_mock/mock_board.py   # fake board for HUD work (serves web/*.html, /commands, /stream; flags in its docstring), open http://127.0.0.1:8080
+python tools/hud_mock/mock_board.py   # fake board for HUD work (serves web/*.html, /commands, /stream on `--port` and `--stream-port`, default 81; flags in its docstring), open http://127.0.0.1:8080
 ```
 
 - Envs are in `platformio.ini`: firmware `freenove_esp32_wrover`, `pin_check` (only `src/pin_check/`), and host-only `native`, `native_sanitize`, `native_coverage` (tests under `test/native/`; the last two are Linux/CI only). Device envs ignore `test/native/*`.
@@ -76,7 +76,8 @@ Frames flow camera task -> `FrameStore` -> detect task and stream task. `loop()`
 | `arduino_events` (WiFi events only) | 1 | 19 | - |
 | lwIP | 0 | 18 | - |
 | motor | 0 | 7 | 3072 |
-| httpd (`esp_http_server`, default priority) | 0 | 5 | 8192 |
+| httpd (`esp_http_server`, port 80: page, `/commands`, WiFi API) | 0 | 5 | 8192 |
+| httpd stream (`esp_http_server`, port 81: `/stream` only) | 0 | 5 | 4096 |
 | camera copy | 1 | 4 | 4096 |
 | stream | 1 | 4 | 4096 |
 | detect | 1 | 3 | 4096 |
@@ -90,8 +91,8 @@ Frames flow camera task -> `FrameStore` -> detect task and stream task. `loop()`
   - HUD jogs (`move:<dir>`, resent every 100 ms) apply in User and Calibrate only (zero while the button is held in Calibrate), expire 300 ms after the last one, and lose to the joystick. `fire` is parsed but not acted on (the HUD never sends it). The HUD mode button is dropped (never deferred) during calibration.
   - HUD calibration: `cal:start|point|cancel` have the button's exact semantics (start = long press when idle, point = short press, cancel = long press while calibrating); `cal:point` records once the pan has stopped, at most 1 s later. A `cal:*` arriving on a pass where the button produced an event is dropped, and a knob record clears a pending HUD one. A zero tilt jog freezes the servo where it is (`Turret`), so a stop also ends an aim's tilt slew. `aim:x,y` (x 0..319, y 0..239; User/Calibrate only) goes through the active `AimMap`, cancels a HUD jog, and holds until a jog or the stick takes over (the 25 Hz idle jog of (0,0) must not cancel it). `speed:slow|normal|fast` sets the HUD jog magnitude. Malformed values are a Poll.
   - Reply: after the tracker and controller keys come `cal_saves`, `cal_miss` (counters, never one-shot flags: a 25 Hz poll can miss an edge), `stick`, `ax`,`ay` (inverse AimMap of the pose), `lim` (end-stop bitmask), `rx0..ry1` (reachable box), `home`, `ret`, `spd`, `vw`. `vw` is `StreamBroadcaster::viewer_count()` (`/stream` viewers, 0 to 2), read by the `/commands` handler in `websockets.h` when it builds the reply, not by the controller.
-  - Handshake guard on `/commands` and `/stream` (`remote::origin_allowed`; notes s9): an Origin, when present, must equal `http(s)://` + Host, and Host must be an IPv4 literal. Non-browser LAN clients are not authenticated (known follow-up).
-  - `/stream` is push: `StreamBroadcaster` queues one send per idle viewer (max 2) onto the httpd task; busy viewers skip frames. `close_fn` removes viewers and must close the socket. The HUD sends a 1-byte keepalive every 2 s (push-only viewers would be LRU-purged) and reconnects on close.
+  - Handshake guard on `/commands` and `/stream` (`remote::origin_allowed`; notes s9): an Origin, when present, must equal `http(s)://` + Host, and Host must be an IPv4 literal. `/stream` uses `remote::origin_allowed_any_port` instead (the page is on port 80, the stream on 81): the Origin must be `http(s)://` + the Host's IP with an optional valid port. Non-browser LAN clients are not authenticated (known follow-up).
+  - `/stream` is served by a second `esp_http_server` instance on port 81 with its own task (so a send stalled on a TCP retransmit freezes only the video, not `/commands`; notes s13), `send_wait_timeout` 4 s (a double retransmit completes the frame instead of dropping the viewer), `max_open_sockets` 3 (main instance 6; lwIP has 16). It is push: `StreamBroadcaster` queues one send per idle viewer (max 2) onto that task; busy viewers skip frames. `close_fn` removes viewers and must close the socket. The HUD sends a 1-byte keepalive every 2 s (push-only viewers would be LRU-purged) and reconnects on close, and also reopens the socket after 5 s without a frame (past the board's 4 s send timeout).
 - **Stats lines**: `telemetry::log_stats` in `src/telemetry.cpp` (window arithmetic: `stats::WindowedCounter`) logs `[stream]`, `[detect]` and `[net]` every 5 s (separate lines because the ROM printf behind Arduino logging truncates a line after about `jpeg_b_avg`). Non-obvious fields:
   - `*_win_*`, `det_frames`, `jpeg_b_avg` cover the last 5 s window (0 if no frames); the since-boot `_avg` fields hide slowdowns.
   - `idle0`/`idle1`: percent of the window each core spent in its IDLE task, from the kernel run-time counters (`ulTaskGetIdleRunTimeCounterForCore` over wall time). Core 0 saturation shows here before the task watchdog (it watches IDLE0 only) reboots the board.

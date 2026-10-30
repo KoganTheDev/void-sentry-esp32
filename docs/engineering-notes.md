@@ -235,3 +235,9 @@ So the WiFi link was up and the CPU was not saturated. What stalled was the sing
 **What it does not fix.** The number of stalls depends on how many segments the link loses, and that varied a lot between runs. The board's RSSI moved from -61 to -80 dBm as it was moved, while the PC sat on 5 GHz at 95%. The fix bounds each stall; it does not prevent them.
 
 **Open.** Where the segments are lost (the ESP32 TX queue in bursts, 2.4 GHz contention or the AP) needs a packet capture on the PC. The structural fix is to stop blocking: send `/stream` from its own server task, or use non-blocking writes that drop a frame for a busy viewer, so that a stalled video socket can never delay HUD control.
+
+### Fix 2: /stream on its own server
+
+The `esp_http_server` has one task per instance, so `/stream` sends and `/commands` replies queued behind each other: a video frame waiting for a TCP retransmit (0.6 s or more, doubling) held up every HUD reply, and a double loss passed the 2 s `send_wait_timeout` and cut the frame mid-send. The fix is a second `esp_http_server` instance on port 81 (`ctrl_port` 32769, core 0, 4 KB stack, 3 sockets) that serves only `/stream`. A stall now freezes only the video. That instance also gets `send_wait_timeout = 4`, so a double retransmit finishes the frame instead of disconnecting the viewer. The HUD page still comes from port 80, so the `/stream` handshake uses an any-port Origin check (`remote::origin_allowed_any_port`), and the HUD reopens a frozen stream after 5 s, just past the 4 s timeout.
+
+Measurements: pending hardware soak.
