@@ -13,7 +13,9 @@ import re
 import sys
 from dataclasses import dataclass
 
-PURE_LIBS = ("aiming", "checksum", "frames", "hud", "jpeg_gray", "provisioning", "remote", "stats", "tracking")
+PURE_LIBS = (
+    "aiming", "checksum", "control", "frames", "hud", "jpeg_gray", "provisioning", "remote", "stats", "tracking"
+)
 # Pure-library branch coverage was 89.4% (lcov BRDA totals, same file filter as the line gate) when this floor was
 # set; the floor is that value minus 2 points, rounded down, so CI stays green but a real drop is caught. Raise it
 # when branch coverage improves.
