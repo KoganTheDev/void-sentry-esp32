@@ -105,7 +105,8 @@ size_t StreamBroadcaster::viewer_count() const
 
 esp_err_t StreamBroadcaster::pre_handshake(httpd_req_t* req)
 {
-    return handshake_origin_ok(req, TAG_STREAM, true) ? ESP_OK : ESP_FAIL; // a refused viewer is never added; any port: page on 80, /stream on 81
+    // Any port: the page is on 80, /stream on 81. A refused viewer is never added.
+    return handshake_origin_ok(req, TAG_STREAM, true) ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t StreamBroadcaster::post_handshake(httpd_req_t* req)
