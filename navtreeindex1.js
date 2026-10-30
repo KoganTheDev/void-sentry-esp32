@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"dir_97aefd0d527b934f1d99a682da8fe6a9.html":[1,0,1],
 "dir_99b9bfd03cf01ce45c7d0e9ff284312f.html":[1,0,1,12],
 "dir_9b832de16b29a824fff76ba4af27e3fa.html":[1,0,1,2,0],
 "dir_a1b9274e3304f45e82e9c44ea8016353.html":[1,0,1,3,0],
@@ -58,7 +59,7 @@ var NAVTREEINDEX1 =
 "globals.html":[1,1,0],
 "globals_enum.html":[1,1,2],
 "globals_func.html":[1,1,1],
-"handshake__guard_8h_source.html":[1,0,1,9,0,0],
+"handshake__guard_8h_source.html":[1,0,1,9,0,1],
 "hierarchy.html":[0,13],
 "index.html":[],
 "index.html#autotoc_md0":[0],
@@ -157,8 +158,8 @@ var NAVTREEINDEX1 =
 "status__fields_8h_source.html":[1,0,1,6,0,1],
 "step__planner_8h.html":[1,0,1,0,0,5],
 "step__planner_8h_source.html":[1,0,1,0,0,5],
-"stream__broadcaster_8h.html":[1,0,1,9,0,1],
-"stream__broadcaster_8h_source.html":[1,0,1,9,0,1],
+"stream__broadcaster_8h.html":[1,0,1,9,0,2],
+"stream__broadcaster_8h_source.html":[1,0,1,9,0,2],
 "structCameraTaskStats.html":[0,11,15],
 "structControlStatus.html":[0,11,18],
 "structControlStatus.html#a09923c33c73dedce952c6cec0e9d6e05":[0,11,18,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "structtracking_1_1Blob.html":[0,11,7,0],
 "structtracking_1_1Blob.html#a06e81a12f1016593c096679052da91d9":[0,11,7,0,1],
 "structtracking_1_1Blob.html#ac1525c8f0a92f346adb8c9474a73b8fc":[0,11,7,0,0],
-"structtracking_1_1Box.html":[0,11,7,1],
-"structtracking_1_1Box.html#a0d6a919eb9a69a8e005981a53abc0e6c":[0,11,7,1,0]
+"structtracking_1_1Box.html":[0,11,7,1]
 };

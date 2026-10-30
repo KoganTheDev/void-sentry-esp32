@@ -110,7 +110,7 @@ $(function(){initNavTree('classCommandsWebSocketHandler.html',''); initResizable
 <p>The /commands WebSocket: parses each HUD message, hands it to the remote sink and replies with JSON metrics.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="websockets_8h_source.html">websockets.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="commands__handler_8h_source.html">commands_handler.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -127,18 +127,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>unregister_endpoint</
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aac61379fab821d71e09c058afdcf0577" id="r_aac61379fab821d71e09c058afdcf0577"><td class="memItemLeft" align="right" valign="top"><a id="aac61379fab821d71e09c058afdcf0577" name="aac61379fab821d71e09c058afdcf0577"></a>
+<tr class="memitem:ab4b75c7b8be4401201d2b1001427375d" id="r_ab4b75c7b8be4401201d2b1001427375d"><td class="memItemLeft" align="right" valign="top"><a id="ab4b75c7b8be4401201d2b1001427375d" name="ab4b75c7b8be4401201d2b1001427375d"></a>
 static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>pre_handshake</b> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:aac61379fab821d71e09c058afdcf0577"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). <br /></td></tr>
-<tr class="separator:aac61379fab821d71e09c058afdcf0577"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae4dfc8224ca1c7c7062e2b65c9c7033" id="r_aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="memItemLeft" align="right" valign="top"><a id="aae4dfc8224ca1c7c7062e2b65c9c7033" name="aae4dfc8224ca1c7c7062e2b65c9c7033"></a>
+<tr class="memdesc:ab4b75c7b8be4401201d2b1001427375d"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_pre_handshake_cb: refuses pages from other origins before the 101 upgrade reply (ESP_FAIL refuses). <br /></td></tr>
+<tr class="separator:ab4b75c7b8be4401201d2b1001427375d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa15104821982558f9cb6b028e8fd277" id="r_afa15104821982558f9cb6b028e8fd277"><td class="memItemLeft" align="right" valign="top"><a id="afa15104821982558f9cb6b028e8fd277" name="afa15104821982558f9cb6b028e8fd277"></a>
 static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>post_handshake</b> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_post_handshake_cb: logs the new session once it is a WebSocket. <br /></td></tr>
-<tr class="separator:aae4dfc8224ca1c7c7062e2b65c9c7033"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acbf5b28823707d7a8b85b18dc5e0005d" id="r_acbf5b28823707d7a8b85b18dc5e0005d"><td class="memItemLeft" align="right" valign="top"><a id="acbf5b28823707d7a8b85b18dc5e0005d" name="acbf5b28823707d7a8b85b18dc5e0005d"></a>
+<tr class="memdesc:afa15104821982558f9cb6b028e8fd277"><td class="mdescLeft">&#160;</td><td class="mdescRight">ws_post_handshake_cb: logs the new session once it is a WebSocket. <br /></td></tr>
+<tr class="separator:afa15104821982558f9cb6b028e8fd277"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78df488e1dd3542336b59d1ee9afe81b" id="r_a78df488e1dd3542336b59d1ee9afe81b"><td class="memItemLeft" align="right" valign="top"><a id="a78df488e1dd3542336b59d1ee9afe81b" name="a78df488e1dd3542336b59d1ee9afe81b"></a>
 static esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><b>websocket_handler</b> (httpd_req_t *req)</td></tr>
-<tr class="memdesc:acbf5b28823707d7a8b85b18dc5e0005d"><td class="mdescLeft">&#160;</td><td class="mdescRight">httpd callback for /commands: parses one text frame and sends the JSON reply (the handshake goes to the pre/post hooks, never here). <br /></td></tr>
-<tr class="separator:acbf5b28823707d7a8b85b18dc5e0005d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:a78df488e1dd3542336b59d1ee9afe81b"><td class="mdescLeft">&#160;</td><td class="mdescRight">httpd callback for /commands: parses one text frame and sends the JSON reply (the handshake goes to the pre/post hooks, never here). <br /></td></tr>
+<tr class="separator:a78df488e1dd3542336b59d1ee9afe81b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -156,9 +156,6 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kM
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">CommandsWebSocketHandler::CommandsWebSocketHandler </td>
@@ -191,11 +188,6 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kM
           <td class="paramtype">const <a class="el" href="classStreamBroadcaster.html">StreamBroadcaster</a> *</td>          <td class="paramname"><span class="paramname"><em>stream</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -211,8 +203,9 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kM
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
-<li>lib/network/include/<a class="el" href="websockets_8h_source.html">websockets.h</a></li>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>lib/network/include/<a class="el" href="commands__handler_8h_source.html">commands_handler.h</a></li>
+<li>lib/network/src/<b>commands_handler.cpp</b></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

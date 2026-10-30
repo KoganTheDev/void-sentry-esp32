@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"structtracking_1_1Box.html#a0d6a919eb9a69a8e005981a53abc0e6c":[0,11,7,1,0],
 "structtracking_1_1DetectionResult.html":[0,11,7,2],
 "structtracking_1_1DetectionResult.html#a0eb58365b722f5b6a1bab2d148b26ea1":[0,11,7,2,4],
 "structtracking_1_1DetectionResult.html#a132053f6d2f423bf8ab2a91ca0b8135d":[0,11,7,2,0],
@@ -47,11 +48,10 @@ var NAVTREEINDEX2 =
 "tracking__types_8h_source.html":[1,0,1,13,0,3],
 "turret_8h.html":[1,0,1,8,0,1],
 "turret_8h_source.html":[1,0,1,8,0,1],
-"turret__server_8h.html":[1,0,1,9,0,2],
-"turret__server_8h_source.html":[1,0,1,9,0,2],
+"turret__server_8h.html":[1,0,1,9,0,3],
+"turret__server_8h_source.html":[1,0,1,9,0,3],
 "viewer__set_8h.html":[1,0,1,5,0,2],
 "viewer__set_8h_source.html":[1,0,1,5,0,2],
-"websockets_8h_source.html":[1,0,1,9,0,3],
 "wifi__http_8h.html":[1,0,1,9,0,4],
 "wifi__http_8h.html#ab785e8ab86ec005ca5819c61277fcb0a":[1,0,1,9,0,4,0],
 "wifi__http_8h_source.html":[1,0,1,9,0,4],

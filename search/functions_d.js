@@ -6,8 +6,8 @@ var searchData=
   ['parse_3',['parse',['../remote__command_8h.html#ae55779093517f1d80741ed9628ec70ca',1,'remote']]],
   ['plan_5fstate_4',['plan_state',['../classWifiManager.html#a6b91e79d675c0f49a09a3a359f25995a',1,'WifiManager']]],
   ['position_5fdeg_5',['position_deg',['../classBaseTurret.html#a4a2b7dfc9abecd6e491643b979db3d3a',1,'BaseTurret::position_deg()'],['../classTurret.html#a0b6cbbd581932cbff94a43eb3300d4a8',1,'Turret::position_deg()']]],
-  ['post_5fhandshake_6',['post_handshake',['../classCommandsWebSocketHandler.html#aae4dfc8224ca1c7c7062e2b65c9c7033',1,'CommandsWebSocketHandler']]],
-  ['pre_5fhandshake_7',['pre_handshake',['../classCommandsWebSocketHandler.html#aac61379fab821d71e09c058afdcf0577',1,'CommandsWebSocketHandler']]],
+  ['post_5fhandshake_6',['post_handshake',['../classCommandsWebSocketHandler.html#afa15104821982558f9cb6b028e8fd277',1,'CommandsWebSocketHandler']]],
+  ['pre_5fhandshake_7',['pre_handshake',['../classCommandsWebSocketHandler.html#ab4b75c7b8be4401201d2b1001427375d',1,'CommandsWebSocketHandler']]],
   ['process_8',['process',['../classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872',1,'tracking::MotionDetector']]],
   ['publish_9',['publish',['../classframes_1_1FrameSlots.html#a8c82d1a48e26cd5f49df8b685851c43e',1,'frames::FrameSlots']]]
 ];
