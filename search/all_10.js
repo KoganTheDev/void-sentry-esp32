@@ -20,8 +20,9 @@ var searchData=
   ['position_5fdeg_17',['position_deg',['../classBaseTurret.html#a4a2b7dfc9abecd6e491643b979db3d3a',1,'BaseTurret::position_deg()'],['../classTurret.html#a0b6cbbd581932cbff94a43eb3300d4a8',1,'Turret::position_deg()']]],
   ['post_5fhandshake_18',['post_handshake',['../classCommandsWebSocketHandler.html#afa15104821982558f9cb6b028e8fd277',1,'CommandsWebSocketHandler']]],
   ['pre_5fhandshake_19',['pre_handshake',['../classCommandsWebSocketHandler.html#ab4b75c7b8be4401201d2b1001427375d',1,'CommandsWebSocketHandler']]],
-  ['process_20',['process',['../classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872',1,'tracking::MotionDetector']]],
-  ['project_20layout_21',['Project layout',['../index.html#autotoc_md9',1,'']]],
-  ['prov_5ftypes_2eh_22',['prov_types.h',['../prov__types_8h.html',1,'']]],
-  ['publish_23',['publish',['../classframes_1_1FrameSlots.html#a8c82d1a48e26cd5f49df8b685851c43e',1,'frames::FrameSlots']]]
+  ['pressposefallback_20',['PressPoseFallback',['../control__logic_8h.html#a0be8d094b80703b69914a393f8ca1066a8dd4940d413a77b779c72a56d9aa45db',1,'control']]],
+  ['process_21',['process',['../classtracking_1_1MotionDetector.html#aa2913289b3febeaee4a660bae29ce872',1,'tracking::MotionDetector']]],
+  ['project_20layout_22',['Project layout',['../index.html#autotoc_md9',1,'']]],
+  ['prov_5ftypes_2eh_23',['prov_types.h',['../prov__types_8h.html',1,'']]],
+  ['publish_24',['publish',['../classframes_1_1FrameSlots.html#a8c82d1a48e26cd5f49df8b685851c43e',1,'frames::FrameSlots']]]
 ];

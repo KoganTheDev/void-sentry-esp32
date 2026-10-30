@@ -195,7 +195,7 @@ static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><b>kM
     <tr><td class="paramname">uri</td><td>Endpoint path (must outlive the handler; a string literal). </td></tr>
     <tr><td class="paramname">detection</td><td>Optional detection module for the tracker fields. </td></tr>
     <tr><td class="paramname">status</td><td>Optional controller status for the mode/calibration fields. </td></tr>
-    <tr><td class="paramname">remote</td><td>Optional sink that receives the parsed commands (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>). </td></tr>
+    <tr><td class="paramname">remote</td><td>Optional sink that receives the parsed commands (the <a class="el" href="classController.html" title="Runs the control loop on the device: the clock, the HUD inbox, NVS, logging and the published status ...">Controller</a>). </td></tr>
     <tr><td class="paramname">stream</td><td>Optional /stream broadcaster whose viewer count is sent as "vw" (0 when null). Must outlive the handler; <a class="el" href="classStreamBroadcaster.html#a9ca7e59bdc92b9685f5a09cd54317fe7" title="Connected /stream viewers (0 to frames::kMaxViewers).">StreamBroadcaster::viewer_count()</a> is safe to call from the httpd task (but not concurrently with <a class="el" href="classStreamBroadcaster.html#a0b46036f9b9a939886a4677dc1e4a95e" title="Stop the stream task and release all resources. Call BEFORE httpd_stop. Safe to call repeatedly.">StreamBroadcaster::stop()</a>, so httpd must be stopped first). </td></tr>
   </table>
   </dd>

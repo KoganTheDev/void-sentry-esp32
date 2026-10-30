@@ -2,6 +2,7 @@ var dir_97aefd0d527b934f1d99a682da8fe6a9 =
 [
     [ "aiming", "dir_4d9f18d252bb812a68e263d357ac5fec.html", "dir_4d9f18d252bb812a68e263d357ac5fec" ],
     [ "checksum", "dir_14d422574f3b49a4c06b3db821b1d768.html", "dir_14d422574f3b49a4c06b3db821b1d768" ],
+    [ "control", "dir_9b79bbf343833ef304a69d9fd1d08eb1.html", "dir_9b79bbf343833ef304a69d9fd1d08eb1" ],
     [ "controller", "dir_b65cfb74d4eff2984af5aa3d765208a0.html", "dir_b65cfb74d4eff2984af5aa3d765208a0" ],
     [ "detection", "dir_c2b9a02ad982b9b1233f38b67af0cc10.html", "dir_c2b9a02ad982b9b1233f38b67af0cc10" ],
     [ "frame_store", "dir_a5fad4dd48d26b17ba352560923bbb95.html", "dir_a5fad4dd48d26b17ba352560923bbb95" ],

@@ -10,5 +10,7 @@ var searchData=
   ['homestate_7',['HomeState',['../structhud_1_1HomeState.html',1,'hud']]],
   ['hotspot_5fpassword_8',['hotspot_password',['../classWifiStore.html#a51b8e102541c8c149f715e5ffb2dcaa8',1,'WifiStore']]],
   ['httpserver_9',['HttpServer',['../classHttpServer.html',1,'']]],
-  ['hud_20without_20hardware_10',['Developing the HUD without hardware',['../index.html#autotoc_md7',1,'']]]
+  ['hud_20without_20hardware_10',['Developing the HUD without hardware',['../index.html#autotoc_md7',1,'']]],
+  ['hudposetimeout_11',['HudPoseTimeout',['../control__logic_8h.html#a0be8d094b80703b69914a393f8ca1066a0f03e0e361126e8b7dcf2530bbccaec5',1,'control']]],
+  ['hudrequests_12',['HudRequests',['../structcontrol_1_1HudRequests.html',1,'control']]]
 ];

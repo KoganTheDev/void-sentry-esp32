@@ -16,6 +16,13 @@ var annotated_dup =
       [ "StepPlanner", "classaiming_1_1StepPlanner.html", "classaiming_1_1StepPlanner" ],
       [ "TrackView", "structaiming_1_1TrackView.html", "structaiming_1_1TrackView" ]
     ] ],
+    [ "control", null, [
+      [ "ControlLogic", "classcontrol_1_1ControlLogic.html", "classcontrol_1_1ControlLogic" ],
+      [ "ControlPorts", "classcontrol_1_1ControlPorts.html", "classcontrol_1_1ControlPorts" ],
+      [ "HudRequests", "structcontrol_1_1HudRequests.html", null ],
+      [ "LogRecord", "structcontrol_1_1LogRecord.html", null ],
+      [ "StickDeflection", "structcontrol_1_1StickDeflection.html", null ]
+    ] ],
     [ "frames", null, [
       [ "FrameLease", "classframes_1_1FrameLease.html", null ],
       [ "FrameMeta", "structframes_1_1FrameMeta.html", null ],

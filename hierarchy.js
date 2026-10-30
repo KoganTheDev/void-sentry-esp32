@@ -31,6 +31,10 @@ var hierarchy =
     [ "prov::Candidates", "structprov_1_1Candidates.html", null ],
     [ "remote::Command", "structremote_1_1Command.html", null ],
     [ "CommandsWebSocketHandler", "classCommandsWebSocketHandler.html", null ],
+    [ "control::ControlLogic", "classcontrol_1_1ControlLogic.html", null ],
+    [ "control::ControlPorts", "classcontrol_1_1ControlPorts.html", [
+      [ "Controller", "classController.html", null ]
+    ] ],
     [ "ControlStatus", "structControlStatus.html", null ],
     [ "tracking::DetectionResult", "structtracking_1_1DetectionResult.html", null ],
     [ "DetectionStats", "structDetectionStats.html", null ],
@@ -40,8 +44,10 @@ var hierarchy =
     [ "FrameStoreStats", "structFrameStoreStats.html", null ],
     [ "hud::HomeState", "structhud_1_1HomeState.html", null ],
     [ "HttpServer", "classHttpServer.html", null ],
+    [ "control::HudRequests", "structcontrol_1_1HudRequests.html", null ],
     [ "remote::Jog", "structremote_1_1Jog.html", null ],
     [ "Joystick", "classJoystick.html", null ],
+    [ "control::LogRecord", "structcontrol_1_1LogRecord.html", null ],
     [ "tracking::MotionDetector", "classtracking_1_1MotionDetector.html", null ],
     [ "MoveDirection< EnumType >", "classMoveDirection.html", null ],
     [ "MoveDirection< MoveXValue >", "classMoveDirection.html", [
@@ -79,6 +85,7 @@ var hierarchy =
     [ "vsync::SpinGuarded< WifiManager::Status >", "classvsync_1_1SpinGuarded.html", null ],
     [ "WifiManager::Status", "structWifiManager_1_1Status.html", null ],
     [ "aiming::StepPlanner", "classaiming_1_1StepPlanner.html", null ],
+    [ "control::StickDeflection", "structcontrol_1_1StickDeflection.html", null ],
     [ "StreamBroadcaster", "classStreamBroadcaster.html", null ],
     [ "tracking::Tracker", "classtracking_1_1Tracker.html", null ],
     [ "tracking::TrackerConfig", "structtracking_1_1TrackerConfig.html", null ],

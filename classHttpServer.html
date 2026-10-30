@@ -230,8 +230,8 @@ Static Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">store</td><td><a class="el" href="classFrameStore.html">FrameStore</a> the /stream endpoint reads frames from. Must outlive the server. </td></tr>
     <tr><td class="paramname">detection</td><td>Optional pointer to detection module for motion visualization. </td></tr>
-    <tr><td class="paramname">status</td><td>Optional status provider (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>); when null the mode/calibration fields are omitted. </td></tr>
-    <tr><td class="paramname">remote</td><td>Optional sink for the HUD's /commands messages (the <a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a>); when null they are ignored. </td></tr>
+    <tr><td class="paramname">status</td><td>Optional status provider (the <a class="el" href="classController.html" title="Runs the control loop on the device: the clock, the HUD inbox, NVS, logging and the published status ...">Controller</a>); when null the mode/calibration fields are omitted. </td></tr>
+    <tr><td class="paramname">remote</td><td>Optional sink for the HUD's /commands messages (the <a class="el" href="classController.html" title="Runs the control loop on the device: the clock, the HUD inbox, NVS, logging and the published status ...">Controller</a>); when null they are ignored. </td></tr>
     <tr><td class="paramname">wifi</td><td>Optional WiFi manager; when set, the setup page, its JSON API and the captive-portal catch-all are registered (after all other routes). </td></tr>
   </table>
   </dd>

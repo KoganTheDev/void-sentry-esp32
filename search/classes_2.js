@@ -10,5 +10,7 @@ var searchData=
   ['command_7',['Command',['../structremote_1_1Command.html',1,'remote']]],
   ['commandswebsockethandler_8',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html',1,'']]],
   ['controller_9',['Controller',['../classController.html',1,'']]],
-  ['controlstatus_10',['ControlStatus',['../structControlStatus.html',1,'']]]
+  ['controllogic_10',['ControlLogic',['../classcontrol_1_1ControlLogic.html',1,'control']]],
+  ['controlports_11',['ControlPorts',['../classcontrol_1_1ControlPorts.html',1,'control']]],
+  ['controlstatus_12',['ControlStatus',['../structControlStatus.html',1,'']]]
 ];

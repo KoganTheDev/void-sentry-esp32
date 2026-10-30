@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['outcome_0',['Outcome',['../structWifiManager_1_1Outcome.html',1,'WifiManager']]]
+  ['networkentry_0',['NetworkEntry',['../structprov_1_1NetworkEntry.html',1,'prov']]],
+  ['networklist_1',['NetworkList',['../classprov_1_1NetworkList.html',1,'prov']]]
 ];

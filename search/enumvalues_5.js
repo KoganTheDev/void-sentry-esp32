@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['none_0',['None',['../move__types_8h.html#adfc321b16dd1f96f937277639e70e63ba6adf97f83acf6453d4a6a4b1070f3754',1,'None:&#160;move_types.h'],['../move__types_8h.html#ab9decc60011f80120c71d4e5d302c574a6adf97f83acf6453d4a6a4b1070f3754',1,'None:&#160;move_types.h']]]
+  ['mismatch_0',['Mismatch',['../nvs__blob_8h.html#a90e14fa075f663780e8623273d177df7a5b0a8637935072d1ec30e60bb2cae1e6',1,'nvs_blob']]],
+  ['modechanged_1',['ModeChanged',['../control__logic_8h.html#a0be8d094b80703b69914a393f8ca1066ae564c1d218ad158d1bac6217fecafdad',1,'control']]]
 ];

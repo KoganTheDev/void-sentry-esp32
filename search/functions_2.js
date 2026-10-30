@@ -9,5 +9,6 @@ var searchData=
   ['commandswebsockethandler_6',['CommandsWebSocketHandler',['../classCommandsWebSocketHandler.html#afc83c3128840114d1b2eef20d957e2c3',1,'CommandsWebSocketHandler']]],
   ['control_5fstatus_7',['control_status',['../classBaseStatusProvider.html#a06341c770b405cf229450a993155c8ba',1,'BaseStatusProvider::control_status()'],['../classController.html#aa5eb09fdbf93930ec0fa2febce0d0597',1,'Controller::control_status() const override']]],
   ['controller_8',['Controller',['../classController.html#aabbbef71a4654b2c66118a54b72be086',1,'Controller']]],
-  ['crc32_9',['crc32',['../crc32_8h.html#a4b126558fed04a6ec98c1b5f73143dd0',1,'checksum']]]
+  ['controllogic_9',['ControlLogic',['../classcontrol_1_1ControlLogic.html#aeade01c5ab546c6c0f80c1eb7d00b6f8',1,'control::ControlLogic']]],
+  ['crc32_10',['crc32',['../crc32_8h.html#a4b126558fed04a6ec98c1b5f73143dd0',1,'checksum']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['point_0',['Point',['../remote__command_8h.html#ae2b3fe90061999d11286922d3aa16b94a2a3cd5946cfd317eb99c3d32e35e2d4c',1,'remote']]]
+  ['ok_0',['Ok',['../nvs__blob_8h.html#a90e14fa075f663780e8623273d177df7aa60852f204ed8028c1c58808b746d115',1,'nvs_blob']]]
 ];

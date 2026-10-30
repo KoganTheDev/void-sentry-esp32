@@ -131,7 +131,7 @@ Architecture</h2>
 <div class="line">    FS --&gt; ST[&quot;stream task (core 1)&quot;]</div>
 <div class="line">    ST --&gt;|&quot;/stream WebSocket&quot;| HUD[&quot;Browser HUD&quot;]</div>
 <div class="line">    HUD &lt;--&gt;|&quot;/commands WebSocket&quot;| CTRL</div>
-</div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop: button gestures, HUD requests, the three modes and the published status.">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
+</div><!-- fragment --><p>Frames flow one way: camera, slots, detection, snapshot, controller, motors. The stream task reads the same slots for the HUD. <code><a class="el" href="classController.html" title="Runs the control loop on the device: the clock, the HUD inbox, NVS, logging and the published status ...">Controller</a></code> depends only on interfaces (<code><a class="el" href="classBaseDetectionModule.html" title="An abstract base class (Interface) that defines the contract for detection algorithms....">BaseDetectionModule</a></code>, <code><a class="el" href="classBaseTurret.html">BaseTurret</a></code>), and objects are wired by reference in <code>src/main.cpp</code>.</p>
 <p>httpd is pinned to core 0 so network bursts cannot preempt detection. The full task table (cores, priorities, stack sizes) is in CLAUDE.md, and the reasoning in the <a href="docs/engineering-notes.md#7-dual-core-task-layout">engineering notes</a>.</p>
 <h2><a class="anchor" id="autotoc_md3"></a>
 Performance</h2>
@@ -209,6 +209,7 @@ Project layout</h2>
 <div class="fragment"><div class="line">ESP32/lib/tracking     motion detector and tracker (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/aiming       AimMap, AimPolicy, calibration (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/remote       HUD command parser and inbox (pure C++, host-tested)</div>
+<div class="line">ESP32/lib/control      controller decisions: modes, calibration, jog arbitration (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/frames       frame slot bookkeeping and leases (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/provisioning WiFi plan, PIN guard, network list (pure C++, host-tested)</div>
 <div class="line">ESP32/lib/checksum     CRC-32 for the NVS blobs (pure C++, host-tested)</div>
@@ -217,7 +218,7 @@ Project layout</h2>
 <div class="line">ESP32/lib/tjpgd        vendored JPEG decoder</div>
 <div class="line">ESP32/lib/frame_store  camera task and PSRAM slots</div>
 <div class="line">ESP32/lib/detection    detect task and tracking pipeline glue</div>
-<div class="line">ESP32/lib/controller   modes, joystick, ties detection to the turret</div>
+<div class="line">ESP32/lib/controller   device glue for lib/control: joystick, NVS, ties detection to the turret</div>
 <div class="line">ESP32/lib/motion       turret, stepper and servo motor task</div>
 <div class="line">ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster</div>
 <div class="line">ESP32/bench            tracking clip bench and fixtures</div>
