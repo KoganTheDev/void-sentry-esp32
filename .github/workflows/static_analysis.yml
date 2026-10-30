@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Install Cppcheck
               run: |
@@ -72,7 +72,7 @@ jobs:
             # Saves the HTML report for 14 days, accessible via the Actions tab.
             - name: Upload HTML Artifact
               if: always()
-              uses: actions/upload-artifact@v7 # Kept as v6 per your request
+              uses: actions/upload-artifact@v7
               with:
                   name: cppcheck-dashboard
                   path: report/
