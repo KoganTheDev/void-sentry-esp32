@@ -336,8 +336,9 @@ async def scenario_auth(tab):
     ok("CONTROL chip opens the log-out dialog", await tab.until("document.querySelector('#logout-dlg').open", 2))
     await tab.js("document.querySelector('#logout-go').click()")
     ok("log out locks the controls again", await tab.until(f"{AUTH} === 'VIEW ONLY' && {CONTROLS_LOCKED}", 5))
-    await tab.press('[data-dir="right"]', hold=0.3)
-    ok("after log out: a jog is refused with a login hint", await tab.until(f"/log in/i.test({TOASTS})", 3))
+    await tab.key("d", "KeyD", "d")  # a key, not a click: no dependence on where the d-pad sits after the re-layout
+    ok("after log out: a jog key is refused with a login hint", await tab.until(f"/log in/i.test({TOASTS})", 3),
+       f"toasts={await tab.js(TOASTS)!r} link={await tab.js(TEXT('#chip-link span'))!r} auth={await tab.js(AUTH)!r}")
 
 
 async def scenario_no_pin(tab):
