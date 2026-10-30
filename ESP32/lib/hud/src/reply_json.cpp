@@ -64,7 +64,7 @@ bool put_tracker(const TrackSnapshot& t, char* out, size_t size, size_t& len)
                static_cast<double>(t.vy));
 }
 
-bool put_status(const ControlStatus& c, uint32_t viewers, char* out, size_t size, size_t& len)
+bool put_status(const ControlStatus& c, uint32_t viewers, AuthLevel auth, char* out, size_t size, size_t& len)
 {
     return put(out, size, len,
                ",\"mode\":\"%s\",\"cal\":%u,\"cal_state\":\"%s\",\"calibrated\":%d,"
@@ -74,12 +74,13 @@ bool put_status(const ControlStatus& c, uint32_t viewers, char* out, size_t size
                c.cal_failure ? c.cal_failure : "") &&
            put(out, size, len,
                ",\"cal_saves\":%u,\"cal_miss\":%u,\"stick\":%d,\"ax\":%d,\"ay\":%d,\"lim\":%u,"
-               "\"rx0\":%d,\"ry0\":%d,\"rx1\":%d,\"ry1\":%d,\"home\":%u,\"ret\":%d,\"spd\":\"%s\",\"vw\":%u",
+               "\"rx0\":%d,\"ry0\":%d,\"rx1\":%d,\"ry1\":%d,\"home\":%u,\"ret\":%d,\"spd\":\"%s\",\"vw\":%u,\"auth\":%"
+               "u",
                static_cast<unsigned>(c.cal_saves), static_cast<unsigned>(c.cal_miss), c.stick ? 1 : 0,
                static_cast<int>(c.aim_x), static_cast<int>(c.aim_y), static_cast<unsigned>(c.lim),
                static_cast<int>(c.rx0), static_cast<int>(c.ry0), static_cast<int>(c.rx1), static_cast<int>(c.ry1),
                static_cast<unsigned>(c.home_ms), c.returning ? 1 : 0, speed_name(c.speed),
-               static_cast<unsigned>(viewers));
+               static_cast<unsigned>(viewers), static_cast<unsigned>(auth));
 }
 } // namespace
 
@@ -93,7 +94,7 @@ size_t format_reply(const ReplyInput& in, char* out, size_t size)
     bool ok = put_tracker(*in.track, out, size, len);
     if (ok && in.status != nullptr)
     {
-        ok = put_status(*in.status, in.viewers, out, size, len);
+        ok = put_status(*in.status, in.viewers, in.auth, out, size, len);
     }
     // The closing brace needs one more byte besides the NUL.
     if (ok && len + 2 <= size)

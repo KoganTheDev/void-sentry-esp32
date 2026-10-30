@@ -98,7 +98,13 @@ REPLY_KEYS = (
     "detected", "x", "y", "width", "height", "pixels", "state", "id", "bx", "by", "bw", "bh", "vx", "vy",
     "mode", "cal", "cal_state", "calibrated", "pan", "tilt", "cal_error",
     "cal_saves", "cal_miss", "stick", "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "ret", "spd", "vw",
+    "auth",
 )  # fmt: skip
+
+# Reply "auth" (AuthLevel in ESP32/include/auth_level.h): what this /commands session may do.
+AUTH_VIEWER = 0  # a PIN is set and the session is not logged in: status only, control commands are dropped
+AUTH_AUTHED = 1  # logged in with the PIN: full control
+AUTH_OPEN = 2  # no PIN set yet: control is open to everyone
 
 
 def clamp(v, lo, hi):
@@ -154,6 +160,11 @@ def parse(message: str) -> Cmd:
             if x is not None and y is not None and x < FRAME_W and y < FRAME_H:
                 return Cmd("aim", x=x, y=y)
     return Cmd("poll")
+
+
+def requires_auth(c: Cmd) -> bool:
+    """remote::requires_auth: every command but the poll moves or reconfigures the turret."""
+    return c.kind != "poll"
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -520,11 +531,15 @@ class Board:
             self._now = h_end
             self._tick(h_end)
 
-    def handle(self, message: str, now: float) -> str:
-        """One /commands message in, exactly one JSON reply out."""
+    def handle(self, message: str, now: float, auth: int = AUTH_OPEN) -> str:
+        """One /commands message in, exactly one JSON reply out. `auth` is the session's access (remote::gate: a
+        viewer's control command is applied as a poll, never queued, and still answered)."""
         self.advance(now)
-        self._apply(parse(message), now)
-        return self.reply(now)
+        cmd = parse(message)
+        if auth == AUTH_VIEWER and requires_auth(cmd):
+            cmd = Cmd("poll")
+        self._apply(cmd, now)
+        return self.reply(now, auth)
 
     # ---- reply ----
     def home_ms(self, t: float) -> int:
@@ -537,7 +552,7 @@ class Board:
         far = abs(self.turret.pan) > 1.0 or abs(self.turret.tilt - TILT_HOME) > 1.0
         return 1 if self.mode == "ai" and self._homed and far else 0
 
-    def reply_dict(self, t: float) -> dict:
+    def reply_dict(self, t: float, auth: int = AUTH_OPEN) -> dict:
         s = self.target.sample(t)
         ax, ay = self.map.inverse(self.turret.pan, self.turret.tilt)
         rx0, ry0, rx1, ry1 = self.map.reach_box(self.lim)
@@ -552,12 +567,13 @@ class Board:
             "ax": ax, "ay": ay, "lim": self.turret.limits(),
             "rx0": rx0, "ry0": ry0, "rx1": rx1, "ry1": ry1,
             "home": self.home_ms(t), "ret": self.returning_home(), "spd": self.speed, "vw": self._viewers(),
+            "auth": auth,
         }  # fmt: skip
         assert tuple(d) == REPLY_KEYS
         return d
 
-    def reply(self, t: float) -> str:
-        return json.dumps(self.reply_dict(t), separators=(",", ":"))
+    def reply(self, t: float, auth: int = AUTH_OPEN) -> str:
+        return json.dumps(self.reply_dict(t, auth), separators=(",", ":"))
 
 
 def _f1(v: float) -> float:

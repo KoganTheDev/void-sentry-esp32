@@ -1,15 +1,17 @@
 /**
  * @file wifi_manager.h
- * @brief Non-blocking WiFi provisioning: saved networks, setup hotspot, PIN-protected changes.
+ * @brief Non-blocking WiFi provisioning: saved networks, setup hotspot, PIN-protected changes and HUD logins.
  */
 
 #pragma once
 
+#include "auth_level.h"
 #include "choose.h"
 #include "form.h"
 #include "network_list.h"
 #include "pin_guard.h"
 #include "prov_types.h"
+#include "session_table.h"
 #include "sync.h"
 #include "wifi_plan.h"
 #include "wifi_store.h"
@@ -35,6 +37,10 @@
  * cache with maintain() under the mutex, so a call that lands during one of those slow driver calls waits for it, and
  * the single httpd task (every /stream send and /commands reply) waits with it. add() and forget() also hold the mutex
  * across their own NVS writes, which blocks loop() in maintain() for that time.
+ *
+ * The same PIN guards HUD control: login() checks it through the same PinGuard (so wrong PINs on the WiFi page and on
+ * the HUD share one lockout) and keeps the resulting session tokens in a RAM-only prov::SessionTable. auth_level(),
+ * asked on every /commands message, never takes the mutex either. Setting the PIN and `wifi-reset` end every session.
  */
 class WifiManager
 {
@@ -116,6 +122,26 @@ public:
     /** @brief Forgets a saved network after checking the PIN (same PinGuard as add, so lockouts are shared). */
     ForgetOutcome forget(const char* ssid, size_t ssid_len, const char* pin, size_t pin_len, uint32_t now_ms);
 
+    /**
+     * @brief HUD login: checks the PIN and, if it is right, starts a control session.
+     * @details Same PinGuard as add() and forget(), so wrong PINs count toward one shared lockout. Result::Ok fills
+     * @p token with 128 random bits (esp_fill_random) already stored in the session table (the 5th live session
+     * evicts the least recently used one); WrongPin and LockedOut as for add(); BadInput when no PIN has been set yet
+     * (control is open then and there is nothing to log in with). Takes the manager mutex like add() and forget().
+     */
+    Outcome login(const char* pin, size_t pin_len, uint32_t now_ms, prov::SessionToken& token);
+
+    /** @brief Ends the session of @p token (an unknown token is ignored). Never takes the manager mutex. */
+    void logout(const prov::SessionToken& token);
+
+    /**
+     * @brief Access of a /commands session that holds @p token (null when it sent no valid login cookie).
+     * @details Open while no PIN is set, Authed while the token is in the session table, otherwise Viewer. Runs on
+     * the httpd task for every /commands message, so it never takes the manager mutex: an atomic read of whether a
+     * PIN is set and one short spinlock section on the session table. A hit refreshes the session's LRU slot.
+     */
+    AuthLevel auth_level(const prov::SessionToken* token);
+
 private:
     static void on_wifi_event(arduino_event_id_t event, arduino_event_info_t info);
 
@@ -149,6 +175,10 @@ private:
     std::atomic<bool> _ev_leave{false}; // ASSOC_LEAVE: kept apart from _ev_reason, see on_wifi_event()
     std::atomic<uint8_t> _ev_reason{0};
     std::atomic<bool> _hotspot_flag{false};
+
+    // HUD control: whether a PIN exists (mirrors _pin.record().set once it is stored) and the live login tokens.
+    std::atomic<bool> _pin_set_flag{false};
+    vsync::SpinGuarded<prov::SessionTable> _sessions;
 
     /** @brief Copy of the status() fields, written under _mutex by publish_status_locked(), read lock-free. */
     vsync::SpinGuarded<Status> _status_snap;

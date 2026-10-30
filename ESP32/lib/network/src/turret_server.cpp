@@ -42,7 +42,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
     // 8 KB, double the default: handlers keep their buffers on this stack (scan list and escaped SSIDs in
     // wifi_http.cpp, the hud::kReplySize JSON reply in commands_handler.cpp, form bodies).
     config.stack_size = 8192;
-    config.max_uri_handlers = 16;                   // 3 core routes + 6 WiFi routes + catch-all, with headroom
+    config.max_uri_handlers = 16; // "/" and /commands, 6 WiFi and 2 HUD login routes, the catch-all; headroom
     config.uri_match_fn = httpd_uri_match_wildcard; // the WiFi catch-all "/*"; exact routes still match exactly
     config.send_wait_timeout = 2;                   // seconds; stalled viewers would block httpd 5 s
     config.lru_purge_enable = true;
@@ -83,7 +83,7 @@ bool HttpServer::start(FrameStore& store, BaseDetectionModule* detection, const 
         }
 
         this->_commands_handler = new CommandsWebSocketHandler(this->_server_handle, "/commands", detection, status,
-                                                               remote, &this->_broadcaster);
+                                                               remote, &this->_broadcaster, wifi);
         this->_commands_handler->register_endpoint();
 
         if (wifi != nullptr)

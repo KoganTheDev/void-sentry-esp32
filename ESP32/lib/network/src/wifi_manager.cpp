@@ -94,6 +94,7 @@ void WifiManager::begin()
     prov::PinRecord rec;
     this->_store.load(this->_list, rec);
     this->_pin = prov::PinGuard(rec);
+    this->_pin_set_flag.store(rec.set);
 
     WiFi.persistent(false); // never let the Arduino core copy passwords into its own flash storage
     WiFi.onEvent(on_wifi_event);
@@ -436,6 +437,9 @@ void WifiManager::factory_reset()
     {
         vsync::MutexLock lock(this->_mutex);
         this->_store.erase_all();
+        // The restart below ends every HUD session anyway; clear them first so none outlives the erased PIN.
+        this->_pin_set_flag.store(false);
+        this->_sessions.update([](prov::SessionTable& t) { t.clear(); });
     }
     esp_wifi_restore(); // also drop the WiFi driver's own stored STA config (older firmware used persistent(true))
     Serial.println("[WIFI] wifi-reset: saved networks, PIN and hotspot password erased, restarting");
@@ -591,6 +595,10 @@ WifiManager::AddOutcome WifiManager::add(const char* ssid, size_t ssid_len, cons
             this->_pin = prov::PinGuard(prov::PinRecord{});
             return out;
         }
+        // A new PIN ends every HUD session (none can exist without a PIN today, but a session must never survive a
+        // PIN it was not granted under), and from now on control needs a login.
+        this->_sessions.update([](prov::SessionTable& t) { t.clear(); });
+        this->_pin_set_flag.store(true);
         this->publish_status_locked(); // pin_set just became true; the setup page reads it right after this reply
     } else
     {
@@ -652,4 +660,47 @@ WifiManager::ForgetOutcome WifiManager::forget(const char* ssid, size_t ssid_len
     ESP_LOGI(TAG, "Forgot network '%s'", safe_ssid);
     out.result = Result::Ok;
     return out;
+}
+
+WifiManager::Outcome WifiManager::login(const char* pin, size_t pin_len, uint32_t now_ms, prov::SessionToken& token)
+{
+    Outcome out;
+    vsync::MutexLock lock(this->_mutex);
+    if (!this->_pin.record().set)
+    {
+        return out; // BadInput: no PIN yet, so control is open and there is nothing to log in with
+    }
+    const prov::PinResult r = this->_pin.check(pin, pin_len, now_ms);
+    if (r.status == prov::PinCheck::LockedOut)
+    {
+        ESP_LOGW(TAG, "HUD login refused: locked out for %u s", (unsigned)r.seconds_left);
+        out.result = Result::LockedOut;
+        out.seconds_left = r.seconds_left;
+        return out;
+    }
+    if (r.status != prov::PinCheck::Ok)
+    {
+        ESP_LOGW(TAG, "HUD login refused: wrong PIN");
+        out.result = Result::WrongPin;
+        return out;
+    }
+    esp_fill_random(token.data(), token.size());
+    // Still under the mutex: add() also sets the PIN under it, so a PIN change cannot slip between check and add.
+    this->_sessions.update([&](prov::SessionTable& t) { t.add(token); });
+    ESP_LOGI(TAG, "HUD login accepted");
+    out.result = Result::Ok;
+    return out;
+}
+
+void WifiManager::logout(const prov::SessionToken& token)
+{
+    this->_sessions.update([&](prov::SessionTable& t) { t.remove(token); });
+}
+
+AuthLevel WifiManager::auth_level(const prov::SessionToken* token)
+{
+    const bool pin_set = this->_pin_set_flag.load();
+    const bool valid = pin_set && token != nullptr &&
+                       this->_sessions.update([&](prov::SessionTable& t) { return t.contains(*token); });
+    return ::auth_level(pin_set, valid);
 }

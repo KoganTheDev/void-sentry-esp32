@@ -108,7 +108,7 @@ class ReplyTests(unittest.TestCase):
         for k in ("detected", "calibrated", "stick", "ret"):
             self.assertIn(d[k], (0, 1))
         for k in ("x", "y", "width", "height", "pixels", "id", "bx", "by", "bw", "bh", "cal", "cal_saves", "cal_miss",
-                  "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "vw"):  # fmt: skip
+                  "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "vw", "auth"):  # fmt: skip
             self.assertIs(int, type(d[k]), k)
         for k in ("vx", "vy", "pan", "tilt"):
             self.assertIs(float, type(d[k]), k)
@@ -131,6 +131,46 @@ class ReplyTests(unittest.TestCase):
     def test_starts_calibrated_or_not(self):
         self.assertEqual(1, r(board()[0], " ", 1.0)["calibrated"])
         self.assertEqual(0, r(board(uncalibrated=True)[0], " ", 1.0)["calibrated"])
+
+
+class AccessTests(unittest.TestCase):
+    """remote::gate in the mock: a viewer gets every reply, but its control commands change nothing."""
+
+    CONTROL = ("move:right", "move:stop", "mode:user", "fire:on", "speed:fast", "cal:start", "cal:point",
+               "cal:cancel", "aim:300,200")  # fmt: skip
+
+    def test_auth_is_the_last_key_and_echoes_the_level(self):
+        b, _ = board()
+        for level in (mb.AUTH_VIEWER, mb.AUTH_AUTHED, mb.AUTH_OPEN):
+            d = json.loads(b.handle(" ", 1.0, level))
+            self.assertEqual("auth", list(d)[-1])
+            self.assertEqual(level, d["auth"])
+        self.assertEqual(mb.AUTH_OPEN, r(b, " ", 1.1)["auth"])  # the default: no gating
+
+    def test_requires_auth_is_everything_but_a_poll(self):
+        for m in self.CONTROL:
+            self.assertTrue(mb.requires_auth(mb.parse(m)), m)
+        for m in (" ", "", "garbage", "aim:999,1"):
+            self.assertFalse(mb.requires_auth(mb.parse(m)), m)
+
+    def test_viewer_commands_are_dropped_but_answered(self):
+        b, _ = board(state="idle")
+        before = r(b, " ", 1.0)
+        t = 1.0
+        for m in self.CONTROL:
+            t += 0.05
+            d = json.loads(b.handle(m, t, mb.AUTH_VIEWER))
+            self.assertEqual(mb.AUTH_VIEWER, d["auth"], m)
+        d = json.loads(b.handle(" ", t + 2.0, mb.AUTH_VIEWER))
+        self.assertEqual(("ai", "idle", "normal", before["pan"], before["tilt"]),
+                         (d["mode"], d["cal_state"], d["spd"], d["pan"], d["tilt"]))  # fmt: skip
+
+    def test_authed_and_open_sessions_control(self):
+        for level in (mb.AUTH_AUTHED, mb.AUTH_OPEN):
+            b, _ = board(state="idle")
+            self.assertEqual("user", json.loads(b.handle("mode:user", 1.0, level))["mode"])
+            b.handle("move:right", 1.0, level)
+            self.assertGreater(json.loads(b.handle(" ", 1.2, level))["pan"], 1.0)
 
 
 class TargetTests(unittest.TestCase):
