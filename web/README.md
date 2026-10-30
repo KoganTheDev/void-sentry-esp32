@@ -1,2 +1,3 @@
-Web UI sources for the turret: `web_ui.html` (HUD) and `wifi_setup.html` (WiFi provisioning) are embedded into the firmware by `update_index_html.py` (generates the gitignored `index_html.h`, helpers in `html_header.py`).
+Web UI sources for the turret: the HUD (`hud/`) and `wifi_setup.html` (WiFi provisioning) are embedded into the firmware by `update_index_html.py` (generates the gitignored `index_html.h`, helpers in `html_header.py`).
+The HUD source is split by concern - `hud/index.html` (markup), `hud/css/*.css`, `hud/js/*.js` (fragments of one IIFE) - and `hud_build.py` joins them in a fixed order into the single page the board serves. The order lists are in `hud_build.py`; `test_web_ui.py` fails if a file is unlisted.
 Also here: `test_web_ui.py` and `test_html_header.py` (generator tests), and the standalone converters `compress_HTML_to_C_header.py` / `decompress_C_header_to_HTML.py`.
