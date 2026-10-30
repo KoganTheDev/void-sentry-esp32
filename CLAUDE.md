@@ -26,6 +26,7 @@ g++ -std=c++20 -O2 -g -Wall -Wextra -I ESP32/include -I ESP32/lib/tracking/inclu
 python -m unittest discover -s tools/tracking -p "test_*.py"   # fixture tool tests
 python -m unittest discover -s web -p "test_*.py"              # HUD generator tests
 python -m unittest discover -s tools/hud_mock -p "test_*.py"   # mock board tests
+python tools/net_bench/stall_capture.py <ip> <COM> 180 out.jsonl   # with the board running; also soak.py, stall_analyze.py, stuck_viewer.py, read_serial.py (see tools/net_bench/README.md)
 python tools/hud_mock/mock_board.py   # fake board for HUD work (serves web/*.html, /commands, /stream on `--port` and `--stream-port`, default 81; flags in its docstring), open http://127.0.0.1:8080
 ```
 
