@@ -573,6 +573,16 @@ class RenderTests(unittest.TestCase):
         self.assertNotEqual(rend.render(away), rend.render(there))
 
 
+class ArgsTests(unittest.TestCase):
+    def test_stream_port_defaults_to_the_boards_81(self):
+        args = mb.build_parser().parse_args([])
+        self.assertEqual(8080, args.port)
+        self.assertEqual(81, args.stream_port)
+
+    def test_stream_port_override(self):
+        self.assertEqual(8081, mb.build_parser().parse_args(["--stream-port", "8081"]).stream_port)
+
+
 class WifiTests(unittest.TestCase):
     def test_pin_and_lists(self):
         w = mb.WifiState()

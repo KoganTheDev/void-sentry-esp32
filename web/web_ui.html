@@ -833,6 +833,9 @@
     <script>
         (function () {
             'use strict';
+            // The board serves /stream from its own server on this port so a stalled video send cannot block
+            // /commands replies (engineering notes s13). /commands stays on location.host.
+            const STREAM_PORT = 81;
             const $ = (s) => document.querySelector(s);
             const $$ = (s) => document.querySelectorAll(s);
 
@@ -1596,7 +1599,7 @@
 
             function connectStream() {
                 const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-                const ws = new WebSocket(`${proto}://${location.host}/stream`);
+                const ws = new WebSocket(`${proto}://${location.hostname}:${STREAM_PORT}/stream`);
                 ws.binaryType = 'blob';
                 V.ws = ws;
                 V.gotFrame = false;
@@ -1651,7 +1654,7 @@
                 V.fpsWindowStart = now;
             }, 1000);
 
-            // Video health: FROZEN after 1 s without a frame; after 4 s frozen the socket is closed and reopened (the
+            // Video health: FROZEN after 1 s without a frame; after 5 s frozen the socket is closed and reopened (past the board's 4 s send timeout; the
             // stall's root cause is on the board; reconnecting is the HUD's part).
             function videoState(now) {
                 if (V.busy) return 'busy';
@@ -1664,7 +1667,7 @@
                 if (vs === 'frozen' && !V.frozenLogged) { V.frozenLogged = true; logEvent('Video frozen', 'warn'); }
                 if (vs === 'live' && V.frozenLogged) { V.frozenLogged = false; logEvent('Video live', 'ok'); }
                 const ws = V.ws;
-                if (ws && ws.readyState === WebSocket.OPEN && now - Math.max(V.lastFrameAt, V.openedAt) > 4000) {
+                if (ws && ws.readyState === WebSocket.OPEN && now - Math.max(V.lastFrameAt, V.openedAt) > 5000) {
                     V.reopenNow = true;
                     ws.close();
                 }
@@ -1835,7 +1838,7 @@
                 const fpsEl = $('#ov-fps');
                 fpsEl.classList.toggle('stale-badge', vs === 'frozen');
                 fpsEl.textContent = vs === 'live' ? `${V.fps} fps`
-                    : vs === 'frozen' ? `FROZEN ${frozenS.toFixed(1)} s` + (frozenS > 4 ? ' · reconnecting' : '')
+                    : vs === 'frozen' ? `FROZEN ${frozenS.toFixed(1)} s` + (frozenS > 5 ? ' · reconnecting' : '')
                     : vs === 'busy' ? '0 fps' : 'NO VIDEO';
                 $('#card-busy').hidden = vs !== 'busy';
                 $('#t-fps').textContent = vs === 'live' ? `${V.fps} fps` : vs === 'frozen' ? 'frozen' : vs === 'busy' ? 'busy' : '--';

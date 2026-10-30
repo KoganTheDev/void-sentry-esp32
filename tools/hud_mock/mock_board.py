@@ -2,12 +2,16 @@
 
 Usage (repo root; needs the `websockets` package, version 13 or newer, and Pillow):
 
-    python tools/hud_mock/mock_board.py [--port 8080] [--host 127.0.0.1] [--dark] [--stall-after SECONDS]
+    python tools/hud_mock/mock_board.py [--port 8080] [--stream-port 81] [--host 127.0.0.1] [--dark] [--stall-after SECONDS]
                                         [--busy] [--uncalibrated] [--stick] [--narrow-limits]
 
 then open http://127.0.0.1:8080 (the HUD) or http://127.0.0.1:8080/wifi (WiFi setup).
 
-What it serves, on one port:
+The real board serves /stream on its own port (81) and the HUD opens it there, so the mock listens on both --port and
+--stream-port with the same handler (everything is served on both; the HUD only uses /stream on the second). Port 81
+is privileged on Linux/macOS; pass another --stream-port there and change STREAM_PORT in web_ui.html to match.
+
+What it serves, on each port:
     GET  /                    web/web_ui.html, read from disk on every request (edit, then reload)
     GET  /wifi                web/wifi_setup.html
     GET  /api/wifi/status|scan|saved   plausible JSON in the shapes documented in wifi_setup.html
@@ -776,15 +780,31 @@ class Server:
         async with serve(self.ws_handler, "127.0.0.1", 0, compression=None, ping_interval=None) as inner:
             self.inner_port = inner.sockets[0].getsockname()[1]
             front = await asyncio.start_server(self.front, self.args.host, self.args.port)
+            stream_front = None
+            if self.args.stream_port != self.args.port:
+                try:
+                    stream_front = await asyncio.start_server(self.front, self.args.host, self.args.stream_port)
+                except OSError as e:
+                    front.close()
+                    raise SystemExit(
+                        f"cannot listen on stream port {self.args.stream_port} ({e}); the HUD opens /stream there. "
+                        "Use --stream-port N (and set STREAM_PORT in web_ui.html to match) or free the port."
+                    )
             shown = "127.0.0.1" if self.args.host in ("0.0.0.0", "") else self.args.host
             print(f"mock board on http://{shown}:{self.args.port}/  (WiFi page: /wifi)", flush=True)
+            print(f"  /stream also on port {self.args.stream_port}", flush=True)
             async with front:
-                await front.serve_forever()
+                if stream_front is None:
+                    await front.serve_forever()
+                else:
+                    async with stream_front:
+                        await asyncio.gather(front.serve_forever(), stream_front.serve_forever())
 
 
-def main(argv=None):
+def build_parser():
     ap = argparse.ArgumentParser(description="Fake Void Sentry board for HUD development.")
     ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--stream-port", type=int, default=81, help="second port the HUD opens /stream on (the board uses 81)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--dark", action="store_true", help="draw a very dark room (LOW LIGHT badge)")
     ap.add_argument("--stall-after", type=float, default=None, metavar="SECONDS",
@@ -794,7 +814,11 @@ def main(argv=None):
     ap.add_argument("--narrow-limits", action="store_true",
                     help="soft limits pan -20..20, tilt 75..105 (small reach box, easy to hit the end stops)")  # fmt: skip
     ap.add_argument("--stick", action="store_true", help="the joystick overrides HUD jogs (stick = 1 while held)")
-    args = ap.parse_args(argv)
+    return ap
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
     try:
         asyncio.run(Server(args).run())
     except KeyboardInterrupt:
