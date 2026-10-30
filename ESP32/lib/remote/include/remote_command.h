@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "auth_level.h"
+
 #include <cstdint>
 #include <string_view>
 
@@ -48,6 +50,19 @@ struct Command {
  * Poll.
  */
 Command parse(std::string_view message);
+
+/**
+ * @brief True for every command that moves or reconfigures the turret: everything except Poll.
+ * @details Move, Stop, Mode, Fire, Calibrate, Aim and Speed all need control access (a Stop from a viewer could end
+ * the logged-in user's jog, a Speed would change their jog magnitude). Only the Poll keepalive is open to viewers.
+ */
+bool requires_auth(const Command& cmd);
+
+/**
+ * @brief What a session at @p level may hand to the controller: @p cmd itself, or a Poll when a viewer sent a command
+ * that requires_auth(). A dropped command is never queued for later, and the message still gets its one reply.
+ */
+Command gate(const Command& cmd, AuthLevel level);
 
 /** @brief Receives parsed commands; implemented by the controller (device) and fakes (tests). */
 class BaseRemoteSink
