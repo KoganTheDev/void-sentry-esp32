@@ -260,6 +260,8 @@ Measurements (board at RSSI -59 to -69 dBm, one viewer):
 
 Video still pauses while TCP repairs a loss (in-order delivery); fewer losses need a better link (placement, antenna).
 
+The capture, soak and isolation scripts behind these numbers are in `tools/net_bench/` (see its README for commands and pass criteria).
+
 ## 14. Controller decisions as a pure, tested unit
 
 **Problem.** `Controller` held the trickiest rules in the firmware: mode switching, button gestures, button and HUD calibration (who wins on the same pass, the HUD record waiting for the pan to stop), jog arbitration (stick over HUD jog, the 300 ms dead man, an aim that the idle (0,0) jog must not cancel). It included `Arduino.h` and `camera.h`, so none of it could be built by the `native` env, and a dead-man race the audit found sat in exactly this untested code.

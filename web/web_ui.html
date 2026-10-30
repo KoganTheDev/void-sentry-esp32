@@ -833,9 +833,11 @@
     <script>
         (function () {
             'use strict';
-            // The board serves /stream from its own server on this port so a stalled video send cannot block
-            // /commands replies (engineering notes s13). /commands stays on location.host.
-            const STREAM_PORT = 81;
+            // The board serves /stream from its own server on port 81 so a stalled video send cannot block
+            // /commands replies (engineering notes s13). /commands stays on location.host. That split only exists
+            // when the page came from the default port (80, or 443); a dev server such as the mock board serves
+            // everything on the one port it was opened on, so stream from there.
+            const STREAM_PORT = ['', '80', '443'].includes(location.port) ? 81 : location.port;
             const $ = (s) => document.querySelector(s);
             const $$ = (s) => document.querySelectorAll(s);
 

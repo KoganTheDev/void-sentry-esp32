@@ -36,6 +36,21 @@ jobs:
             - name: Test index_html.h generator
               run: python -m unittest discover -s web -p "test_*.py" -v
 
+    hud-e2e:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-python@v7
+              with:
+                  python-version: "3.12"
+            - name: Install mock board and driver dependencies
+              run: pip install "websockets>=13" pillow
+            - name: Test the mock board and the reply contract
+              run: python -m unittest discover -s tools/hud_mock -p "test_*.py" -v
+            # Chrome is preinstalled on ubuntu-latest. The script adds --headless=new --no-sandbox on Linux.
+            - name: HUD end-to-end checks in headless Chrome
+              run: python tools/hud_e2e/hud_e2e.py --browser "$(which google-chrome)"
+
     build:
         runs-on: ubuntu-latest
         steps:
@@ -51,8 +66,9 @@ jobs:
                       ~/.platformio
                       ESP32/sdkconfig.defaults
                   key: pio-core3-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
+            # PlatformIO is pinned: an unpinned install once pulled a version string that broke the build. Bump deliberately.
             - name: Install PlatformIO
-              run: pip install -U platformio
+              run: pip install "platformio==6.2.0"
             # The platform builds the libs inside its own venv ~/.platformio/penv with the PyPI core "pioarduino>=6.2.0".
             # pioarduino 6.2.0.post1 reads as semver 6.2.0-post.1, a prerelease below 6.2.0, so the platform rejects its
             # own core in the second build phase (IncompatiblePlatform). Pre-create the venv with 6.2.0: the platform
@@ -80,7 +96,7 @@ jobs:
                   path: ~/.platformio
                   key: pio-native-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO
-              run: pip install -U platformio
+              run: pip install "platformio==6.2.0"
             - name: Run host unit tests
               working-directory: ESP32
               run: pio test -e native
@@ -97,7 +113,7 @@ jobs:
                   path: ~/.platformio
                   key: pio-native-sanitize-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO
-              run: pip install -U platformio
+              run: pip install "platformio==6.2.0"
             - name: Run host unit tests under ASan + UBSan
               working-directory: ESP32
               run: pio test -e native_sanitize
@@ -117,7 +133,7 @@ jobs:
                   key: pio-native-coverage-${{ runner.os }}-${{ hashFiles('ESP32/platformio.ini') }}
             - name: Install PlatformIO and lcov
               run: |
-                  pip install -U platformio
+                  pip install "platformio==6.2.0"
                   sudo apt-get update -qq && sudo apt-get install -y -qq lcov
             - name: Gate script tests
               run: python -m unittest discover -s tools/coverage -p "test_*.py" -v

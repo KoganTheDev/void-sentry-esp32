@@ -2,6 +2,7 @@
 #include "calibration_blob.h"
 #include "nvs_blob.h"
 #include <Preferences.h>
+#include <nvs.h>
 
 namespace
 {
@@ -13,8 +14,17 @@ namespace cal_store
 {
 bool load(aiming::AimMap& out)
 {
+    // A namespace that was never written is the normal first boot. Preferences logs an [E] for it, so probe with the
+    // IDF call first, which reports ESP_ERR_NVS_NOT_FOUND silently.
+    nvs_handle_t probe = 0;
+    if (nvs_open(kNamespace, NVS_READONLY, &probe) != ESP_OK)
+    {
+        return false;
+    }
+    nvs_close(probe);
+
     Preferences prefs;
-    if (!prefs.begin(kNamespace, true)) // read-only; fails if the namespace was never written
+    if (!prefs.begin(kNamespace, true))
     {
         return false;
     }

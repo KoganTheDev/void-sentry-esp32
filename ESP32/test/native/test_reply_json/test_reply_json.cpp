@@ -21,7 +21,8 @@ void tearDown(void) {}
 
 namespace
 {
-/** @brief The reply builder of the websockets.h version before the HUD overhaul, kept as the compatibility oracle. */
+/** @brief The reply builder of the commands_handler version before the HUD overhaul, kept as the compatibility oracle.
+ */
 std::string legacy_reply(const TrackSnapshot* tp, const ControlStatus* sp)
 {
     char out[1024];
