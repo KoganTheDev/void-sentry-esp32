@@ -103,6 +103,9 @@ class Tab:
 
     async def open(self, url, w=1440, h=900):
         await self.cdp("Emulation.setDeviceMetricsOverride", width=w, height=h, deviceScaleFactor=1, mobile=w < 900)
+        # Headless Chrome on Linux does not give the page focus, so element.focus() is a no-op there and
+        # Input.insertText typed into nothing (the PIN arrived empty). Focus emulation makes focus work as in a window.
+        await self.cdp("Emulation.setFocusEmulationEnabled", enabled=True)
         await self.cdp("Page.navigate", url=url)
         await asyncio.sleep(0.5)
         await self.until("document.readyState === 'complete'")
@@ -142,6 +145,10 @@ async def submit_pin(tab, pin):
     """Type a PIN into the open login dialog (real key input) and submit it."""
     await tab.js("(() => { const i = document.querySelector('#login-pin'); i.value = ''; i.focus(); })()")
     await tab.cdp("Input.insertText", text=pin)
+    # The typed value must be there, or a "wrong PIN" result would pass for the wrong reason (an empty field).
+    typed = await tab.js("document.querySelector('#login-pin').value")
+    if typed != pin:
+        ok(f"PIN field receives typed input ({pin!r})", False, f"field holds {typed!r}")
     await tab.js("document.querySelector('#login-submit').click()")
 
 
