@@ -33,6 +33,7 @@ JS_FRAGMENTS = (
     "state.js",
     "feedback.js",
     "link.js",
+    "auth.js",
     "controls.js",
     "fire.js",
     "stream.js",

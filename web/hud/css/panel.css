@@ -79,6 +79,12 @@
 
 .callout[hidden] { display: none; }
 .callout p { margin: 0; flex: 1; }
+.callout a { color: var(--focus); }
+.callout > svg { width: 20px; height: 20px; flex-shrink: 0; }
+.callout .icon-btn { width: 32px; height: 32px; flex-shrink: 0; }
+/* View only: informational, not a warning about the turret. */
+.callout.lock { border-color: rgba(56, 212, 255, 0.45); background: rgba(56, 212, 255, 0.06); }
+.callout.lock > svg { color: var(--focus); }
 
 .btn-sm {
     height: 36px;

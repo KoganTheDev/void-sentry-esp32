@@ -120,7 +120,7 @@ function drawOverlay(now) {
         }
     }
     if (!on) S.lockSince = 0;
-    fireBtn.classList.toggle('ready', on);
+    fireBtn.classList.toggle('ready', on && canControl()); // the glow invites a press: not for a viewer
 
     // While dragging: the faint reach box (what the turret can physically point at).
     if (S.dragId !== null && S.reach) {

@@ -2,6 +2,7 @@
 
 #include "form.h"
 #include "handshake_guard.h"
+#include "session_table.h"
 #include "wifi_html.h"
 #include "wifi_manager.h"
 #include <Arduino.h>
@@ -186,10 +187,10 @@ esp_err_t saved_handler(httpd_req_t* req)
 }
 
 /**
- * @brief Origin check, then reads the whole (<= 256 B) form body into buf (NUL-terminated).
- * @return true if the body is in buf; otherwise a response was already sent.
+ * @brief The checks every POST gets: IPv4-literal Host (DNS rebinding) and, from a browser, a same-origin Origin.
+ * @return true if allowed; otherwise a 403 was already sent.
  */
-bool read_form(httpd_req_t* req, char* buf, size_t* len)
+bool post_allowed(httpd_req_t* req)
 {
     if (!api_host_ok(req))
     {
@@ -198,6 +199,19 @@ bool read_form(httpd_req_t* req, char* buf, size_t* len)
     if (!handshake_origin_ok(req, TAG_WIFI_HTTP))
     {
         send_error(req, "403 Forbidden", "origin not allowed", true);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @brief post_allowed(), then reads the whole (<= 256 B) form body into buf (NUL-terminated).
+ * @return true if the body is in buf; otherwise a response was already sent.
+ */
+bool read_form(httpd_req_t* req, char* buf, size_t* len)
+{
+    if (!post_allowed(req))
+    {
         return false;
     }
     const size_t total = req->content_len;
@@ -346,6 +360,76 @@ esp_err_t forget_handler(httpd_req_t* req)
     return err;
 }
 
+/**
+ * @brief POST /api/hud/login (form field pin): on the right PIN sets the vs_session cookie that unlocks HUD control.
+ * @details HttpOnly (page scripts cannot read it), SameSite=Strict (never sent from another site) and no Max-Age, so
+ * the browser drops it when it closes; the board forgets it at a reboot. The /commands handshake reads it.
+ */
+esp_err_t login_handler(httpd_req_t* req)
+{
+    char body[kBodyBuf];
+    char pin[16];
+    size_t body_len = 0;
+
+    if (!read_form(req, body, &body_len))
+    {
+        wipe(body, sizeof(body));
+        return ESP_OK;
+    }
+    size_t pin_len = 0;
+    if (!prov::form_field({body, body_len}, "pin", pin, sizeof(pin), &pin_len))
+    {
+        pin[0] = '\0'; // a missing or oversized PIN is just a wrong one
+        pin_len = 0;
+    }
+    prov::SessionToken token{};
+    const WifiManager::Outcome out = manager(req).login(pin, pin_len, millis(), token);
+    esp_err_t err = ESP_OK;
+    if (out.result == WifiManager::Result::Ok)
+    {
+        char hex[prov::kTokenHexLen + 1];
+        prov::token_hex(token, hex);
+        char cookie[96];
+        snprintf(cookie, sizeof(cookie), "%.*s=%s; HttpOnly; SameSite=Strict; Path=/", (int)prov::kSessionCookie.size(),
+                 prov::kSessionCookie.data(), hex);
+        httpd_resp_set_hdr(req, "Set-Cookie", cookie); // the value must live until the send below
+        err = send_json(req, "200 OK", "{\"ok\":true}");
+        wipe(hex, sizeof(hex));
+        wipe(cookie, sizeof(cookie));
+    } else
+    {
+        err = send_outcome(req, out, "no PIN has been set yet, so control is open: set one on the WiFi page");
+    }
+    wipe(body, sizeof(body));
+    wipe(pin, sizeof(pin));
+    wipe(reinterpret_cast<char*>(token.data()), token.size());
+    return err;
+}
+
+/**
+ * @brief POST /api/hud/logout (no body): ends the caller's session and clears the cookie. 200 whether or not the
+ * cookie named a live session (logging out twice is not an error).
+ */
+esp_err_t logout_handler(httpd_req_t* req)
+{
+    if (!post_allowed(req))
+    {
+        return ESP_OK;
+    }
+    if (req->content_len != 0)
+    {
+        // Connection: close because the unread body must not be parsed as the next request.
+        return send_error(req, "400 Bad Request", "logout takes no body", true);
+    }
+    prov::SessionToken token{};
+    if (read_session_cookie(req, token))
+    {
+        manager(req).logout(token); // its /commands sockets drop to viewer on their next message
+    }
+    httpd_resp_set_hdr(req, "Set-Cookie", "vs_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0");
+    return send_json(req, "200 OK", "{\"ok\":true}");
+}
+
 /** @brief Catch-all GET: captive-portal redirect in setup mode, 404 otherwise. Never origin-checked. */
 esp_err_t catch_all_handler(httpd_req_t* req)
 {
@@ -382,5 +466,7 @@ void register_wifi_routes(httpd_handle_t server, WifiManager& wifi)
     add_route(server, "/api/wifi/saved", HTTP_GET, saved_handler, wifi);
     add_route(server, "/api/wifi/add", HTTP_POST, add_handler, wifi);
     add_route(server, "/api/wifi/forget", HTTP_POST, forget_handler, wifi);
+    add_route(server, "/api/hud/login", HTTP_POST, login_handler, wifi);
+    add_route(server, "/api/hud/logout", HTTP_POST, logout_handler, wifi);
     add_route(server, "/*", HTTP_GET, catch_all_handler, wifi); // last: it matches everything
 }

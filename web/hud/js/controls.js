@@ -20,6 +20,7 @@ function clearPending() {
 
 function requestMode(m) {
     if (S.link !== 'ok') return toast('No turret link', 'warn', 'link');
+    if (needControl()) return;
     if (m === 'calibrate') return startCal();
     if (S.cal.active) return toast('Finish or cancel calibration first', 'warn', 'cal-busy');
     if (m === S.mode || S.pending) return;
@@ -27,11 +28,13 @@ function requestMode(m) {
     if (App.sendCommand('mode:' + m)) setPending(m);
 }
 function toggleMode() {
+    if (needControl()) return;
     if (S.cal.active) return toast('Finish or cancel calibration first', 'warn', 'cal-busy');
     if (S.mode) requestMode(S.mode === 'ai' ? 'user' : 'ai');
 }
 function startCal() {
     if (S.link !== 'ok') return toast('No turret link', 'warn', 'link');
+    if (needControl()) return;
     if (S.cal.active || S.pending) return;
     if (App.sendCommand('cal:start')) setPending('calibrate');
 }
@@ -42,6 +45,7 @@ function turretStill() {
 }
 function recordBlock() {
     if (S.link !== 'ok') return 'No turret link';
+    if (!canControl()) return 'View only: log in to record';
     if (!trackUsable()) return 'No target visible: wave at the spot';
     if (!turretStill()) return 'Wait for the turret to stop';
     return '';
@@ -49,6 +53,7 @@ function recordBlock() {
 function record() {
     const c = S.cal;
     if (!c.active || c.confirm || c.step === 3) return;
+    if (needControl()) return;
     if (c.failed) { App.sendCommand('cal:point'); return; } // restarts at point 1
     const why = recordBlock();
     if (why) return toast(why, 'warn', 'rec');
@@ -56,22 +61,25 @@ function record() {
     App.sendCommand('cal:point');
 }
 function askCancel() {
+    if (needControl()) return;
     if (S.cal.active && S.cal.step !== 3) { S.cal.confirm = true; renderWizard(); }
 }
 function cancelCal() {
+    if (needControl()) return;
     S.cal.confirm = false;
     if (App.sendCommand('cal:cancel')) setPending('cancel');
     renderWizard();
 }
 
 // ---------------- Jog ----------------
-function canJog() { return S.link === 'ok' && (S.mode === 'user' || S.mode === 'calibrate'); }
+function canJog() { return S.link === 'ok' && canControl() && (S.mode === 'user' || S.mode === 'calibrate'); }
 function atLimit(dir) { return (S.lim & (LIM_BITS[dir] || 0)) !== 0; }
 function effectiveSpeed() { return S.shift ? 'slow' : S.speed; }
 function sendSpeed() { App.sendCommand('speed:' + effectiveSpeed()); }
 
 function pressDir(token, dir, fromTap) {
     if (!canJog()) {
+        if (S.link === 'ok' && needControl()) return;
         if (S.link === 'ok') {
             const d = $('#dpad');
             d.classList.remove('shake');
@@ -145,7 +153,7 @@ function renderSpeed() {
     $$('[data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.speed === S.speed)));
 }
 $$('[data-speed]').forEach(b => b.onclick = () => {
-    if (S.speed === b.dataset.speed) return;
+    if (needControl() || S.speed === b.dataset.speed) return;
     S.speed = b.dataset.speed;
     renderSpeed();
     sendSpeed();
@@ -153,7 +161,7 @@ $$('[data-speed]').forEach(b => b.onclick = () => {
 function setShift(on) {
     if (S.shift === on) return;
     S.shift = on;
-    sendSpeed();
+    if (canControl()) sendSpeed(); // a viewer's speed change would only be dropped by the board
 }
 
 // ---------------- Tap or drag to aim ----------------
@@ -196,6 +204,7 @@ function sendAim(force) {
     if (App.sendCommand(msg)) { S.lastAimSend = now; S.lastAimMsg = msg; }
 }
 function aimAt(p) {
+    if (needControl()) return;
     if (!canJog()) return toast('Switch to Manual (M) to aim', 'warn', 'tap-ai');
     releaseAll();
     S.uiGoal = { x: p.x, y: p.y };
@@ -218,6 +227,7 @@ function updateGoal(now) {
 const frameEl = $('#frame');
 frameEl.addEventListener('pointerdown', (e) => {
     if (S.link !== 'ok') return toast('No turret link', 'warn', 'link');
+    if (needControl()) return;
     if (S.mode === 'ai') return toast('Switch to Manual (M) to aim by tapping', 'warn', 'tap-ai');
     if (!canJog()) return;
     e.preventDefault();
@@ -237,6 +247,7 @@ frameEl.addEventListener('pointermove', (e) => {
 }));
 function recenter() {
     if (S.link !== 'ok') return toast('No turret link', 'warn', 'link');
+    if (needControl()) return;
     aimAt(HOME);
 }
 $('#recenter').addEventListener('click', recenter);

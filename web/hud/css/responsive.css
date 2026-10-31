@@ -3,6 +3,8 @@
     /* The mode switch sits right under the video on a phone, so the MODE chip would only crowd the bar. */
     .brand span, .chip b, .chip.wifi, .chip.cal, #chip-mode, #btn-fs { display: none; }
     .chip.viewers:not(.warn):not(.err) { display: none; }
+    /* The lock alone says it (the button keeps its full aria-label); the bar has no room for the word. */
+    .chip.auth > span { display: none; }
     .statusbar { gap: 6px; padding-left: 8px; padding-right: 8px; }
     .chip { padding: 0 7px; gap: 5px; }
     /* The bar has about 200 px for chips here: the long states use the short words in data-wc (COMPACT_BAR). */

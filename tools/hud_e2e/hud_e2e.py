@@ -2,9 +2,10 @@
 
 usage: python tools/hud_e2e/hud_e2e.py [--browser PATH] [--out DIR] [--base-port 8090] [--debug-port 9334]
 
-Starts tools/hud_mock/mock_board.py eight times (ports base..base+7, with the flags each scenario needs), drives the
+Starts tools/hud_mock/mock_board.py ten times (ports base..base+9, with the flags each scenario needs), drives the
 HUD in headless Edge or Chrome over raw CDP websockets (no Playwright), prints PASS/FAIL per check and finally
-`N/M passed`. Exit code 1 if any check failed. Needs the `websockets` and `Pillow` packages (the mock needs Pillow).
+`N/M passed`. Every mock has the PIN 1234 (except the --no-pin one), so scenarios that use the controls log in first;
+the login cookie is per host, not per port, so each mock sees the others' cookies as unknown sessions. Exit code 1 if any check failed. Needs the `websockets` and `Pillow` packages (the mock needs Pillow).
 """
 import argparse, asyncio, glob, json, os, re, shutil, socket, subprocess, sys, tempfile, time, urllib.request
 from pathlib import Path
@@ -102,6 +103,9 @@ class Tab:
 
     async def open(self, url, w=1440, h=900):
         await self.cdp("Emulation.setDeviceMetricsOverride", width=w, height=h, deviceScaleFactor=1, mobile=w < 900)
+        # Headless Chrome on Linux does not give the page focus, so element.focus() is a no-op there and
+        # Input.insertText typed into nothing (the PIN arrived empty). Focus emulation makes focus work as in a window.
+        await self.cdp("Emulation.setFocusEmulationEnabled", enabled=True)
         await self.cdp("Page.navigate", url=url)
         await asyncio.sleep(0.5)
         await self.until("document.readyState === 'complete'")
@@ -128,12 +132,42 @@ class Tab:
 
 TEXT = lambda sel: f"(document.querySelector('{sel}')||{{}}).textContent"
 TOASTS = "document.querySelector('#toasts').textContent"
+AUTH = TEXT("#chip-auth span")
+# Every control is locked: d-pad, mode segment, FIRE, auto-fire, and the login callout is offered.
+CONTROLS_LOCKED = ("(() => { const q = (s) => document.querySelector(s);"
+                   " return q('#dpad').classList.contains('locked')"
+                   " && [...document.querySelectorAll('.p-mode .seg button')].every(b => b.getAttribute('aria-disabled') === 'true')"
+                   " && q('#fire').getAttribute('aria-disabled') === 'true' && q('#auto-fire').disabled"
+                   " && !q('#login-callout').hidden; })()")
+
+
+async def submit_pin(tab, pin):
+    """Type a PIN into the open login dialog (real key input) and submit it."""
+    await tab.js("(() => { const i = document.querySelector('#login-pin'); i.value = ''; i.focus(); })()")
+    await tab.cdp("Input.insertText", text=pin)
+    # The typed value must be there, or a "wrong PIN" result would pass for the wrong reason (an empty field).
+    typed = await tab.js("document.querySelector('#login-pin').value")
+    if typed != pin:
+        ok(f"PIN field receives typed input ({pin!r})", False, f"field holds {typed!r}")
+    await tab.js("document.querySelector('#login-submit').click()")
+
+
+async def login(tab, pin="1234"):
+    """Log in through the HUD (callout button, dialog, PIN) and wait for the board to grant control."""
+    if not await tab.until(f"{AUTH} === 'VIEW ONLY' && !document.querySelector('#login-callout').hidden", 8):
+        return False
+    await tab.js("document.querySelector('#login-go').click()")
+    if not await tab.until("document.querySelector('#login-dlg').open", 2):
+        return False
+    await submit_pin(tab, pin)
+    return await tab.until(f"{AUTH} === 'CONTROL' && !document.querySelector('#login-dlg').open", 8)
 
 
 async def scenario_main(tab):
     """Default mock (calibrated, walking target): help, keys, snapshot, log, fire, auto-fire, calibration."""
     await tab.open(url(0))
     ok("connects: link ok and mode AI", await tab.until(f"/ms/.test({TEXT('#chip-link span')}) && {TEXT('#chip-mode span')} === 'AI'", 8))
+    ok("logs in with the PIN", await login(tab))
 
     await tab.js("document.querySelector('#btn-help').click()")
     ok("help opens", await tab.until("document.querySelector('#help').open", 2))
@@ -254,6 +288,7 @@ async def scenario_flags(tab):
     ok("dark: LOW LIGHT badge", await tab.until("!document.querySelector('#ov-light').hidden", 8))
 
     await tab.open(url(4))  # --uncalibrated
+    await login(tab)
     ok("uncalibrated: callout and CAL UNCALIBRATED",
        await tab.until(f"!document.querySelector('#uncal-callout').hidden && {TEXT('#chip-cal span')} === 'UNCALIBRATED'", 6))
     await tab.js("document.querySelector('#uncal-go').click()")
@@ -261,6 +296,7 @@ async def scenario_flags(tab):
 
     await tab.open(url(5))  # --stick
     await tab.until(f"/ms/.test({TEXT('#chip-link span')})", 6)
+    await login(tab)
     await tab.js("document.querySelector('[data-mode=user]').click()")
     await tab.until(f"{TEXT('#chip-mode span')} === 'MANUAL'", 3)
     await tab.press('[data-dir="left"]', hold=1.2)
@@ -271,6 +307,56 @@ async def scenario_flags(tab):
 
     await tab.open(url(0, "/wifi"))
     ok("WiFi page lists scanned networks", await tab.until("document.body.innerText.length > 200 && document.querySelectorAll('button').length > 2", 6))
+
+
+async def scenario_auth(tab):
+    """Mock 8 (PIN 1234, fresh browser profile): watch without a login, refused PIN, login, control, logout."""
+    await tab.open(url(8))
+    ok("viewer: video, mode and VIEW ONLY shown",
+       await tab.until(f"/fps/.test({TEXT('#chip-video span')}) && {TEXT('#chip-mode span')} === 'AI' && {AUTH} === 'VIEW ONLY'", 10))
+    ok("viewer: controls disabled, login offered", await tab.until(CONTROLS_LOCKED, 3))
+    await tab.key("m", "KeyM", "m")
+    ok("viewer: M is refused with a login hint, mode stays AI",
+       await tab.until(f"/log in/i.test({TOASTS}) && {TEXT('#chip-mode span')} === 'AI'", 3))
+
+    await tab.js("document.querySelector('#login-go').click()")
+    ok("login dialog opens on the PIN field",
+       await tab.until("document.querySelector('#login-dlg').open && document.activeElement === document.querySelector('#login-pin')", 2))
+    await submit_pin(tab, "0000")
+    ok("wrong PIN shows an error and keeps VIEW ONLY",
+       await tab.until(f"/Wrong PIN/.test({TEXT('#login-err')}) && document.querySelector('#login-dlg').open && {AUTH} === 'VIEW ONLY'", 5),
+       await tab.js(TEXT("#login-err")))
+    await tab.key("Escape", "Escape")
+    ok("Esc closes the login dialog", await tab.until("!document.querySelector('#login-dlg').open", 2))
+
+    ok("right PIN unlocks: CONTROL chip, controls enabled", await login(tab)
+       and await tab.until("!document.querySelector('#dpad').classList.contains('locked') || "
+                           "document.querySelector('.p-mode .seg button').getAttribute('aria-disabled') === 'false'", 3))
+    await tab.key("m", "KeyM", "m")
+    ok("logged in: M switches to MANUAL", await tab.until(f"{TEXT('#chip-mode span')} === 'MANUAL'", 3))
+    before = await tab.js(TEXT("#t-pt"))
+    await tab.press('[data-dir="right"]', hold=1.0)
+    ok("logged in: jog moves the turret", await tab.until(f"{TEXT('#t-pt')} !== {before!r}", 3),
+       f"{before!r} -> {await tab.js(TEXT('#t-pt'))!r}")
+
+    await tab.js("document.querySelector('#chip-auth').click()")
+    ok("CONTROL chip opens the log-out dialog", await tab.until("document.querySelector('#logout-dlg').open", 2))
+    await tab.js("document.querySelector('#logout-go').click()")
+    ok("log out locks the controls again", await tab.until(f"{AUTH} === 'VIEW ONLY' && {CONTROLS_LOCKED}", 5))
+    await tab.key("d", "KeyD", "d")  # a key, not a click: no dependence on where the d-pad sits after the re-layout
+    ok("after log out: a jog key is refused with a login hint", await tab.until(f"/log in/i.test({TOASTS})", 3),
+       f"toasts={await tab.js(TOASTS)!r} link={await tab.js(TEXT('#chip-link span'))!r} auth={await tab.js(AUTH)!r}")
+
+
+async def scenario_no_pin(tab):
+    """Mock 9 (--no-pin): control is open, the HUD says so and points to the WiFi page."""
+    await tab.open(url(9))
+    ok("no PIN: OPEN chip and the set-a-PIN hint",
+       await tab.until(f"{AUTH} === 'OPEN' && !document.querySelector('#pin-callout').hidden && document.querySelector('#login-callout').hidden", 8))
+    await tab.key("m", "KeyM", "m")
+    ok("no PIN: control works without a login", await tab.until(f"{TEXT('#chip-mode span')} === 'MANUAL'", 3))
+    await tab.js("document.querySelector('#pin-dismiss').click()")
+    ok("no PIN: the hint can be dismissed", await tab.until("document.querySelector('#pin-callout').hidden", 2))
 
 
 async def scenario_link_lost(tab, proc):
@@ -309,8 +395,8 @@ async def main(args):
         procs = [mock(0, "--stay"), mock(1, "--stall-after", "2"), mock(2, "--busy"), mock(3, "--dark"),
                  mock(4, "--uncalibrated"), mock(5, "--stick"), mock(6)]
         lost = mock(7)  # killed by scenario_link_lost
-        procs.append(lost)
-        for n in range(8):
+        procs += [lost, mock(8, "--stay"), mock(9, "--no-pin")]
+        for n in range(10):
             if not wait_port(BASE + n):
                 sys.exit(f"mock board on port {BASE + n} did not start")
         if not wait_port_free(args.debug_port):
@@ -333,7 +419,8 @@ async def main(args):
         async with websockets.connect(page["webSocketDebuggerUrl"], max_size=None) as ws:
             tab = Tab(ws)
             await tab.cdp("Page.enable")
-            for sc in (scenario_main, scenario_flags):
+            # scenario_auth first: it needs a profile with no login cookie yet.
+            for sc in (scenario_auth, scenario_main, scenario_flags, scenario_no_pin):
                 try:
                     await sc(tab)
                 except Exception as e:
@@ -360,6 +447,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="End-to-end HUD checks in headless Chrome/Edge against mock boards.")
     ap.add_argument("--browser", help="Chrome/Edge executable (default: autodetect)")
     ap.add_argument("--out", help="scratch dir for the browser profile and downloads (default: a temp dir)")
-    ap.add_argument("--base-port", type=int, default=8090, help="first of 8 consecutive mock board ports")
+    ap.add_argument("--base-port", type=int, default=8090, help="first of 10 consecutive mock board ports")
     ap.add_argument("--debug-port", type=int, default=9334, help="browser remote-debugging port")
     sys.exit(asyncio.run(main(ap.parse_args())))

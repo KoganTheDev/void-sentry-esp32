@@ -2,7 +2,7 @@
 // ---------------- Status rendering ----------------
 function setChip(id, cls, text) {
     const c = $(id);
-    const keep = ['cal', 'viewers', 'wifi'].filter(x => c.classList.contains(x)).join(' ');
+    const keep = ['cal', 'viewers', 'wifi', 'auth'].filter(x => c.classList.contains(x)).join(' ');
     c.className = 'chip ' + cls + (keep ? ' ' + keep : '');
     c.querySelector('span').textContent = text;
 }
@@ -13,13 +13,14 @@ function renderMode() {
         const m = b.dataset.mode;
         b.setAttribute('aria-pressed', String(m === S.mode));
         b.classList.toggle('pending', m === S.pending);
-        b.setAttribute('aria-disabled', String(!linkOk || (S.cal.active && m !== 'calibrate')));
+        b.setAttribute('aria-disabled', String(!linkOk || !canControl() || (S.cal.active && m !== 'calibrate')));
     });
     if (S.mode) setChip('#chip-mode', 'mode-' + S.mode, MODE_NAMES[S.mode] || S.mode.toUpperCase());
     else setChip('#chip-mode', '', '--');
     const hint = $('#mode-hint');
     hint.className = 'hint';
     if (!linkOk) { hint.textContent = 'Waiting for the turret link.'; hint.classList.add('warn'); }
+    else if (!canControl()) hint.textContent = 'View only. Log in to change the mode or move the turret.';
     else if (S.pending === 'cancel') hint.textContent = 'Cancelling calibration...';
     else if (S.pending) hint.textContent = `Switching to ${MODE_NAMES[S.pending]}...`;
     else if (S.mode === 'calibrate') hint.textContent = 'Calibrating. Jog with the arrows or the joystick.';
@@ -29,7 +30,7 @@ function renderMode() {
     const can = canJog();
     $('#dpad').classList.toggle('locked', !can);
     $$('.dpad button').forEach(b => b.setAttribute('aria-disabled', String(!can)));
-    fireBtn.setAttribute('aria-disabled', String(!linkOk));
+    fireBtn.setAttribute('aria-disabled', String(!linkOk || !canControl()));
     frameEl.classList.toggle('tapmode', can);
 }
 
@@ -71,8 +72,9 @@ function renderStatus() {
     const cc = $('#chip-cal');
     cc.hidden = S.calibrated === null;
     if (S.calibrated !== null) setChip('#chip-cal', S.calibrated ? 'ok' : 'warn', S.calibrated ? 'OK' : 'UNCALIBRATED');
-    $('#uncal-callout').hidden = S.calibrated !== false || S.cal.active || S.link !== 'ok';
+    $('#uncal-callout').hidden = S.calibrated !== false || S.cal.active || S.link !== 'ok' || !canControl();
     $('#ov-light').hidden = !(S.lowLight && vs === 'live');
+    renderAuth();
     $('#t-light').textContent = vs === 'live' && S.brightness !== null ? `${Math.round(S.brightness)} / 255` : '--';
 }
 

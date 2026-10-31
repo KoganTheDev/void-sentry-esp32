@@ -128,6 +128,9 @@ void worst_case(TrackSnapshot& t, ControlStatus& c)
     c.lim = UINT8_MAX;
     c.speed = 1; // "normal" is the longest speed name
 }
+
+/** @brief An out-of-range access level prints as 3 digits, the widest "auth" value. */
+constexpr AuthLevel kWidestAuth = static_cast<AuthLevel>(UINT8_MAX);
 } // namespace
 
 void test_golden_typical_reply(void)
@@ -135,13 +138,14 @@ void test_golden_typical_reply(void)
     const TrackSnapshot t = typical_track();
     const ControlStatus c = typical_status();
     char out[kReplySize];
-    const size_t n = format_reply({&t, &c, 2}, out, sizeof(out));
+    const size_t n = format_reply({&t, &c, 2, AuthLevel::Authed}, out, sizeof(out));
     const char* expected =
         "{\"detected\":1,\"x\":160,\"y\":120,\"width\":320,\"height\":240,\"pixels\":400,\"state\":\"locked\","
         "\"id\":7,\"bx\":150,\"by\":110,\"bw\":20,\"bh\":20,\"vx\":1.5,\"vy\":-0.5,"
         "\"mode\":\"user\",\"cal\":1,\"cal_state\":\"point2\",\"calibrated\":1,\"pan\":12.3,\"tilt\":95.0,"
         "\"cal_error\":\"\",\"cal_saves\":3,\"cal_miss\":2,\"stick\":1,\"ax\":161,\"ay\":-4,\"lim\":5,"
-        "\"rx0\":0,\"ry0\":10,\"rx1\":319,\"ry1\":200,\"home\":1400,\"ret\":1,\"spd\":\"fast\",\"vw\":2}";
+        "\"rx0\":0,\"ry0\":10,\"rx1\":319,\"ry1\":200,\"home\":1400,\"ret\":1,\"spd\":\"fast\",\"vw\":2,"
+        "\"auth\":1}";
     TEST_ASSERT_EQUAL_STRING(expected, out);
     TEST_ASSERT_EQUAL_UINT32(strlen(expected), n);
 }
@@ -221,6 +225,7 @@ void test_null_status_omits_controller_keys_and_vw(void)
     TEST_ASSERT_EQUAL_UINT32(strlen(out), n);
     TEST_ASSERT_NULL(strstr(out, "\"mode\""));
     TEST_ASSERT_NULL(strstr(out, "\"vw\""));
+    TEST_ASSERT_NULL(strstr(out, "\"auth\""));
     TEST_ASSERT_EQUAL_CHAR('}', out[n - 1]);
     TEST_ASSERT_EQUAL_STRING("\"vy\":-0.5}", out + n - 10);
 }
@@ -231,17 +236,17 @@ void test_worst_case_fits_in_reply_size(void)
     ControlStatus c;
     worst_case(t, c);
     char out[4096];
-    const size_t n = format_reply({&t, &c, UINT32_MAX}, out, sizeof(out));
+    const size_t n = format_reply({&t, &c, UINT32_MAX, kWidestAuth}, out, sizeof(out));
     TEST_ASSERT_EQUAL_UINT32(strlen(out), n);
     printf("worst-case reply length: %u of kReplySize %u\n", static_cast<unsigned>(n),
            static_cast<unsigned>(kReplySize));
     TEST_ASSERT_TRUE_MESSAGE(n < kReplySize, "worst-case reply does not fit in kReplySize");
     // It really is the full reply, not the overflow fallback, and the real size buffer holds it.
     TEST_ASSERT_EQUAL_CHAR('}', out[n - 1]);
-    TEST_ASSERT_NOT_NULL(strstr(out, "\"vw\":4294967295}"));
+    TEST_ASSERT_NOT_NULL(strstr(out, "\"vw\":4294967295,\"auth\":255}"));
     TEST_ASSERT_NOT_NULL(strstr(out, "\"cal_error\":\"points too close"));
     char exact[kReplySize];
-    TEST_ASSERT_EQUAL_UINT32(n, format_reply({&t, &c, UINT32_MAX}, exact, sizeof(exact)));
+    TEST_ASSERT_EQUAL_UINT32(n, format_reply({&t, &c, UINT32_MAX, kWidestAuth}, exact, sizeof(exact)));
     TEST_ASSERT_EQUAL_STRING(out, exact);
     // Margin so a small future key or a longer error text does not silently fall back.
     TEST_ASSERT_TRUE_MESSAGE(n + 64 <= kReplySize, "kReplySize has less than 64 bytes of slack");
@@ -321,10 +326,33 @@ void test_each_speed_and_flag_is_formatted(void)
     TEST_ASSERT_NOT_NULL(strstr(out, "\"mode\":\"ai\",\"cal\":0,\"cal_state\":\"idle\",\"calibrated\":0,"));
     TEST_ASSERT_NOT_NULL(
         strstr(out, "\"stick\":0,\"ax\":0,\"ay\":0,\"lim\":0,\"rx0\":0,\"ry0\":0,\"rx1\":0,\"ry1\":0,"));
-    TEST_ASSERT_NOT_NULL(strstr(out, "\"home\":0,\"ret\":0,\"spd\":\"normal\",\"vw\":0}"));
+    TEST_ASSERT_NOT_NULL(strstr(out, "\"home\":0,\"ret\":0,\"spd\":\"normal\",\"vw\":0,\"auth\":0}"));
     c.speed = 0;
     format_reply({&t, &c, 1}, out, sizeof(out));
-    TEST_ASSERT_NOT_NULL(strstr(out, "\"spd\":\"slow\",\"vw\":1}"));
+    TEST_ASSERT_NOT_NULL(strstr(out, "\"spd\":\"slow\",\"vw\":1,\"auth\":0}"));
+}
+
+void test_each_auth_level_is_the_last_key(void)
+{
+    const TrackSnapshot t = typical_track();
+    const ControlStatus c = typical_status();
+    char out[kReplySize];
+    const struct {
+        AuthLevel level;
+        const char* tail;
+    } cases[] = {{AuthLevel::Viewer, "\"vw\":1,\"auth\":0}"},
+                 {AuthLevel::Authed, "\"vw\":1,\"auth\":1}"},
+                 {AuthLevel::Open, "\"vw\":1,\"auth\":2}"}};
+    for (const auto& k : cases)
+    {
+        const size_t n = format_reply({&t, &c, 1, k.level}, out, sizeof(out));
+        const size_t tail = strlen(k.tail);
+        TEST_ASSERT_TRUE(n > tail);
+        TEST_ASSERT_EQUAL_STRING(k.tail, out + n - tail);
+    }
+    // The default input is a viewer: a caller that forgets the level never reports more access than it has.
+    format_reply({&t, &c, 1}, out, sizeof(out));
+    TEST_ASSERT_NOT_NULL(strstr(out, "\"auth\":0}"));
 }
 
 int main(int argc, char** argv)
@@ -340,5 +368,6 @@ int main(int argc, char** argv)
     RUN_TEST(test_buffers_too_small_even_for_the_fallback);
     RUN_TEST(test_names);
     RUN_TEST(test_each_speed_and_flag_is_formatted);
+    RUN_TEST(test_each_auth_level_is_the_last_key);
     return UNITY_END();
 }

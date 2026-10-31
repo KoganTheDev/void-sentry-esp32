@@ -147,4 +147,31 @@ Command parse(std::string_view message)
     }
     return Command{};
 }
+
+bool requires_auth(const Command& cmd)
+{
+    switch (cmd.kind)
+    {
+    case CommandKind::Poll:
+        return false;
+    case CommandKind::Move:
+    case CommandKind::Stop:
+    case CommandKind::Mode:
+    case CommandKind::Fire:
+    case CommandKind::Calibrate:
+    case CommandKind::Aim:
+    case CommandKind::Speed:
+        break;
+    }
+    return true; // also any future kind: control unless it is listed as open above
+}
+
+Command gate(const Command& cmd, AuthLevel level)
+{
+    if (!may_control(level) && requires_auth(cmd))
+    {
+        return Command{};
+    }
+    return cmd;
+}
 } // namespace remote

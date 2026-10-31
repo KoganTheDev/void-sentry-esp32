@@ -3,7 +3,7 @@
 Usage (repo root; needs the `websockets` package, version 13 or newer, and Pillow):
 
     python tools/hud_mock/mock_board.py [--port 8080] [--host 127.0.0.1] [--dark] [--stall-after SECONDS]
-                                        [--busy] [--uncalibrated] [--stick] [--stay] [--narrow-limits]
+                                        [--busy] [--uncalibrated] [--stick] [--stay] [--narrow-limits] [--no-pin]
 
 then open http://127.0.0.1:8080 (the HUD) or http://127.0.0.1:8080/wifi (WiFi setup).
 
@@ -15,12 +15,19 @@ What it serves:
     GET  /                    the HUD, built from web/hud/ on every request (edit, then reload)
     GET  /wifi                web/wifi_setup.html
     GET  /api/wifi/status|scan|saved   plausible JSON in the shapes documented in wifi_setup.html
-    POST /api/wifi/add|forget          accept PIN 1234, 403 {"error":"wrong pin"} otherwise
+    POST /api/wifi/add|forget          accept PIN 1234, 403 {"error":"wrong pin"} otherwise (with --no-pin the
+                                       first add sets the PIN, like the board)
+    POST /api/hud/login       form field pin: 1234 sets the HttpOnly cookie vs_session=<32 hex>; 403 wrong pin,
+                              429 {"locked_s":N} after 5 wrong PINs in a row (shared with the WiFi API), 400 without
+                              a PIN. Sessions live in RAM (max 4, LRU), like the board's
+    POST /api/hud/logout      forget the caller's session, clear the cookie
     WS   /stream              one binary 320x240 JPEG per message at about 15 fps (a dim room and a walking
                               grey person). Max 2 viewers: a 3rd is accepted and closed at once, no frames, like
                               the board. Client messages (the HUD's 1-byte keepalive) are drained and ignored.
     WS   /commands            request/reply: exactly one JSON text reply per received text message, never an
-                              unsolicited one. A binary frame or a message over 64 bytes closes the socket.
+                              unsolicited one. A binary frame or a message over 64 bytes closes the socket. The
+                              login cookie is read at the handshake and re-checked per message: without a live
+                              session a control command is answered but dropped (reply "auth" 0)
 
 The protocol and the reply keys are the contract in docs/superpowers/specs/2026-10-26-hud-ux-overhaul-design.md.
 The behaviour mirrors the firmware: lib/remote (parser, 300 ms dead man), lib/controller (modes, calibration button
@@ -35,6 +42,7 @@ Options:
                        smaller than the frame and the lim bits trigger after a short jog (out-of-reach and end-stop UI)
     --stick            the physical joystick "wins": while a HUD jog is held, stick is 1 and the jog is ignored
     --stay             the target never leaves the frame (always locked, id 1); the e2e checks use it
+    --no-pin           start with no PIN set: control is open to every session (reply "auth" 2) until a PIN is set
 
 The simulation (classes Target, Turret, Board) is pure: it takes the time as an argument, so it is deterministic and
 unit-tested (test_mock_board.py). Only the Server class touches sockets and the clock.
@@ -48,8 +56,10 @@ import asyncio
 import io
 import json
 import math
+import secrets
 import sys
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple, Optional
@@ -98,7 +108,13 @@ REPLY_KEYS = (
     "detected", "x", "y", "width", "height", "pixels", "state", "id", "bx", "by", "bw", "bh", "vx", "vy",
     "mode", "cal", "cal_state", "calibrated", "pan", "tilt", "cal_error",
     "cal_saves", "cal_miss", "stick", "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "ret", "spd", "vw",
+    "auth",
 )  # fmt: skip
+
+# Reply "auth" (AuthLevel in ESP32/include/auth_level.h): what this /commands session may do.
+AUTH_VIEWER = 0  # a PIN is set and the session is not logged in: status only, control commands are dropped
+AUTH_AUTHED = 1  # logged in with the PIN: full control
+AUTH_OPEN = 2  # no PIN set yet: control is open to everyone
 
 
 def clamp(v, lo, hi):
@@ -154,6 +170,11 @@ def parse(message: str) -> Cmd:
             if x is not None and y is not None and x < FRAME_W and y < FRAME_H:
                 return Cmd("aim", x=x, y=y)
     return Cmd("poll")
+
+
+def requires_auth(c: Cmd) -> bool:
+    """remote::requires_auth: every command but the poll moves or reconfigures the turret."""
+    return c.kind != "poll"
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -520,11 +541,15 @@ class Board:
             self._now = h_end
             self._tick(h_end)
 
-    def handle(self, message: str, now: float) -> str:
-        """One /commands message in, exactly one JSON reply out."""
+    def handle(self, message: str, now: float, auth: int = AUTH_OPEN) -> str:
+        """One /commands message in, exactly one JSON reply out. `auth` is the session's access (remote::gate: a
+        viewer's control command is applied as a poll, never queued, and still answered)."""
         self.advance(now)
-        self._apply(parse(message), now)
-        return self.reply(now)
+        cmd = parse(message)
+        if auth == AUTH_VIEWER and requires_auth(cmd):
+            cmd = Cmd("poll")
+        self._apply(cmd, now)
+        return self.reply(now, auth)
 
     # ---- reply ----
     def home_ms(self, t: float) -> int:
@@ -537,7 +562,7 @@ class Board:
         far = abs(self.turret.pan) > 1.0 or abs(self.turret.tilt - TILT_HOME) > 1.0
         return 1 if self.mode == "ai" and self._homed and far else 0
 
-    def reply_dict(self, t: float) -> dict:
+    def reply_dict(self, t: float, auth: int = AUTH_OPEN) -> dict:
         s = self.target.sample(t)
         ax, ay = self.map.inverse(self.turret.pan, self.turret.tilt)
         rx0, ry0, rx1, ry1 = self.map.reach_box(self.lim)
@@ -552,12 +577,13 @@ class Board:
             "ax": ax, "ay": ay, "lim": self.turret.limits(),
             "rx0": rx0, "ry0": ry0, "rx1": rx1, "ry1": ry1,
             "home": self.home_ms(t), "ret": self.returning_home(), "spd": self.speed, "vw": self._viewers(),
+            "auth": auth,
         }  # fmt: skip
         assert tuple(d) == REPLY_KEYS
         return d
 
-    def reply(self, t: float) -> str:
-        return json.dumps(self.reply_dict(t), separators=(",", ":"))
+    def reply(self, t: float, auth: int = AUTH_OPEN) -> str:
+        return json.dumps(self.reply_dict(t, auth), separators=(",", ":"))
 
 
 def _f1(v: float) -> float:
@@ -609,27 +635,141 @@ class FrameRenderer:
 
 
 # ---------------------------------------------------------------------------------------------------------------
+# PIN and HUD login (lib/provisioning pin_guard.h and session_table.h, WifiManager::login/auth_level)
+# ---------------------------------------------------------------------------------------------------------------
+class PinGuard:
+    """prov::PinGuard: the 5th consecutive wrong PIN locks out for min(60 s * 2^k, 1 h), k = lockouts since the last
+    success. pin None means no PIN has been set yet. Time (seconds) is passed in."""
+
+    MAX_FAILURES = 5
+    BASE_LOCK_S = 60.0
+    MAX_LOCK_S = 3600.0
+
+    def __init__(self, pin: Optional[str] = "1234"):
+        self.pin = pin
+        self._failures = 0
+        self._lockouts = 0
+        self._locked_until: Optional[float] = None
+
+    def check(self, pin: str, now: float) -> tuple[str, int]:
+        """("ok" | "wrong" | "locked" | "not_set", seconds left of a lockout, rounded up)."""
+        if self.pin is None:
+            return "not_set", 0
+        if self._locked_until is not None:
+            if now < self._locked_until:
+                return "locked", math.ceil(self._locked_until - now)
+            self._locked_until = None
+        if pin == self.pin:
+            self._failures = self._lockouts = 0
+            return "ok", 0
+        self._failures += 1
+        if self._failures >= self.MAX_FAILURES:
+            self._locked_until = now + min(self.BASE_LOCK_S * 2 ** self._lockouts, self.MAX_LOCK_S)
+            self._failures = 0
+            self._lockouts += 1
+        return "wrong", 0
+
+
+SESSION_COOKIE = "vs_session"
+_HEX = set("0123456789abcdefABCDEF")
+
+
+def session_cookie(header: str) -> Optional[str]:
+    """prov::session_cookie: the first vs_session whose value is 32 hex digits (lowercased), else None."""
+    if len(header) > 1024:
+        return None
+    for pair in header.split(";"):
+        name, eq, value = pair.partition("=")
+        if not eq or name.strip(" \t") != SESSION_COOKIE:
+            continue
+        value = value.strip(" \t")
+        if len(value) == 32 and set(value) <= _HEX:
+            return value.lower()
+    return None
+
+
+class Access:
+    """HUD control access: login with the shared PinGuard, RAM-only session tokens (max 4, least recently used
+    evicted), and the per-message level of a session (AUTH_VIEWER, AUTH_AUTHED or AUTH_OPEN)."""
+
+    CAPACITY = 4
+
+    def __init__(self, guard: PinGuard):
+        self.guard = guard
+        self.sessions: OrderedDict[str, None] = OrderedDict()  # oldest use first
+
+    def login(self, pin: str, now: float) -> tuple[int, dict, Optional[str]]:
+        """(HTTP status, JSON body, new token or None) in the board's shapes."""
+        status, left = self.guard.check(pin, now)
+        if status == "not_set":
+            return 400, {"error": "no PIN has been set yet, so control is open: set one on the WiFi page"}, None
+        if status == "locked":
+            return 429, {"locked_s": left}, None
+        if status == "wrong":
+            return 403, {"error": "wrong pin"}, None
+        token = secrets.token_hex(16)
+        self.sessions[token] = None
+        while len(self.sessions) > self.CAPACITY:
+            self.sessions.popitem(last=False)
+        return 200, {"ok": True}, token
+
+    def logout(self, token: Optional[str]):
+        if token is not None:
+            self.sessions.pop(token, None)
+
+    def clear(self):
+        self.sessions.clear()
+
+    def level(self, token: Optional[str]) -> int:
+        if self.guard.pin is None:
+            return AUTH_OPEN
+        if token is not None and token in self.sessions:
+            self.sessions.move_to_end(token)  # a use: keeps a polling HUD from being evicted
+            return AUTH_AUTHED
+        return AUTH_VIEWER
+
+
+# ---------------------------------------------------------------------------------------------------------------
 # WiFi API (shapes from web/wifi_setup.html)
 # ---------------------------------------------------------------------------------------------------------------
 class WifiState:
-    PIN = "1234"
     MAX_SAVED = 3
 
-    def __init__(self):
+    def __init__(self, access: Optional[Access] = None):
         self.saved = ["HomeNet", "LabWiFi"]
+        self.access = access or Access(PinGuard())
 
     def status(self) -> dict:
         return {"mode": "sta", "ssid": self.saved[0] if self.saved else "", "ip": "192.168.1.57",
-                "pin_set": True, "failure": ""}  # fmt: skip
+                "pin_set": self.access.guard.pin is not None, "failure": ""}  # fmt: skip
+
+    def _pin_ok(self, path: str, form: dict, now: float) -> Optional[tuple[int, dict]]:
+        """None when the PIN check passed (or set the first PIN); otherwise the error reply."""
+        pin = form.get("pin", "")
+        if self.access.guard.pin is None:
+            if path == "/api/wifi/forget":
+                return 400, {"error": "unknown network, or no PIN has been set yet"}
+            if not (4 <= len(pin) <= 8 and pin.isdigit() and pin.isascii()):
+                return 400, {"error": "check ssid (1-32 chars), password (empty or 8-63 chars) and pin (4-8 digits)"}
+            self.access.guard.pin = pin  # the first add defines the PIN
+            self.access.clear()  # a new PIN ends every HUD session
+            return None
+        status, left = self.access.guard.check(pin, now)
+        if status == "locked":
+            return 429, {"locked_s": left}
+        if status != "ok":
+            return 403, {"error": "wrong pin"}
+        return None
 
     def scan(self) -> dict:
         nets = [("HomeNet", -48, True), ("LabWiFi", -61, True), ("CoffeeShop Guest", -72, False),
                 ("Neighbor 5G", -80, True)]  # fmt: skip
         return {"networks": [{"ssid": s, "rssi": r, "secured": sec} for s, r, sec in nets]}
 
-    def post(self, path: str, form: dict) -> tuple[int, dict]:
-        if form.get("pin") != self.PIN:
-            return 403, {"error": "wrong pin"}
+    def post(self, path: str, form: dict, now: float = 0.0) -> tuple[int, dict]:
+        refused = self._pin_ok(path, form, now)
+        if refused is not None:
+            return refused
         ssid = form.get("ssid", "")
         if not ssid or len(ssid.encode()) > 32:
             return 400, {"error": "bad ssid"}
@@ -651,7 +791,9 @@ class WifiState:
 # ---------------------------------------------------------------------------------------------------------------
 # Server: HTTP front end + internal websockets server
 # ---------------------------------------------------------------------------------------------------------------
-_REASONS = {200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed"}
+_REASONS = {200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed",
+            429: "Too Many Requests"}  # fmt: skip
+_COOKIE_ATTRS = "HttpOnly; SameSite=Strict; Path=/"
 
 
 class Server:
@@ -659,7 +801,8 @@ class Server:
         self.args = args
         self.t0 = time.monotonic()
         self.viewers: set = set()
-        self.wifi = WifiState()
+        self.access = Access(PinGuard(None if args.no_pin else "1234"))
+        self.wifi = WifiState(self.access)
         self.board = Board(target=Target(stay=args.stay), uncalibrated=args.uncalibrated, stick_mode=args.stick, viewers=lambda: len(self.viewers),
                            narrow_limits=args.narrow_limits)
         self.renderer = FrameRenderer(dark=args.dark)
@@ -679,11 +822,16 @@ class Server:
             await ws.close(1008)
 
     async def commands(self, ws):
+        # Like the board's handshake: keep the cookie's token only if it is live now; re-check it per message, so
+        # a logout takes control away from this socket at once and a login needs a new socket.
+        token = session_cookie(ws.request.headers.get("Cookie", ""))
+        if self.access.level(token) != AUTH_AUTHED:
+            token = None
         async for message in ws:
             if isinstance(message, bytes) or len(message.encode()) > MAX_MESSAGE:
                 await ws.close(1011)  # the board closes the session on a binary or oversized frame
                 return
-            await ws.send(self.board.handle(message, self.clock()))
+            await ws.send(self.board.handle(message, self.clock(), self.access.level(token)))
 
     async def stream(self, ws):
         if self.args.busy or len(self.viewers) >= MAX_VIEWERS:
@@ -713,12 +861,23 @@ class Server:
             drain_task.cancel()
 
     # ---- HTTP front end ----
-    def http_response(self, method: str, path: str, body: bytes) -> tuple[int, str, bytes]:
+    def http_response(self, method: str, path: str, body: bytes, headers: Optional[dict] = None):
+        """(status, content type, payload) or, when cookies are set, (status, content type, payload, extra headers).
+        `headers` are the request headers with lowercase names."""
+        headers = headers or {}
         if method == "POST":
+            form = dict(parse_qsl(body.decode("utf-8", "replace"), keep_blank_values=True))
             if path in ("/api/wifi/add", "/api/wifi/forget"):
-                form = dict(parse_qsl(body.decode("utf-8", "replace"), keep_blank_values=True))
-                status, obj = self.wifi.post(path, form)
+                status, obj = self.wifi.post(path, form, self.clock())
                 return status, "application/json", json.dumps(obj).encode()
+            if path == "/api/hud/login":
+                status, obj, token = self.access.login(form.get("pin", ""), self.clock())
+                extra = [("Set-Cookie", f"{SESSION_COOKIE}={token}; {_COOKIE_ATTRS}")] if token else []
+                return status, "application/json", json.dumps(obj).encode(), extra
+            if path == "/api/hud/logout":
+                self.access.logout(session_cookie(headers.get("cookie", "")))
+                extra = [("Set-Cookie", f"{SESSION_COOKIE}=; {_COOKIE_ATTRS}; Max-Age=0")]
+                return 200, "application/json", json.dumps({"ok": True}).encode(), extra
             return 404, "text/plain", b"not found\n"
         if path in ("/", "/index.html"):
             return self.hud_page()
@@ -764,12 +923,14 @@ class Server:
             length = min(int(headers.get("content-length", "0") or 0), 4096)
             body = await reader.readexactly(length) if length else b""
             if method not in ("GET", "HEAD", "POST"):
-                status, ctype, payload = 405, "text/plain", b"method not allowed\n"
+                resp = 405, "text/plain", b"method not allowed\n"
             else:
-                status, ctype, payload = self.http_response("GET" if method == "HEAD" else method, path, body)
+                resp = self.http_response("GET" if method == "HEAD" else method, path, body, headers)
+            status, ctype, payload = resp[:3]
+            extra = "".join(f"{k}: {v}\r\n" for k, v in (resp[3] if len(resp) > 3 else []))
             out = (
                 f"HTTP/1.1 {status} {_REASONS.get(status, 'OK')}\r\nContent-Type: {ctype}\r\n"
-                f"Content-Length: {len(payload)}\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
+                f"Content-Length: {len(payload)}\r\nCache-Control: no-store\r\n{extra}Connection: close\r\n\r\n"
             ).encode()
             writer.write(out + (b"" if method == "HEAD" else payload))
             await writer.drain()
@@ -820,6 +981,8 @@ def build_parser():
                     help="soft limits pan -20..20, tilt 75..105 (small reach box, easy to hit the end stops)")  # fmt: skip
     ap.add_argument("--stay", action="store_true", help="the target never leaves the frame (always locked, id 1)")
     ap.add_argument("--stick", action="store_true", help="the joystick overrides HUD jogs (stick = 1 while held)")
+    ap.add_argument("--no-pin", action="store_true",
+                    help="no PIN set: every /commands session may control (auth 2) until a PIN is set")  # fmt: skip
     return ap
 
 

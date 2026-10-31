@@ -32,6 +32,7 @@ const S = {
     mode: null, calibrated: null, pan: null, tilt: null,
     trk: { state: 'idle', id: 0, x: 0, y: 0, bx: 0, by: 0, bw: 0, bh: 0, vx: 0, vy: 0, area: 0 },
     aim: null, reach: null, lim: 0, home: 0, ret: 0, vw: null,
+    auth: null, pinHintDismissed: false,          // reply `auth`: 0 view only, 1 logged in, 2 no PIN (auth.js)
     link: 'connecting', linkSince: performance.now(),
     pending: null, pendingTimer: null,          // 'ai' | 'user' | 'calibrate' | 'cancel'
     counters: null,                              // cal_saves / cal_miss baseline, reset on every connect

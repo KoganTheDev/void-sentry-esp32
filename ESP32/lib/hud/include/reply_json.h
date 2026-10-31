@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "auth_level.h"
 #include "calibration_session.h"
 #include "control_status.h"
 #include "track_snapshot.h"
@@ -21,16 +22,17 @@ namespace hud
 /**
  * @brief Buffer size that always holds a full reply.
  * @details test_reply_json formats the worst case (every counter at its maximum, every int16 negative, every float
- * at FLT_MAX width, the longest calibration error text; 739 bytes) and asserts it is shorter than this with at least 64
- * bytes to spare. A reply that still does not fit falls back to {"detected":0}.
+ * at FLT_MAX width, the longest calibration error text, an "auth" of 255; 750 bytes) and asserts it is shorter than
+ * this with at least 64 bytes to spare. A reply that still does not fit falls back to {"detected":0}.
  */
 constexpr size_t kReplySize = 832;
 
 /** @brief Inputs of one reply. Null pointers mean that part is not available. */
 struct ReplyInput {
     const TrackSnapshot* track = nullptr;  ///< Tracker output; null sends the fixed no-detection fallback.
-    const ControlStatus* status = nullptr; ///< Controller state; null omits the controller keys and "vw".
+    const ControlStatus* status = nullptr; ///< Controller state; null omits the controller keys, "vw" and "auth".
     uint32_t viewers = 0;                  ///< /stream viewers connected (0 to 2), sent as "vw" with the status keys.
+    AuthLevel auth = AuthLevel::Viewer;    ///< This session's access, sent as "auth" (0, 1, 2) after "vw".
 };
 
 /**
@@ -38,8 +40,8 @@ struct ReplyInput {
  * @details Without a track the fixed fallback {"detected":0,"x":0,"y":0,"width":320,"height":240,"pixels":0} is
  * written. With a track the tracker keys follow, then, when a status is present, the controller keys (mode, cal,
  * cal_state, calibrated, pan, tilt, cal_error, cal_saves, cal_miss, stick, ax, ay, lim, rx0, ry0, rx1, ry1, home,
- * ret, spd) and finally vw. If everything does not fit in size bytes the reply is {"detected":0}; below 15 bytes not
- * even that fits and an empty string (length 0) is written.
+ * ret, spd), then vw and finally auth. If everything does not fit in size bytes the reply is {"detected":0}; below 15
+ * bytes not even that fits and an empty string (length 0) is written.
  */
 size_t format_reply(const ReplyInput& in, char* out, size_t size);
 

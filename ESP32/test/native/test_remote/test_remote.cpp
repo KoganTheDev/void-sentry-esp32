@@ -1,6 +1,6 @@
 /**
  * @file test_remote.cpp
- * @brief Host-side tests for the remote command parser and the jog/mode inbox.
+ * @brief Host-side tests for the remote command parser, the viewer gate and the jog/mode inbox.
  */
 
 #include <unity.h>
@@ -416,6 +416,95 @@ void test_jog_magnitude_follows_speed(void)
     TEST_ASSERT_EQUAL_FLOAT(1.0f, kJogSpeedFast);
 }
 
+// ---- access control ----
+
+// Every message the HUD or any client can send, with whether a viewer may have it applied.
+static const struct {
+    const char* msg;
+    bool needs_auth;
+} kAuthCases[] = {
+    {" ", false},
+    {"", false},
+    {"hello", false},
+    {"move:up", true},
+    {"move:down-left", true},
+    {"move:stop", true},
+    {"mode:ai", true},
+    {"mode:user", true},
+    {"fire:on", true},
+    {"fire:off", true},
+    {"cal:start", true},
+    {"cal:point", true},
+    {"cal:cancel", true},
+    {"aim:160,120", true},
+    {"aim:999,1", false},
+    {"speed:slow", true},
+    {"speed:normal", true},
+    {"speed:fast", true},
+};
+
+void test_requires_auth_everything_but_poll(void)
+{
+    for (const auto& c : kAuthCases)
+    {
+        TEST_ASSERT_EQUAL_MESSAGE(c.needs_auth, requires_auth(parse_str(c.msg)), c.msg);
+    }
+    Command unknown; // a kind added later without a decision is treated as control
+    unknown.kind = static_cast<CommandKind>(200);
+    TEST_ASSERT_TRUE(requires_auth(unknown));
+}
+
+void test_gate_drops_control_for_viewers_only(void)
+{
+    for (const auto& c : kAuthCases)
+    {
+        const Command cmd = parse_str(c.msg);
+        // A viewer's control command becomes a Poll; a Poll stays a Poll.
+        TEST_ASSERT_TRUE_MESSAGE(gate(cmd, AuthLevel::Viewer).kind == CommandKind::Poll, c.msg);
+        // Logged in, or no PIN set: the command passes unchanged.
+        for (const AuthLevel level : {AuthLevel::Authed, AuthLevel::Open})
+        {
+            const Command g = gate(cmd, level);
+            TEST_ASSERT_TRUE_MESSAGE(g.kind == cmd.kind, c.msg);
+            TEST_ASSERT_EQUAL_INT_MESSAGE(cmd.pan, g.pan, c.msg);
+            TEST_ASSERT_EQUAL_INT_MESSAGE(cmd.tilt, g.tilt, c.msg);
+            TEST_ASSERT_EQUAL_INT_MESSAGE(cmd.aim_x, g.aim_x, c.msg);
+            TEST_ASSERT_EQUAL_INT_MESSAGE(cmd.aim_y, g.aim_y, c.msg);
+            TEST_ASSERT_TRUE_MESSAGE(g.mode == cmd.mode && g.cal == cmd.cal && g.speed == cmd.speed, c.msg);
+        }
+    }
+}
+
+void test_gated_viewer_commands_never_reach_the_inbox(void)
+{
+    RemoteInbox in;
+    const char* msgs[] = {"mode:user", "move:right", "cal:start", "aim:10,20", "speed:fast"};
+    for (const char* m : msgs)
+    {
+        in.submit(gate(parse_str(m), AuthLevel::Viewer), 100);
+    }
+    TEST_ASSERT_FALSE(in.jog_active(100));
+    TEST_ASSERT_FALSE(in.take_mode_request().has_value());
+    TEST_ASSERT_FALSE(in.take_cal_request().has_value());
+    TEST_ASSERT_FALSE(in.take_aim_request().has_value());
+    TEST_ASSERT_TRUE(in.speed() == JogSpeed::Normal);
+}
+
+void test_auth_level_from_pin_and_session(void)
+{
+    TEST_ASSERT_TRUE(auth_level(false, false) == AuthLevel::Open);
+    TEST_ASSERT_TRUE(auth_level(false, true) == AuthLevel::Open);
+    TEST_ASSERT_TRUE(auth_level(true, false) == AuthLevel::Viewer);
+    TEST_ASSERT_TRUE(auth_level(true, true) == AuthLevel::Authed);
+    TEST_ASSERT_FALSE(may_control(AuthLevel::Viewer));
+    TEST_ASSERT_TRUE(may_control(AuthLevel::Authed));
+    TEST_ASSERT_TRUE(may_control(AuthLevel::Open));
+    // The wire values the HUD reads as "auth".
+    TEST_ASSERT_EQUAL_UINT8(0, static_cast<uint8_t>(AuthLevel::Viewer));
+    TEST_ASSERT_EQUAL_UINT8(1, static_cast<uint8_t>(AuthLevel::Authed));
+    TEST_ASSERT_EQUAL_UINT8(2, static_cast<uint8_t>(AuthLevel::Open));
+}
+
 int main(int argc, char** argv)
 {
     UNITY_BEGIN();
@@ -442,5 +531,9 @@ int main(int argc, char** argv)
     RUN_TEST(test_aim_ends_active_jog);
     RUN_TEST(test_speed_default_and_persistent);
     RUN_TEST(test_jog_magnitude_follows_speed);
+    RUN_TEST(test_requires_auth_everything_but_poll);
+    RUN_TEST(test_gate_drops_control_for_viewers_only);
+    RUN_TEST(test_gated_viewer_commands_never_reach_the_inbox);
+    RUN_TEST(test_auth_level_from_pin_and_session);
     return UNITY_END();
 }

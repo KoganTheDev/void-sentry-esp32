@@ -29,7 +29,7 @@ Void Sentry watches a room through an OV3660 camera on an ESP32, finds the movin
 - **Smooth motion:** trapezoidal stepper profile at a 1 kHz motor tick (max 400 steps/s, accel 800 steps/s^2), rate-limited servo (120 deg/s), soft limits and a 2 s hold after the target is lost before returning home.
 - **Tested off-device:** the pure logic is unit-tested on the host (also under ASan + UBSan, with coverage tracked per library in CI), plus a regression bench over recorded real clips and synthetic clips.
 - **Hardware-driven fixes:** a camera clock change (20 MHz to 12 MHz) took ping from 265 ms to 19 ms, and a HUD request-loop bug that saturated core 0 was found with a purpose-built idle counter. Both are written up in [docs/engineering-notes.md](docs/engineering-notes.md).
-- **Browser-origin checks on the WebSockets:** handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Non-browser clients on the LAN are not authenticated yet.
+- **Browser-origin checks on the WebSockets:** handshakes from another browser origin, or with a non-IPv4 Host header (DNS rebinding), are refused. Control needs a login with the board's PIN (watching stays open); it is plain HTTP, so this protects against other users on a trusted LAN, not against someone sniffing it.
 
 ## Architecture
 
@@ -100,17 +100,19 @@ Prerequisites: [PlatformIO](https://platformio.org/) (CLI or the VS Code extensi
 
 Open `http://<board-ip>/` in a browser. The page is served gzipped from flash and shows the live stream, a target overlay and telemetry.
 
+- **Log in to control:** anyone on the network can watch, but moving the turret needs the PIN chosen on the WiFi setup page. Until then the HUD shows VIEW ONLY and the controls are locked; press Log in and enter the PIN (wrong PINs count toward the same lockout as on the WiFi page). The login lasts until you log out (click the CONTROL chip) or the board restarts. On a board with no PIN yet, control is open and the HUD suggests setting one. The joystick on the turret always works.
+
 - **Modes:** AI (the turret follows the tracked target), User (manual), Calibrate. The segmented AI / MANUAL / CALIBRATE control shows "switching..." until the board confirms. The HUD shows UNCALIBRATED until a map is saved. A short press of the joystick button toggles AI and User.
 - **Jogging:** WASD, the arrow keys or the on-screen cross jog the turret in manual mode (resent every 100 ms, with a 300 ms dead man on the board). Slow / Normal / Fast sets the jog speed (holding Shift means slow). An arrow dims when the turret is at that end stop, and pressing it toasts. A deflected joystick always wins over the HUD.
 - **Aiming at a point:** tap or drag on the video in manual mode and the turret goes there. Because the camera is fixed, the board knows which image point the turret points at and sends it, so the solid red reticle is the real aim. A dashed ghost reticle follows your finger instantly, with a dotted line and a time-left estimate, so the motor lag is visible instead of hidden. If the point is outside what the turret can reach, the ghost turns amber and shows where it will stop. The recenter button (or `H`) aims at the middle of the image.
 - **Calibration:** from the HUD, press C (or the CALIBRATE segment) and follow the wizard: it checks that a target is locked and the turret is still, then records point 1 and point 2 near opposite corners of the view. Success is shown when the board saves. The joystick works too: hold the button for 1.5 s (holding it again cancels and restores the previous mode), aim at a spot near one corner and short-press, then the opposite corner and short-press. The map is stored in NVS with a CRC and loaded at boot.
 - **FIRE:** a HUD effect only, there is no firing hardware (all free GPIOs are used). The tracer shows a HIT when the real reticle is inside the box of a locked target, otherwise a miss. Sentry auto-fire is opt-in: off by default, a confirm dialog arms it, a blinking chip shows while armed, and it disarms on link loss or reload. The board is never sent `fire:*`.
-- **Status and tools:** chips for mode, video (fps, or `FROZEN n s` when frames stop, `BUSY` if you are a refused third viewer), link round trip, viewers (n/2, the board streams to 2) and calibration; a LOW LIGHT indicator; an event log drawer (filter, folded repeats); and a snapshot button (`P`) that saves the frame with the overlay as a PNG.
+- **Status and tools:** chips for mode, video (fps, or `FROZEN n s` when frames stop, `BUSY` if you are a refused third viewer), link round trip, access (VIEW ONLY, CONTROL or OPEN), viewers (n/2, the board streams to 2) and calibration; a LOW LIGHT indicator; an event log drawer (filter, folded repeats); and a snapshot button (`P`) that saves the frame with the overlay as a PNG.
 - **Phones:** the layout adapts to desktop, phone portrait (video, mode, controls with no scrolling) and phone landscape. Android gets vibration feedback on hits and end stops. iPhone has no Vibration API, so the HUD uses the iOS 17.4+ switch-checkbox click trick, which is best effort and may not work on newer iOS versions.
 
 ### Developing the HUD without hardware
 
-`python tools/hud_mock/mock_board.py` runs a fake board that serves `web/*.html`, `/commands` and `/stream` (all on its one port; the HUD streams from port 81 only when served from port 80); open `http://127.0.0.1:8080`. Flags are in its docstring. `web/test_web_ui.py` checks the page statically, and the visual reference is `docs/design/hud-mockup.html`.
+`python tools/hud_mock/mock_board.py` runs a fake board that serves `web/*.html`, `/commands` and `/stream` (all on its one port; the HUD streams from port 81 only when served from port 80); open `http://127.0.0.1:8080`. Its PIN is 1234 (`--no-pin` starts without one); other flags are in its docstring. `web/test_web_ui.py` checks the page statically, and the visual reference is `docs/design/hud-mockup.html`.
 
 ## Testing and CI
 

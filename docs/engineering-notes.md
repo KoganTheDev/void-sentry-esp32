@@ -12,7 +12,7 @@ This document records the main design decisions and one debugging story from bui
 6. [The motor task](#6-the-motor-task)
 7. [Dual-core task layout](#7-dual-core-task-layout)
 8. [The poll storm: a debugging story](#8-the-poll-storm-a-debugging-story)
-9. [WebSocket origin check and DNS rebinding](#9-websocket-origin-check-and-dns-rebinding)
+9. [WebSocket origin check, DNS rebinding and the control login](#9-websocket-origin-check-dns-rebinding-and-the-control-login)
 10. [How correctness is checked](#10-how-correctness-is-checked)
 11. [WiFi provisioning and the PIN](#11-wifi-provisioning-and-the-pin)
 12. [The HUD redesign: showing latency, not hiding it](#12-the-hud-redesign-showing-latency-not-hiding-it)
@@ -159,15 +159,21 @@ So signal strength did not predict the failure. Weak WiFi was ruled out.
 
 **What it teaches.** Build the instrument before you theorise, test the hypothesis against the instrument, and do not stop at the first plausible cause (a body near the antenna) just because it matches a physical story. A client-side protocol bug looked like a radio problem.
 
-## 9. WebSocket origin check and DNS rebinding
+## 9. WebSocket origin check, DNS rebinding and the control login
 
 **Problem.** Once the HUD could drive the motors (Stage 4b: held keys send `move:<dir>`, resent every 100 ms, with a 300 ms dead man on the board and the joystick always winning), a web page from any other site open in a browser on the same network could try to open a WebSocket to the board. Browsers do not apply the same-origin policy to WebSockets, so the server has to check.
 
 **What won and why.** At the handshake of both `/commands` and `/stream`, `remote::origin_allowed` is applied: when an `Origin` header is present it must equal `http(s)://` plus the `Host`, and the `Host` must be an IPv4 literal with an optional port. The IPv4 rule is what defeats DNS rebinding, where an attacker's hostname is re-pointed at the board's LAN address so the browser thinks it is still talking to the attacker's origin. The board is always reached by IP address, so requiring an IP literal costs nothing. A missing `Origin` is allowed (non-browser clients do not send one). The check is pure code with native tests; the device glue only copies the headers into small stack buffers.
 
-**Limit.** Non-browser clients on the LAN are not authenticated. LAN authentication is a known follow-up, so the HUD should be treated as trusted-network only.
+**The gap it left.** The origin check only stops pages from other sites. Any program on the LAN sends no Origin at all, so until the login below anything on the network could drive the turret.
 
-**Evidence.** The origin check and the command parser are native-tested under ASan and UBSan. The protocol and dead man were verified from a PC client; HUD jog in a real browser is not yet verified on hardware.
+**The login: what won and why.** Watching stays open; control needs a login with the PIN. Watching the camera was judged acceptable on a home LAN, and keeping it open lets a second device or a guest watch without the PIN; moving the turret is what needed a gate. The secret is the existing WiFi PIN (s11): it is already salted and hashed, already has an escalating lockout, and checking both the WiFi page and the HUD through the same `PinGuard` means one lockout covers both, where a second password would be one more thing to forget and a second brute-force target. The transport is a cookie because a browser cannot add a custom header to a WebSocket handshake but does send cookies: `POST /api/hud/login` exchanges the PIN for a 128-bit random token in an `HttpOnly` (page scripts cannot read it), `SameSite=Strict` (never sent from another site) cookie, and the `/commands` handshake reads it. Tokens live in RAM (at most 4, least recently used evicted), so a reboot logs everyone out, and setting the PIN or `wifi-reset` clears them.
+
+**Checked per message, not per handshake.** The handshake only remembers which token a socket carried; every message asks whether that token is still live. A logout or a new PIN therefore takes control away from an open socket at once, without closing it. A viewer's control command is turned into a poll (never queued for later) and still gets its one reply, so the single poll loop of s8 is untouched, and the reply's `auth` key tells the HUD which controls to lock. The physical joystick is never gated. With no PIN set (a fresh board) there is nothing to check against, so control stays open and the HUD says so and links to the WiFi page.
+
+**What remains.** Everything is plain HTTP. A device that can sniff the LAN, or an on-path attacker such as a rogue access point, can read the PIN in the login request or the cookie in any later one and replay it. This is a defence against other users and programs on a trusted network, not against an on-path attacker; TLS on the ESP32 (RAM, and handshake time on the core 0 that already serves the network) would be the next step if that matters. Cookies are scoped to the host, not the port, so the browser also sends the cookie on the `/stream` handshake (port 81); it is not used there.
+
+**Evidence.** The origin check, the command parser, the session table, the cookie parser and the viewer gate are native-tested under ASan and UBSan. The protocol and dead man were verified from a PC client. The login flow is exercised end to end against the mock board (which mirrors it); on hardware, HUD jog in a real browser and the login are not yet verified.
 
 ## 10. How correctness is checked
 

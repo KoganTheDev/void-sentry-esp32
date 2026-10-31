@@ -2,6 +2,7 @@
 
 #include "log_sanitize.h"
 #include "origin_check.h"
+#include "session_table.h"
 #include <esp32-hal-log.h> // route the refusal log through Arduino's logger (otherwise silenced)
 #include <esp_http_server.h>
 #include <esp_log.h>
@@ -81,4 +82,18 @@ inline bool handshake_origin_ok(httpd_req_t* req, const char* tag, bool any_port
         return false;
     }
     return true;
+}
+
+/**
+ * @brief Reads the HUD login token from the request's Cookie header (the `vs_session` cookie, prov::session_cookie).
+ * @details Shared by the login API (logout) and the /commands handshake. The header is copied into a stack buffer of
+ * prov::kMaxCookieHeader + 1 bytes; a longer one counts as no cookie. The token is only parsed here, not checked.
+ * @return true and the token in @p token if a well-formed vs_session cookie was sent.
+ */
+inline bool read_session_cookie(httpd_req_t* req, prov::SessionToken& token)
+{
+    char cookie[prov::kMaxCookieHeader + 1];
+    size_t len = 0;
+    return read_header(req, "Cookie", cookie, sizeof(cookie), &len) == HeaderStatus::Ok &&
+           prov::session_cookie({cookie, len}, token);
 }

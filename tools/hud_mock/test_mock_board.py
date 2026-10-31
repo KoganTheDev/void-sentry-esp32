@@ -1,10 +1,12 @@
 """Tests for the mock board simulation (run: python -m unittest discover -s tools/hud_mock -p "test_*.py")."""
+import asyncio
 import io
 import json
 import re
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -108,7 +110,7 @@ class ReplyTests(unittest.TestCase):
         for k in ("detected", "calibrated", "stick", "ret"):
             self.assertIn(d[k], (0, 1))
         for k in ("x", "y", "width", "height", "pixels", "id", "bx", "by", "bw", "bh", "cal", "cal_saves", "cal_miss",
-                  "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "vw"):  # fmt: skip
+                  "ax", "ay", "lim", "rx0", "ry0", "rx1", "ry1", "home", "vw", "auth"):  # fmt: skip
             self.assertIs(int, type(d[k]), k)
         for k in ("vx", "vy", "pan", "tilt"):
             self.assertIs(float, type(d[k]), k)
@@ -131,6 +133,46 @@ class ReplyTests(unittest.TestCase):
     def test_starts_calibrated_or_not(self):
         self.assertEqual(1, r(board()[0], " ", 1.0)["calibrated"])
         self.assertEqual(0, r(board(uncalibrated=True)[0], " ", 1.0)["calibrated"])
+
+
+class AccessTests(unittest.TestCase):
+    """remote::gate in the mock: a viewer gets every reply, but its control commands change nothing."""
+
+    CONTROL = ("move:right", "move:stop", "mode:user", "fire:on", "speed:fast", "cal:start", "cal:point",
+               "cal:cancel", "aim:300,200")  # fmt: skip
+
+    def test_auth_is_the_last_key_and_echoes_the_level(self):
+        b, _ = board()
+        for level in (mb.AUTH_VIEWER, mb.AUTH_AUTHED, mb.AUTH_OPEN):
+            d = json.loads(b.handle(" ", 1.0, level))
+            self.assertEqual("auth", list(d)[-1])
+            self.assertEqual(level, d["auth"])
+        self.assertEqual(mb.AUTH_OPEN, r(b, " ", 1.1)["auth"])  # the default: no gating
+
+    def test_requires_auth_is_everything_but_a_poll(self):
+        for m in self.CONTROL:
+            self.assertTrue(mb.requires_auth(mb.parse(m)), m)
+        for m in (" ", "", "garbage", "aim:999,1"):
+            self.assertFalse(mb.requires_auth(mb.parse(m)), m)
+
+    def test_viewer_commands_are_dropped_but_answered(self):
+        b, _ = board(state="idle")
+        before = r(b, " ", 1.0)
+        t = 1.0
+        for m in self.CONTROL:
+            t += 0.05
+            d = json.loads(b.handle(m, t, mb.AUTH_VIEWER))
+            self.assertEqual(mb.AUTH_VIEWER, d["auth"], m)
+        d = json.loads(b.handle(" ", t + 2.0, mb.AUTH_VIEWER))
+        self.assertEqual(("ai", "idle", "normal", before["pan"], before["tilt"]),
+                         (d["mode"], d["cal_state"], d["spd"], d["pan"], d["tilt"]))  # fmt: skip
+
+    def test_authed_and_open_sessions_control(self):
+        for level in (mb.AUTH_AUTHED, mb.AUTH_OPEN):
+            b, _ = board(state="idle")
+            self.assertEqual("user", json.loads(b.handle("mode:user", 1.0, level))["mode"])
+            b.handle("move:right", 1.0, level)
+            self.assertGreater(json.loads(b.handle(" ", 1.2, level))["pan"], 1.0)
 
 
 class TargetTests(unittest.TestCase):
@@ -593,6 +635,193 @@ class WifiTests(unittest.TestCase):
         self.assertEqual((200, {"ok": True}), w.post("/api/wifi/forget", {"ssid": "New", "pin": "1234"}))
         self.assertEqual({"networks"}, set(w.scan()))
         self.assertEqual({"mode", "ssid", "ip", "pin_set", "failure"}, set(w.status()))
+
+    def test_no_pin_first_add_sets_the_pin_and_ends_sessions(self):
+        access = mb.Access(mb.PinGuard(None))
+        w = mb.WifiState(access)
+        self.assertFalse(w.status()["pin_set"])
+        self.assertEqual(400, w.post("/api/wifi/forget", {"ssid": "HomeNet", "pin": "1234"})[0])
+        self.assertEqual(400, w.post("/api/wifi/add", {"ssid": "New", "pin": "12"})[0])  # the first PIN must be valid
+        access.sessions["x" * 32] = None
+        self.assertEqual((200, {"ok": True}), w.post("/api/wifi/add", {"ssid": "New", "pin": "5678"}))
+        self.assertTrue(w.status()["pin_set"])
+        self.assertEqual({}, dict(access.sessions))
+        self.assertEqual(403, w.post("/api/wifi/add", {"ssid": "Other", "pin": "1234"})[0])
+
+    def test_wifi_lockout_answers_429(self):
+        w = mb.WifiState()
+        for _ in range(5):
+            self.assertEqual(403, w.post("/api/wifi/forget", {"ssid": "HomeNet", "pin": "0000"}, 10.0)[0])
+        self.assertEqual((429, {"locked_s": 60}), w.post("/api/wifi/forget", {"ssid": "HomeNet", "pin": "1234"}, 10.0))
+
+
+class PinGuardTests(unittest.TestCase):
+    def test_lockout_escalates_and_success_resets(self):
+        g = mb.PinGuard("1234")
+        for _ in range(4):
+            self.assertEqual(("wrong", 0), g.check("0000", 0.0))
+        self.assertEqual(("wrong", 0), g.check("0000", 0.0))  # the 5th starts a 60 s lockout
+        self.assertEqual(("locked", 60), g.check("1234", 0.0))  # nothing is evaluated while locked
+        self.assertEqual(("locked", 1), g.check("1234", 59.5))
+        for _ in range(5):
+            g.check("0000", 60.0)
+        self.assertEqual(("locked", 120), g.check("1234", 60.0))  # doubled
+        self.assertEqual(("ok", 0), g.check("1234", 180.0))
+        for _ in range(5):
+            g.check("0000", 200.0)
+        self.assertEqual(("locked", 60), g.check("1234", 200.0))  # back to 60 s after a success
+
+    def test_lockout_is_capped_at_an_hour(self):
+        g = mb.PinGuard("1234")
+        t = 0.0
+        for _ in range(8):
+            for _ in range(5):
+                g.check("0000", t)
+            t += 4000.0
+        for _ in range(5):
+            g.check("0000", t)
+        self.assertEqual(("locked", 3600), g.check("1234", t))
+
+    def test_not_set(self):
+        self.assertEqual(("not_set", 0), mb.PinGuard(None).check("1234", 0.0))
+
+
+class CookieTests(unittest.TestCase):
+    HEX = "00112233445566778899aabbccddeeff"
+
+    def test_found_among_others(self):
+        self.assertEqual(self.HEX, mb.session_cookie("vs_session=" + self.HEX))
+        self.assertEqual(self.HEX, mb.session_cookie("a=1; vs_session=" + self.HEX.upper() + " ;b=2"))
+        self.assertEqual(self.HEX, mb.session_cookie("vs_session=zz; vs_session=" + self.HEX))
+
+    def test_rejected(self):
+        for bad in ("", "vs_session", "xvs_session=" + self.HEX, "vs_session=" + self.HEX[:-1],
+                    "vs_session=" + self.HEX + "0", "vs_session=" + self.HEX[:-1] + "g",
+                    "vs_session=" + self.HEX + "; pad=" + "x" * 1024):  # fmt: skip
+            self.assertIsNone(mb.session_cookie(bad), bad)
+
+
+class LoginTests(unittest.TestCase):
+    def test_login_levels_logout(self):
+        a = mb.Access(mb.PinGuard("1234"))
+        self.assertEqual(mb.AUTH_VIEWER, a.level(None))
+        self.assertEqual((403, {"error": "wrong pin"}, None), a.login("0000", 0.0))
+        status, body, token = a.login("1234", 0.0)
+        self.assertEqual((200, {"ok": True}), (status, body))
+        self.assertRegex(token, r"^[0-9a-f]{32}$")
+        self.assertEqual(mb.AUTH_AUTHED, a.level(token))
+        self.assertEqual(mb.AUTH_VIEWER, a.level("0" * 32))
+        a.logout(token)
+        self.assertEqual(mb.AUTH_VIEWER, a.level(token))
+        a.logout(None)  # no cookie: nothing to do
+
+    def test_lockout_is_shared_with_the_wifi_api(self):
+        a = mb.Access(mb.PinGuard("1234"))
+        w = mb.WifiState(a)
+        for _ in range(4):
+            w.post("/api/wifi/forget", {"ssid": "HomeNet", "pin": "0000"}, 0.0)
+        self.assertEqual(403, a.login("9999", 0.0)[0])
+        self.assertEqual((429, {"locked_s": 60}, None), a.login("1234", 0.0))
+
+    def test_no_pin_means_open_and_no_login(self):
+        a = mb.Access(mb.PinGuard(None))
+        self.assertEqual(mb.AUTH_OPEN, a.level(None))
+        self.assertEqual(400, a.login("1234", 0.0)[0])
+
+    def test_least_recently_used_session_is_evicted(self):
+        a = mb.Access(mb.PinGuard("1234"))
+        tokens = [a.login("1234", 0.0)[2] for _ in range(4)]
+        self.assertEqual(mb.AUTH_AUTHED, a.level(tokens[0]))  # used: now the newest
+        fifth = a.login("1234", 0.0)[2]
+        self.assertEqual(mb.AUTH_VIEWER, a.level(tokens[1]))
+        for t in (tokens[0], tokens[2], tokens[3], fifth):
+            self.assertEqual(mb.AUTH_AUTHED, a.level(t))
+
+
+class FakeSocket:
+    """Just enough of a websockets ServerConnection for Server.commands: the handshake headers, the messages."""
+
+    def __init__(self, cookie, messages, between=None):
+        self.request = SimpleNamespace(headers={"Cookie": cookie} if cookie is not None else {})
+        self._messages = list(messages)
+        self._between = between or {}  # message index -> callable run before that message is delivered
+        self.replies = []
+
+    def __aiter__(self):
+        return self._gen()
+
+    async def _gen(self):
+        for i, m in enumerate(self._messages):
+            if i in self._between:
+                self._between[i]()
+            yield m
+
+    async def send(self, text):
+        self.replies.append(json.loads(text))
+
+    async def close(self, code=1000):
+        pass
+
+
+class ServerAuthTests(unittest.TestCase):
+    def server(self, *flags):
+        srv = mb.Server(mb.build_parser().parse_args(list(flags)))
+        srv.board = mb.Board(target=FixedTarget("idle"), viewers=lambda: 0)
+        return srv
+
+    def login(self, srv, pin="1234"):
+        resp = srv.http_response("POST", "/api/hud/login", f"pin={pin}".encode(), {})
+        return resp
+
+    def run_socket(self, srv, ws):
+        asyncio.run(srv.commands(ws))
+        return ws.replies
+
+    def test_login_sets_an_http_only_cookie(self):
+        srv = self.server()
+        status, ctype, payload, extra = self.login(srv)
+        self.assertEqual((200, "application/json", {"ok": True}), (status, ctype, json.loads(payload)))
+        (name, value), = extra
+        self.assertEqual("Set-Cookie", name)
+        self.assertRegex(value, r"^vs_session=[0-9a-f]{32}; HttpOnly; SameSite=Strict; Path=/$")
+        status, _, payload, extra = self.login(srv, "0000")
+        self.assertEqual((403, {"error": "wrong pin"}, []), (status, json.loads(payload), extra))
+
+    def test_logged_in_socket_controls_viewer_does_not(self):
+        srv = self.server()
+        cookie = self.login(srv)[3][0][1].split(";")[0]
+        replies = self.run_socket(srv, FakeSocket(cookie, ["mode:user", " "]))
+        self.assertEqual([(1, "user"), (1, "user")], [(r["auth"], r["mode"]) for r in replies])
+        srv2 = self.server()
+        replies = self.run_socket(srv2, FakeSocket(None, ["mode:user", " "]))
+        self.assertEqual([(0, "ai"), (0, "ai")], [(r["auth"], r["mode"]) for r in replies])
+        replies = self.run_socket(srv2, FakeSocket(cookie, ["mode:user"]))  # a token from another board
+        self.assertEqual((0, "ai"), (replies[0]["auth"], replies[0]["mode"]))
+
+    def test_logout_cuts_an_open_socket(self):
+        srv = self.server()
+        cookie = self.login(srv)[3][0][1].split(";")[0]
+        logout = lambda: srv.http_response("POST", "/api/hud/logout", b"", {"cookie": cookie})  # noqa: E731
+        replies = self.run_socket(srv, FakeSocket(cookie, ["mode:user", "mode:ai", " "], {1: logout}))
+        self.assertEqual([(1, "user"), (0, "user"), (0, "user")], [(r["auth"], r["mode"]) for r in replies])
+        status, _, payload, extra = logout()
+        self.assertEqual((200, {"ok": True}), (status, json.loads(payload)))
+        self.assertIn("Max-Age=0", extra[0][1])
+
+    def test_login_only_counts_for_new_sockets(self):
+        srv = self.server()
+        login = lambda: self.login(srv)  # noqa: E731
+        replies = self.run_socket(srv, FakeSocket(None, ["mode:user", "mode:user"], {1: login}))
+        self.assertEqual([0, 0], [r["auth"] for r in replies])
+
+    def test_no_pin_is_open_until_a_pin_is_set(self):
+        srv = self.server("--no-pin")
+        self.assertEqual(400, self.login(srv)[0])
+        set_pin = lambda: srv.http_response("POST", "/api/wifi/add", b"ssid=X&pin=4321", {})  # noqa: E731
+        replies = self.run_socket(srv, FakeSocket(None, ["mode:user", "mode:ai"], {1: set_pin}))
+        self.assertEqual([(2, "user"), (0, "user")], [(r["auth"], r["mode"]) for r in replies])
+        self.assertEqual(200, self.login(srv, "4321")[0])
+
 
 class ReplyContractTests(unittest.TestCase):
     """reply_keys.json ties the mock and the firmware together, so drift on either side fails CI.
