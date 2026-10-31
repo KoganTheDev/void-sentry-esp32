@@ -1,6 +1,6 @@
 # HUD end-to-end checks
 
-`hud_e2e.py` drives the real `web/web_ui.html` in a headless Chrome or Edge (raw Chrome DevTools Protocol over
+`hud_e2e.py` drives the real HUD (built from `web/hud/`) in a headless Chrome or Edge (raw Chrome DevTools Protocol over
 websockets, no Playwright) against eight `tools/hud_mock/mock_board.py` instances, each started with the flags one
 scenario needs (`--stall-after`, `--busy`, `--dark`, `--uncalibrated`, `--stick`). It runs 32 checks: help and keys,
 manual jog, snapshot download, fire and auto-fire, the calibration wizard, frozen/busy video, low light, joystick

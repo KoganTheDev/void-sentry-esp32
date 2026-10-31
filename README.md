@@ -143,7 +143,7 @@ ESP32/lib/controller   device glue for lib/control: joystick, NVS, ties detectio
 ESP32/lib/motion       turret, stepper and servo motor task
 ESP32/lib/network      WiFi manager, HTTP/WebSocket server, stream broadcaster
 ESP32/bench            tracking clip bench and fixtures
-web/                   HUD source (web_ui.html) and header generator
+web/                   HUD source (hud/, joined by hud_build.py) and header generator
 tools/tracking/        clip recorder and fixture generator
 docs/                  specs, plans and engineering notes
 ```

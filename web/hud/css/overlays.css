@@ -1,0 +1,109 @@
+/* ---------- Calibration wizard ---------- */
+.wizard { border-color: rgba(255, 176, 32, 0.55); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.step { font-size: 11px; color: var(--muted); border-top: 3px solid var(--border-hi); padding-top: 5px; }
+.step.cur { color: var(--warn); border-color: var(--warn); font-weight: 600; }
+.step.done { color: var(--ok); border-color: var(--ok); }
+.wizard p.instr { margin: 0 0 10px; font-size: 13px; }
+.checks { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 4px; font-size: 12px; }
+.checks li::before { content: "\2715"; display: inline-block; width: 18px; color: var(--err); font-weight: 700; }
+.checks li.yes::before { content: "\2713"; color: var(--ok); }
+.wizard .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.wizard .err-box { padding: 8px 10px; border-radius: 6px; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.5); font-size: 12px; margin-bottom: 10px; }
+.wizard .confirm { padding: 10px; border-radius: 6px; background: #0f1013; border: 1px solid var(--border-hi); }
+.wizard .confirm p { margin: 0 0 8px; font-size: 13px; }
+
+/* ---------- Telemetry ---------- */
+details.tele summary { cursor: pointer; list-style: none; }
+details.tele summary::-webkit-details-marker { display: none; }
+details.tele summary h3 { margin: 0; }
+details.tele summary h3::after { content: "+"; }
+details.tele[open] summary h3::after { content: "\2212"; }
+details.tele[open] summary { margin-bottom: 10px; }
+.tgrid { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 12px; margin: 0; }
+.tgrid dt { color: var(--muted); }
+.tgrid dd { margin: 0; font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- Event log drawer: opens over the side panel, takes no space while closed ---------- */
+.drawer {
+    position: absolute;
+    top: calc(62px + env(safe-area-inset-top, 0px));
+    right: calc(10px + env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    width: 320px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(20, 22, 26, 0.97);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: -12px 0 30px rgba(0, 0, 0, 0.5);
+    animation: drawer-in 0.16s ease-out;
+}
+
+.drawer[hidden] { display: none; }
+@keyframes drawer-in { from { opacity: 0; transform: translateX(12px); } }
+.drawer header { display: flex; align-items: center; gap: 6px; }
+.drawer header h3 { margin: 0; flex: 1; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.filters { display: flex; gap: 4px; }
+
+.filters button {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 15px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font: 600 12px system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.filters button[aria-pressed="true"] { background: var(--panel-2); color: var(--text); border-color: var(--border-hi); }
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; min-height: 0; flex: 1; font-size: 13px; }
+.log li { display: grid; grid-template-columns: 16px 1fr auto; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 6px; }
+.log li.warn { background: rgba(255, 176, 32, 0.07); }
+.log li.err { background: rgba(255, 77, 77, 0.09); }
+.log li svg { width: 16px; height: 16px; color: var(--muted); }
+.log li.ok svg { color: var(--ok); }
+.log li.warn svg { color: var(--warn); }
+.log li.err svg { color: var(--err); }
+.log li.hit svg { color: var(--accent); }
+.log time { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.log .count { color: var(--muted); font-size: 11px; margin-left: 6px; }
+.log .empty { display: block; color: var(--muted); padding: 8px; }
+
+/* ---------- Help and confirm dialogs ---------- */
+dialog {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border-hi);
+    border-radius: 12px;
+    padding: 18px 20px;
+    width: min(420px, 92vw);
+}
+
+dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog h2 { margin: 0 0 12px; font-size: 16px; }
+dialog table { width: 100%; border-collapse: collapse; font-size: 13px; }
+dialog td { padding: 5px 0; border-bottom: 1px solid var(--border); }
+dialog td:last-child { text-align: right; }
+dialog p { font-size: 12px; color: var(--muted); }
+dialog.arm { border-color: rgba(255, 77, 77, 0.6); }
+dialog.arm h2 { color: #ffb3b3; }
+dialog.arm p.lead { color: var(--text); font-size: 13px; }
+dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
+
+kbd {
+    font: 600 11px var(--mono);
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border-hi);
+    background: #0f1013;
+    color: #cfd3d8;
+}
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.haptic-sink { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+
